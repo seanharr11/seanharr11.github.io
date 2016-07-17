@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>The Laziest Programmer - Articles</title>
+    <description>Because someone else has already built a solution to your problem.</description>
+    <link>
+    http://seanharr11.github.io</link>
+    
+      
+      <item>
+        <title>Migrating Between SQL Databases</title>
+        
+          <description>&lt;p&gt;We can all agree on one thing: SQL Databases are here to stay.&lt;/p&gt;
+
+</description>
+        
+        <pubDate>Thu, 14 Jul 2016 01:05:00 -0400</pubDate>
+        <link>
+        http://seanharr11.github.io/etl-alchemy</link>
+        <guid isPermaLink="true">http://seanharr11.github.io/etl-alchemy</guid>
+      </item>
+      
+    
+  </channel>
+</rss>
