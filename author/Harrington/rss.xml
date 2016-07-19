@@ -5,7 +5,7 @@
    
       <title>thelaziestprogrammer.com</title>
    
-   <link>http://thelaziestprogrammer.com</link>
+   <link>http://thelaziestprogrammer.com/</link>
    <description>Because someone else has already built a solution to your problem.</description>
    <language>en-uk</language>
    <managingEditor> Sean Harrington</managingEditor>
@@ -13,10 +13,10 @@
    
 	<item>
 	  <title>Migrating Between SQL Databases</title>
-	  <link>//etl-alchemy</link>
+	  <link>//etlalchemy</link>
 	  <author>Sean Harrington</author>
 	  <pubDate>2016-07-14T01:05:00-04:00</pubDate>
-	  <guid>//etl-alchemy</guid>
+	  <guid>//etlalchemy</guid>
 	  <description><![CDATA[
 	     <p>We can all agree on one thing: SQL Databases are here to stay.</p>
 
