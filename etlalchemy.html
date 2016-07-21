@@ -7,7 +7,7 @@
 
     <!-- [[! Page Meta ]] -->
     <title>Migrating Between SQL Databases</title>
-    <meta name="description" content="The Laziest Programmer - Because someone else has already built a solution to your problem." />
+    <meta name="description" content="The Laziest Programmer - Because someone else has already solved your problem." />
 
     <meta name="HandheldFriendly" content="True" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -34,13 +34,13 @@
     <meta property="og:site_name" content="The Laziest Programmer" />
     <meta property="og:type" content="website" />
     <meta property="og:title" content="The Laziest Programmer" />
-    <meta property="og:description" content="Because someone else has already built a solution to your problem." />
+    <meta property="og:description" content="Because someone else has already solved your problem." />
     <meta property="og:url" content="/" />
     <meta property="og:image" content="/assets/images/cover1.jpg" />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="The Laziest Programmer" />
-    <meta name="twitter:description" content="Because someone else has already built a solution to your problem." />
+    <meta name="twitter:description" content="Because someone else has already solved your problem." />
     <meta name="twitter:url" content="/" />
     <meta name="twitter:image:src" content="/assets/images/cover1.jpg" />
 
@@ -51,7 +51,7 @@
     "publisher": "Finding The Way Home",
     "url": "/",
     "image": "/assets/images/cover1.jpg",
-    "description": "Because someone else has already built a solution to your problem."
+    "description": "Because someone else has already solved your problem."
 }
     </script>
 
@@ -121,13 +121,25 @@
 
         <section class="post-content">
             
-            <p>We can all agree on one thing: SQL Databases are here to stay.</p>
+            <h5 id="problem">Problem:</h5>
+
+<blockquote>
+  <p>How to migrate from one SQL database to another.</p>
+</blockquote>
+
+<h5 id="solution">Solution</h5>
+
+<blockquote>
+  <p><em>etlalchemy</em></p>
+</blockquote>
+
+<p>We can all agree on one thing: SQL Databases are here to stay.</p>
 
 <p>However, for one reason or another, sometimes they stay in one place for too long.</p>
 
 <p>I started my most recent job in June 2015, where I was responsible for projects spanning various fields, ranging from Web Development to Machine Learning. After learning that we kept the majority of our data in an <strong>Oracle 9i</strong> RDBMS, and learning that Oracle pulled support for the system in July 2010, naturally the first move to make was to migrate onto a different RDBMS, or to upgrade.</p>
 
-<p>To cut to the chase, we chose MySQL as our target RDBMS. So began my journey to migrate off of a DB as old as the sea turtle in the banner above, and onto a modern solution.</p>
+<p>In short, we chose to migrate from Oracle onto MySQL as our target RDBMS. So began my journey to migrate off of a database as old as the sea turtle in the banner above, and onto a modern solution.</p>
 
 <p>As most projects do, the project grew from a simple database migration, to a database migration requiring cleaning data, altering schema, identifying and dropping unused/legacy columns etc… We identified the following requirements when searching for a solution:</p>
 
@@ -139,10 +151,11 @@
   </li>
   <li><strong>Automated Solution</strong>
     <ul>
-      <li><em>We wanted to avoid .sql scripts, and to avoid an iterative, stateful process (in case things went south halfway through).</em></li>
+      <li><em>Avoid .sql scripts and manual scripting.</em></li>
+      <li><em>‘Push-button’ solution, rather than several small procedures.</em></li>
     </ul>
   </li>
-  <li><strong>High degree of customizability.</strong>
+  <li><strong>High Degree of Customizability.</strong>
     <ul>
       <li><em>Adding custom rules for schema transformations.</em></li>
       <li><em>Adding custom rules for data transformations.</em></li>
@@ -168,35 +181,32 @@
       <li>(Pricing also starts at $150 for Personal use, $1000 for Enterprise use)</li>
     </ul>
   </li>
-  <li>A few Ruby gems lacked support for older version of the cx_Oracle driver.</li>
+  <li>A few Ruby gems (taps) lacked support for many of the Oracle column types, and the cx_Oracle driver in general.</li>
 </ol>
 
 <p>I decided to dust off an old college project, burn the midnight oil to revitalize it, and leverage it to solve this problem.</p>
 
-<p>The project, <a href="https://github.com/seanharr11/etlalchemy" title="Navigate to etlalchemy github page"><strong>etlalchemy</strong></a>, is an open-sourced Python application which sits atop <a href="http://www.sqlalchemy.org/" title="Navigate to sqlalchemy.org"><strong>SQLAlchemy</strong></a>, and allows ETL (Extract, Transform Load) functionality between any 2 SQL databases. The tool presents a <a href="https://www.python.org/dev/peps/pep-0020/#the-zen-of-python"><em>“Simple over Complex”</em></a> solution to the problem, allowing you to <em>Migrate any SQL Database with 4 Lines of Code</em>. (More advanced features are also available).</p>
+<p>The project, <a href="https://github.com/seanharr11/etlalchemy" title="Navigate to etlalchemy github page"><strong>etlalchemy</strong></a>, is an open-sourced Python application which sits atop <a href="http://www.sqlalchemy.org/" title="Navigate to sqlalchemy.org"><strong>SQLAlchemy</strong></a>, and allows ETL (Extract, Transform, Load) functionality between any 2 SQL databases. The tool presents a <a href="https://www.python.org/dev/peps/pep-0020/#the-zen-of-python"><em>“Simple over Complex”</em></a> solution to the problem, allowing you to <em>Migrate any SQL Database with 4 Lines of Code</em>. (More advanced features are also available).</p>
 
 <p>To install the tool:</p>
 
-<div class="language-bash highlighter-rouge"><pre class="highlight"><code>pip install etlalchemy
+<pre><code class="language-bash">pip install etlalchemy
 </code></pre>
-</div>
 
 <p>To run the tool:</p>
 
-<div class="language-python highlighter-rouge"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">etlalchemy</span> <span class="kn">import</span> <span class="n">ETLAlchemySource</span><span class="p">,</span> <span class="n">ETLAlchemyTarget</span>
+<pre><code class="language-python">from etlalchemy import ETLAlchemySource, ETLAlchemyTarget
 
-<span class="n">src</span> <span class="o">=</span> <span class="n">ETLAlchemySource</span><span class="p">(</span><span class="s">"mssql+pyodbc://username:password@DSN_NAME"</span><span class="p">)</span>
-<span class="n">tgt</span> <span class="o">=</span> <span class="n">ETLAlchemyTarget</span><span class="p">(</span><span class="s">"mysql://username:password@hostname/db_name"</span><span class="p">,</span>
-                          <span class="n">drop_database</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="n">tgt</span><span class="o">.</span><span class="n">addSource</span><span class="p">(</span><span class="n">mssql_db_source</span><span class="p">)</span>
-<span class="n">tgt</span><span class="o">.</span><span class="n">migrate</span><span class="p">()</span>
+src = ETLAlchemySource("mssql+pyodbc://username:password@DSN_NAME")
+tgt = ETLAlchemyTarget("mysql://username:password@hostname/db_name",
+                          drop_database=True)
+tgt.addSource(src)
+tgt.migrate()
 </code></pre>
-</div>
 
-<p>Since solving the Oracle -&gt; MySQL problem with etlalchemy, I have spent months adding support for PostgreSQL, MySQL, Oracle, SQL Server, and SQLite. More recently I have been chiseling the code to increase performance, and this week (mid-July 2016) I have made the github repo public after testing all the aforementioned RDBMS’s as both Sources, and Targets.</p>
+<p>Since solving my problem with a rough-draft of etlalchemy, I have spent months adding support for PostgreSQL, MySQL, Oracle, SQL Server, and SQLite. This means that with 4 lines of code, you can migrate from SQL Server onto MySQL, or migrate from Oracle onto PostgreSQL. You can even migrate a remote MySQL database onto a local SQLite database to test an application on your local machine.</p>
 
-<p>It is my hope that many of you find this tool useful, and are able to leverage this tool to carry out database migrations with very short turnaround.</p>
-
+<p>Happy Database Migrating!</p>
 
 
         </section>
@@ -216,7 +226,7 @@
                 <h4><a href="/author/Sean">Sean Harrington</a></h4>
                 
                 
-                    <p> I believe that an Emajor barre chord sounds best on a Strat's neck pick-up, that Mat Cauthon would make any 14-book series enjoyable, and that college football players can evolve into decent software developers.</p>
+                    <p> I believe that cover bands should welcome guitarists in the audience on-stage, that Mat Cauthon would make any 14-book series enjoyable, and that college football players can evolve into decent software developers.</p>
                 
                 <div class="author-meta">
                     <span class="author-location icon-location"> Boston, MA</span> 
@@ -254,6 +264,13 @@
 <aside class="read-next">
 
     <!-- [[! next_post ]] -->
+    
+        <a class="read-next-story " style="background-image: url(/assets/images/face_of_urchin.jpg)" href="/cx_oracle">
+            <section class="post">
+                <h2>Installing cx_Oracle Driver on El Capitan</h2>
+                <p>#### Problem: #### > How to install cx_Oracle driver on Mac (El Capitan) ##### Download...</p>
+            </section>
+        </a>
     
     <!-- [[! /next_post ]] -->
     <!-- [[! prev_post ]] -->

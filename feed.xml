@@ -2,15 +2,30 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>The Laziest Programmer - Articles</title>
-    <description>Because someone else has already built a solution to your problem.</description>
+    <description>Because someone else has already solved your problem.</description>
     <link>
     http://thelaziestprogrammer.com/</link>
     
       
       <item>
+        <title>Installing cx_Oracle Driver on El Capitan</title>
+        
+          <description>&lt;h4 id=&quot;problem&quot;&gt;Problem:&lt;/h4&gt;
+
+</description>
+        
+        <pubDate>Thu, 14 Jul 2016 01:05:00 -0400</pubDate>
+        <link>
+        http://thelaziestprogrammer.com//cx_oracle</link>
+        <guid isPermaLink="true">http://thelaziestprogrammer.com//cx_oracle</guid>
+      </item>
+      
+    
+      
+      <item>
         <title>Migrating Between SQL Databases</title>
         
-          <description>&lt;p&gt;We can all agree on one thing: SQL Databases are here to stay.&lt;/p&gt;
+          <description>&lt;h5 id=&quot;problem&quot;&gt;Problem:&lt;/h5&gt;
 
 </description>
         

@@ -1638,6 +1638,7 @@ body:not(.post-template) .post-title {
     .page-description {
         font-size: 1.8rem;
         line-height: 1.5em;
+        color: #7ec0ee;
     }
 
     .post {
