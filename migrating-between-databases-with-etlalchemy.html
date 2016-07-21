@@ -121,13 +121,13 @@
 
         <section class="post-content">
             
-            <h5 id="problem">Problem:</h5>
+            <h5>Problem:</h5>
 
 <blockquote>
-  <p>How to migrate from one SQL database to another.</p>
+<p>How to migrate from one SQL database to another.</p>
 </blockquote>
 
-<p>We can all agree on one thing: SQL Databases are here to stay.</p>
+<p>We can all agree on one thing: SQL Databases are here to stay. </p>
 
 <p>However, for one reason or another, sometimes they stay in one place for too long.</p>
 
@@ -135,71 +135,67 @@
 
 <p>In short, we chose to migrate from Oracle onto MySQL as our target RDBMS. So began my journey to migrate off of a database as old as the sea turtle in the banner above, and onto a modern solution.</p>
 
-<p>As most projects do, the project grew from a simple database migration, to a database migration requiring cleaning data, altering schema, identifying and dropping unused/legacy columns etc… We identified the following requirements when searching for a solution:</p>
+<p>As most projects do, the project grew from a simple database migration, to a database migration requiring cleaning data, altering schema, identifying and dropping unused/legacy columns etc... We identified the following requirements when searching for a solution:</p>
 
 <ol>
-  <li><strong>No Loss of Information</strong>
-    <ul>
-      <li><em>Data, schema, constraints and indexes all must be migrated without any loss of information.</em></li>
-    </ul>
-  </li>
-  <li><strong>Automated Solution</strong>
-    <ul>
-      <li><em>Avoid .sql scripts and manual scripting.</em></li>
-      <li><em>‘Push-button’ solution, rather than several small procedures.</em></li>
-    </ul>
-  </li>
-  <li><strong>High Degree of Customizability.</strong>
-    <ul>
-      <li><em>Adding custom rules for schema transformations.</em></li>
-      <li><em>Adding custom rules for data transformations.</em></li>
-    </ul>
-  </li>
-  <li><strong>Performance</strong>
-    <ul>
-      <li><em>Fast enough to test multiple runs per day.</em></li>
-    </ul>
-  </li>
+<li><strong>No Loss of Information</strong>
+
+<ul>
+<li><em>Data, schema, constraints and indexes all must be migrated without any loss of information.</em></li>
+</ul></li>
+<li><strong>Automated Solution</strong>
+
+<ul>
+<li><em>Avoid .sql scripts and manual scripting.</em></li>
+<li><em>&#39;Push-button&#39; solution, rather than several small procedures.</em> </li>
+</ul></li>
+<li><strong>High Degree of Customizability.</strong>
+
+<ul>
+<li><em>Adding custom rules for schema transformations.</em></li>
+<li><em>Adding custom rules for data transformations.</em></li>
+</ul></li>
+<li><strong>Performance</strong>
+
+<ul>
+<li><em>Fast enough to test multiple runs per day.</em></li>
+</ul></li>
 </ol>
 
 <p>The immediate solutions failed:</p>
 
 <ol>
-  <li><strong>MySQL Workbench</strong> involved a great deal of manual configuring, and no ‘automated’ way to migrate from Oracle -&gt; MySQL.
-    <ul>
-      <li>(Why would Oracle allow Enterprise -&gt; Open-source migrations within their own product-line anyway?)</li>
-    </ul>
-  </li>
-  <li><strong>DBConvert</strong> lacked support for Oracle versions before 10.x.x.
-    <ul>
-      <li>(Pricing also starts at $150 for Personal use, $1000 for Enterprise use)</li>
-    </ul>
-  </li>
-  <li>A few Ruby gems (taps) lacked support for many of the Oracle column types, and the cx_Oracle driver in general.</li>
+<li><strong>MySQL Workbench</strong> involved a great deal of manual configuring, and no &#39;automated&#39; way to migrate from Oracle -&gt; MySQL.
+
+<ul>
+<li>(Why would Oracle allow Enterprise -&gt; Open-source migrations within their own product-line anyway?)</li>
+</ul></li>
+<li><strong>DBConvert</strong> lacked support for Oracle versions before 10.x.x. 
+
+<ul>
+<li>(Pricing also starts at $150 for Personal use, $1000 for Enterprise use)</li>
+</ul></li>
+<li>A few Ruby gems (taps) lacked support for many of the Oracle column types, and the cx_Oracle driver in general.</li>
 </ol>
 
 <p>I decided to dust off an old college project, burn the midnight oil to revitalize it, and leverage it to solve this problem.</p>
 
-<p>The project, <a href="https://github.com/seanharr11/etlalchemy" title="Navigate to etlalchemy github page"><strong>etlalchemy</strong></a>, is an open-sourced Python application which sits atop <a href="http://www.sqlalchemy.org/" title="Navigate to sqlalchemy.org"><strong>SQLAlchemy</strong></a>, and allows ETL (Extract, Transform, Load) functionality between any 2 SQL databases. The tool presents a <a href="https://www.python.org/dev/peps/pep-0020/#the-zen-of-python"><em>“Simple over Complex”</em></a> solution to the problem, allowing you to <em>Migrate any SQL Database with 4 Lines of Code</em>. (More advanced features are also available).</p>
+<p>The project, <a href="https://github.com/seanharr11/etlalchemy" title="Navigate to etlalchemy github page"><strong>etlalchemy</strong></a>, is an open-sourced Python application which sits atop <a href="http://www.sqlalchemy.org/" title="Navigate to sqlalchemy.org"><strong>SQLAlchemy</strong></a>, and allows ETL (Extract, Transform, Load) functionality between any 2 SQL databases. The tool presents a <a href="https://www.python.org/dev/peps/pep-0020/#the-zen-of-python"><em>&quot;Simple over Complex&quot;</em></a> solution to the problem, allowing you to <em>Migrate any SQL Database with 4 Lines of Code</em>. (More advanced features are also available).</p>
 
 <p>To install the tool:</p>
-
-<pre><code class="language-bash">pip install etlalchemy
-# On El Capitan:
-### pip install --ignore-installed etlalchemy
-</code></pre>
-
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">pip install etlalchemy
+<span class="c"># On El Capitan:</span>
+<span class="c">### pip install --ignore-installed etlalchemy</span>
+</code></pre></div>
 <p>To run the tool:</p>
-
-<pre><code class="language-python">from etlalchemy import ETLAlchemySource, ETLAlchemyTarget
-# Migrate from SQL Server onto PostgreSQL
-src = ETLAlchemySource("mssql+pyodbc://username:password@DSN_NAME")
-tgt = ETLAlchemyTarget("postgresql://username:password@hostname/db_name",
-                          drop_database=True)
-tgt.addSource(src)
-tgt.migrate()
-</code></pre>
-
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="kn">from</span> <span class="nn">etlalchemy</span> <span class="kn">import</span> <span class="n">ETLAlchemySource</span><span class="p">,</span> <span class="n">ETLAlchemyTarget</span>
+<span class="c"># Migrate from SQL Server onto PostgreSQL</span>
+<span class="n">src</span> <span class="o">=</span> <span class="n">ETLAlchemySource</span><span class="p">(</span><span class="s">"mssql+pyodbc://username:password@DSN_NAME"</span><span class="p">)</span>
+<span class="n">tgt</span> <span class="o">=</span> <span class="n">ETLAlchemyTarget</span><span class="p">(</span><span class="s">"postgresql://username:password@hostname/db_name"</span><span class="p">,</span>
+                          <span class="n">drop_database</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">tgt</span><span class="o">.</span><span class="n">addSource</span><span class="p">(</span><span class="n">src</span><span class="p">)</span>
+<span class="n">tgt</span><span class="o">.</span><span class="n">migrate</span><span class="p">()</span>
+</code></pre></div>
 <p>Since solving my problem with the first pass of etlalchemy, I have spent months adding support for PostgreSQL, MySQL, Oracle, SQL Server, and SQLite. This means that with 4 lines of code, you can do things like migrate from SQL Server onto MySQL, migrate from Oracle onto PostgreSQL, or in my case migrate Oracle onto MySQL. Another helpful usecase is to migrate a remote MySQL database onto a local SQLite database to test an application on your local machine.</p>
 
 <p>Happy Database Migrating!</p>
@@ -264,7 +260,7 @@ tgt.migrate()
         <a class="read-next-story " style="background-image: url(/assets/images/face_of_urchin_small.jpg)" href="/install-cx_oracle-mac">
             <section class="post">
                 <h2>Installing cx_Oracle Driver on El Capitan</h2>
-                <p>#### Problem: #### > How to install cx_Oracle driver on Mac (El Capitan) ##### Download...</p>
+                <p>#### Problem: > How to install cx_Oracle driver on Mac (El Capitan) ##### Download Oracle...</p>
             </section>
         </a>
     
