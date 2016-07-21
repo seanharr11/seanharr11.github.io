@@ -190,8 +190,8 @@
 <p>To run the tool:</p>
 <div class="highlight"><pre><code class="language-python" data-lang="python"><span class="kn">from</span> <span class="nn">etlalchemy</span> <span class="kn">import</span> <span class="n">ETLAlchemySource</span><span class="p">,</span> <span class="n">ETLAlchemyTarget</span>
 <span class="c"># Migrate from SQL Server onto PostgreSQL</span>
-<span class="n">src</span> <span class="o">=</span> <span class="n">ETLAlchemySource</span><span class="p">(</span><span class="s">"mssql+pyodbc://username:password@DSN_NAME"</span><span class="p">)</span>
-<span class="n">tgt</span> <span class="o">=</span> <span class="n">ETLAlchemyTarget</span><span class="p">(</span><span class="s">"postgresql://username:password@hostname/db_name"</span><span class="p">,</span>
+<span class="n">src</span> <span class="o">=</span> <span class="n">ETLAlchemySource</span><span class="p">(</span><span class="s">"mssql+pyodbc://user:passwd@DSN_NAME"</span><span class="p">)</span>
+<span class="n">tgt</span> <span class="o">=</span> <span class="n">ETLAlchemyTarget</span><span class="p">(</span><span class="s">"postgresql://user:passwd@hostname/dbname"</span><span class="p">,</span>
                           <span class="n">drop_database</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 <span class="n">tgt</span><span class="o">.</span><span class="n">addSource</span><span class="p">(</span><span class="n">src</span><span class="p">)</span>
 <span class="n">tgt</span><span class="o">.</span><span class="n">migrate</span><span class="p">()</span>
