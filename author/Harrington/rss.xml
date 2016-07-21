@@ -166,15 +166,15 @@ rm -vrf cx_Oracle-5.2.1
 <p>To run the tool:</p>
 
 <pre><code class="language-python">from etlalchemy import ETLAlchemySource, ETLAlchemyTarget
-
+# Migrate from SQL Server onto PostgreSQL
 src = ETLAlchemySource("mssql+pyodbc://username:password@DSN_NAME")
-tgt = ETLAlchemyTarget("mysql://username:password@hostname/db_name",
+tgt = ETLAlchemyTarget("postgresql://username:password@hostname/db_name",
                           drop_database=True)
 tgt.addSource(src)
 tgt.migrate()
 </code></pre>
 
-<p>Since solving my problem with a rough-draft of etlalchemy, I have spent months adding support for PostgreSQL, MySQL, Oracle, SQL Server, and SQLite. This means that with 4 lines of code, you can migrate from SQL Server onto MySQL, or migrate from Oracle onto PostgreSQL. You can even migrate a remote MySQL database onto a local SQLite database to test an application on your local machine.</p>
+<p>Since solving my problem with the first pass of etlalchemy, I have spent months adding support for PostgreSQL, MySQL, Oracle, SQL Server, and SQLite. This means that with 4 lines of code, you can do things like migrate from SQL Server onto MySQL, migrate from Oracle onto PostgreSQL, or in my case migrate Oracle onto MySQL. Another helpful usecase is to migrate a remote MySQL database onto a local SQLite database to test an application on your local machine.</p>
 
 <p>Happy Database Migrating!</p>
 
