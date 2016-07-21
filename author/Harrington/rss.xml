@@ -159,6 +159,8 @@ rm -vrf cx_Oracle-5.2.1
 <p>To install the tool:</p>
 
 <pre><code class="language-bash">pip install etlalchemy
+# On El Capitan:
+### pip install --ignore-installed etlalchemy
 </code></pre>
 
 <p>To run the tool:</p>
