@@ -101,12 +101,6 @@ rm -vrf cx_Oracle-5.2.1
   <p>How to migrate from one SQL database to another.</p>
 </blockquote>
 
-<h5 id="solution">Solution</h5>
-
-<blockquote>
-  <p><em>etlalchemy</em></p>
-</blockquote>
-
 <p>We can all agree on one thing: SQL Databases are here to stay.</p>
 
 <p>However, for one reason or another, sometimes they stay in one place for too long.</p>

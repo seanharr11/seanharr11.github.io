@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+   
+      <title>thelaziestprogrammer.com</title>
+   
+   <link>http://thelaziestprogrammer.com/</link>
+   <description>Because someone else has already solved your problem.</description>
+   <language>en-uk</language>
+   <managingEditor> Sean Harrington</managingEditor>
+   <atom:link href="rss" rel="self" type="application/rss+xml" />
+   
+	<item>
+	  <title>Installing cx_Oracle Driver on El Capitan</title>
+	  <link>//cx_oracle</link>
+	  <author>Sean Harrington</author>
+	  <pubDate>2016-07-14T01:05:00-04:00</pubDate>
+	  <guid>//cx_oracle</guid>
+	  <description><![CDATA[
+	     <h4 id="problem">Problem:</h4>
+
+<blockquote>
+  <p>How to install cx_Oracle driver on Mac (El Capitan)</p>
+</blockquote>
+
+<h5 id="download-oracle-instantclient">Download Oracle instantclient</h5>
+<ol>
+  <li>Navigate to the <a href="http://www.oracle.com/technetwork/topics/intel-macsoft-096467.html">‘Oracle Instant Client Downloads’</a> page.</li>
+  <li>Download <strong>instantclient-basic-macos.x64-12.1.0.2.0.zip</strong> and <strong>instantclient-sdk-macos.x64-12.1.0.2.0.zip</strong>
+    <ul>
+      <li>You will need an Oracle account to proceed with the download.</li>
+    </ul>
+  </li>
+  <li>Enter the ‘~/Downloads’ folder in Terminal, and unzip both downloads:</li>
+</ol>
+
+<pre><code>cd ~/Downloads
+# Or 'cd &lt;download_directory&gt;'
+unzip instantclient-basic-macos.x64-12.1.0.2.0.zip
+unzip instantclient-sdk-macos.x64-12.1.0.2.0.zip
+</code></pre>
+
+<h5 id="configure-oracle-instantclient">Configure Oracle instantclient</h5>
+
+<pre><code>mv instantclient_12_1 /usr/local/opt/instantclient_12_1
+cd /usr/local/opt/instantclient_12_1
+# setup.py will look in the 'lib' directory
+mkdir lib
+mv *.dylib* lib
+# Create version-agnostic soft links
+cd /usr/local/opt/instantclient_12_1/lib
+ln -s libclntsh.dylib.12.1 libclntsh.dylib
+ln -s libocci.dylib.12.1 libocci.dylib
+</code></pre>
+
+<h5 id="configure-environment-variables">Configure environment variables</h5>
+
+<pre><code># Tell cx_Oracle setup.py where to find instantclient libs
+echo 'export ORACLE_HOME=/usr/local/opt/instantclient_12_1' &gt;&gt; ~/.bash_profile
+echo 'export DYLD_LIBRARY_PATH=$ORACLE_HOME' &gt;&gt; ~/.bash_profile
+source ~/.bash_profile
+</code></pre>
+
+<h5 id="download-and-install-cxoracle">Download and install cx_Oracle</h5>
+
+<pre><code># Download and unpackage cx_Oracle tarball
+curl -O https://pypi.python.org/packages/95/7f/3b74fe3adeb5948187b760330cb7e9175e3484bd6defdfeb9b504d71b4b3/cx_Oracle-5.2.1.tar.gz
+tar -xzf cx_Oracle-5.2.1.tar.gz
+# Set -rpath option when building from src
+export FORCE_RPATH=TRUE
+# Build and install cx_Oracle
+cd cx_Oracle-5.2.1
+python setup.py build
+python setup.py install
+# Now clean-up
+cd ..
+rm -vrf cx_Oracle-5.2.1
+</code></pre>
+
+<h5 id="verify-cxoracle-was-correctly-installed">Verify cx_Oracle was correctly installed</h5>
+
+<pre><code>python -c "import cx_Oracle"
+</code></pre>
+
+<p>If this reports no errors, then you are ready to use the driver! Oracle is a pain in the ass, hope this helps…</p>
+
+	  ]]></description>
+	</item>
+
+	<item>
+	  <title>Migrating Between SQL Databases</title>
+	  <link>//etlalchemy</link>
+	  <author>Sean Harrington</author>
+	  <pubDate>2016-07-14T01:05:00-04:00</pubDate>
+	  <guid>//etlalchemy</guid>
+	  <description><![CDATA[
+	     <h5 id="problem">Problem:</h5>
+
+<blockquote>
+  <p>How to migrate from one SQL database to another.</p>
+</blockquote>
+
+<h5 id="solution">Solution</h5>
+
+<blockquote>
+  <p><em>etlalchemy</em></p>
+</blockquote>
+
+<p>We can all agree on one thing: SQL Databases are here to stay.</p>
+
+<p>However, for one reason or another, sometimes they stay in one place for too long.</p>
+
+<p>I started my most recent job in June 2015, where I was responsible for projects spanning various fields, ranging from Web Development to Machine Learning. After learning that we kept the majority of our data in an <strong>Oracle 9i</strong> RDBMS, and learning that Oracle pulled support for the system in July 2010, naturally the first move to make was to migrate onto a different RDBMS, or to upgrade.</p>
+
+<p>In short, we chose to migrate from Oracle onto MySQL as our target RDBMS. So began my journey to migrate off of a database as old as the sea turtle in the banner above, and onto a modern solution.</p>
+
+<p>As most projects do, the project grew from a simple database migration, to a database migration requiring cleaning data, altering schema, identifying and dropping unused/legacy columns etc… We identified the following requirements when searching for a solution:</p>
+
+<ol>
+  <li><strong>No Loss of Information</strong>
+    <ul>
+      <li><em>Data, schema, constraints and indexes all must be migrated without any loss of information.</em></li>
+    </ul>
+  </li>
+  <li><strong>Automated Solution</strong>
+    <ul>
+      <li><em>Avoid .sql scripts and manual scripting.</em></li>
+      <li><em>‘Push-button’ solution, rather than several small procedures.</em></li>
+    </ul>
+  </li>
+  <li><strong>High Degree of Customizability.</strong>
+    <ul>
+      <li><em>Adding custom rules for schema transformations.</em></li>
+      <li><em>Adding custom rules for data transformations.</em></li>
+    </ul>
+  </li>
+  <li><strong>Performance</strong>
+    <ul>
+      <li><em>Fast enough to test multiple runs per day.</em></li>
+    </ul>
+  </li>
+</ol>
+
+<p>The immediate solutions failed:</p>
+
+<ol>
+  <li><strong>MySQL Workbench</strong> involved a great deal of manual configuring, and no ‘automated’ way to migrate from Oracle -&gt; MySQL.
+    <ul>
+      <li>(Why would Oracle allow Enterprise -&gt; Open-source migrations within their own product-line anyway?)</li>
+    </ul>
+  </li>
+  <li><strong>DBConvert</strong> lacked support for Oracle versions before 10.x.x.
+    <ul>
+      <li>(Pricing also starts at $150 for Personal use, $1000 for Enterprise use)</li>
+    </ul>
+  </li>
+  <li>A few Ruby gems (taps) lacked support for many of the Oracle column types, and the cx_Oracle driver in general.</li>
+</ol>
+
+<p>I decided to dust off an old college project, burn the midnight oil to revitalize it, and leverage it to solve this problem.</p>
+
+<p>The project, <a href="https://github.com/seanharr11/etlalchemy" title="Navigate to etlalchemy github page"><strong>etlalchemy</strong></a>, is an open-sourced Python application which sits atop <a href="http://www.sqlalchemy.org/" title="Navigate to sqlalchemy.org"><strong>SQLAlchemy</strong></a>, and allows ETL (Extract, Transform, Load) functionality between any 2 SQL databases. The tool presents a <a href="https://www.python.org/dev/peps/pep-0020/#the-zen-of-python"><em>“Simple over Complex”</em></a> solution to the problem, allowing you to <em>Migrate any SQL Database with 4 Lines of Code</em>. (More advanced features are also available).</p>
+
+<p>To install the tool:</p>
+
+<pre><code class="language-bash">pip install etlalchemy
+</code></pre>
+
+<p>To run the tool:</p>
+
+<pre><code class="language-python">from etlalchemy import ETLAlchemySource, ETLAlchemyTarget
+
+src = ETLAlchemySource("mssql+pyodbc://username:password@DSN_NAME")
+tgt = ETLAlchemyTarget("mysql://username:password@hostname/db_name",
+                          drop_database=True)
+tgt.addSource(src)
+tgt.migrate()
+</code></pre>
+
+<p>Since solving my problem with a rough-draft of etlalchemy, I have spent months adding support for PostgreSQL, MySQL, Oracle, SQL Server, and SQLite. This means that with 4 lines of code, you can migrate from SQL Server onto MySQL, or migrate from Oracle onto PostgreSQL. You can even migrate a remote MySQL database onto a local SQLite database to test an application on your local machine.</p>
+
+<p>Happy Database Migrating!</p>
+
+	  ]]></description>
+	</item>
+
+
+</channel>
+</rss>
