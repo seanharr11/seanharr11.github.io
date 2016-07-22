@@ -56,23 +56,18 @@ ln -s libocci.dylib.12.1 libocci.dylib
 echo 'export ORACLE_HOME=/usr/local/opt/instantclient_12_1' &gt;&gt; ~/.bash_profile
 echo 'export DYLD_LIBRARY_PATH=$ORACLE_HOME' &gt;&gt; ~/.bash_profile
 source ~/.bash_profile
+# Set -rpath option to tell gcc to look in ORACLE_HOME when linking
+export FORCE_RPATH=1
+
 </code></pre></div>
 <h5>Download and install cx_Oracle</h5>
-<div class="highlight"><pre><code class="language-" data-lang=""># Download and unpackage cx_Oracle tarball
-curl -O https://pypi.python.org/packages/95/7f/3b74fe3adeb5948187b760330cb7e9175e3484bd6defdfeb9b504d71b4b3/cx_Oracle-5.2.1.tar.gz
-tar -xzf cx_Oracle-5.2.1.tar.gz
-# Set -rpath option when building from src
-export FORCE_RPATH=TRUE
-# Build and install cx_Oracle
-cd cx_Oracle-5.2.1
-python setup.py build
-python setup.py install
-# Now clean-up
-cd ..
-rm -vrf cx_Oracle-5.2.1
+<div class="highlight"><pre><code class="language-" data-lang=""># Install with pip
+pip install cx_Oracle
 </code></pre></div>
 <h5>Verify cx_Oracle was correctly installed</h5>
 <div class="highlight"><pre><code class="language-" data-lang="">python -c "import cx_Oracle"
+# If this fails, reinstall cx_oracle with:
+# pip install --no-cache-dir --allow-external --allow-unverified cx_oracle
 </code></pre></div>
 <p>If this reports no errors, then you are ready to use the driver! Oracle is a pain in the ass, hope this helps...</p>
 
