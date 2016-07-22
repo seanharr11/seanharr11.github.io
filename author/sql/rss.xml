@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+   
+      <title>thelaziestprogrammer.com</title>
+   
+   <link>http://thelaziestprogrammer.com</link>
+   <description>Because someone else has already solved your problem.</description>
+   <language>en-uk</language>
+   <managingEditor> Sean Harrington</managingEditor>
+   <atom:link href="rss" rel="self" type="application/rss+xml" />
+   
+	<item>
+	  <title>Installing cx_Oracle Driver on El Capitan</title>
+	  <link>/sql/install-cx_oracle-mac</link>
+	  <author>Sean Harrington</author>
+	  <pubDate>2016-07-14T01:05:00-04:00</pubDate>
+	  <guid>/sql/install-cx_oracle-mac</guid>
+	  <description><![CDATA[
+	     <h4>Problem:</h4>
+
+<blockquote>
+<p>How to install cx_Oracle driver on Mac (El Capitan)</p>
+</blockquote>
+
+<h5>Download Oracle instantclient</h5>
+
+<ol>
+<li>Navigate to the <a href="http://www.oracle.com/technetwork/topics/intel-macsoft-096467.html">&#39;Oracle Instant Client Downloads&#39;</a> page.</li>
+<li>Download <strong>instantclient-basic-macos.x64-12.1.0.2.0.zip</strong> and <strong>instantclient-sdk-macos.x64-12.1.0.2.0.zip</strong>
+
+<ul>
+<li>You will need an Oracle account to proceed with the download.</li>
+</ul></li>
+<li>Enter the &#39;~/Downloads&#39; folder in Terminal, and unzip both downloads:</li>
+</ol>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">cd</span> ~/Downloads
+<span class="c"># Or 'cd &lt;download_directory&gt;'</span>
+unzip instantclient-basic-macos.x64-12.1.0.2.0.zip
+unzip instantclient-sdk-macos.x64-12.1.0.2.0.zip
+</code></pre></div>
+<h5>Configure Oracle instantclient</h5>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">mv instantclient_12_1 /usr/local/opt/instantclient_12_1
+<span class="nb">cd</span> /usr/local/opt/instantclient_12_1
+<span class="c"># setup.py will look in the 'lib' directory</span>
+mkdir lib
+mv <span class="k">*</span>.dylib<span class="k">*</span> lib
+<span class="c"># Create version-agnostic soft links</span>
+<span class="nb">cd</span> /usr/local/opt/instantclient_12_1/lib
+ln -s libclntsh.dylib.12.1 libclntsh.dylib
+ln -s libocci.dylib.12.1 libocci.dylib
+</code></pre></div>
+<h5>Configure environment variables</h5>
+<div class="highlight"><pre><code class="language-" data-lang=""># Tell cx_Oracle setup.py where to find instantclient libs
+echo 'export ORACLE_HOME=/usr/local/opt/instantclient_12_1' &gt;&gt; ~/.bash_profile
+echo 'export DYLD_LIBRARY_PATH=$ORACLE_HOME' &gt;&gt; ~/.bash_profile
+source ~/.bash_profile
+</code></pre></div>
+<h5>Download and install cx_Oracle</h5>
+<div class="highlight"><pre><code class="language-" data-lang=""># Download and unpackage cx_Oracle tarball
+curl -O https://pypi.python.org/packages/95/7f/3b74fe3adeb5948187b760330cb7e9175e3484bd6defdfeb9b504d71b4b3/cx_Oracle-5.2.1.tar.gz
+tar -xzf cx_Oracle-5.2.1.tar.gz
+# Set -rpath option when building from src
+export FORCE_RPATH=TRUE
+# Build and install cx_Oracle
+cd cx_Oracle-5.2.1
+python setup.py build
+python setup.py install
+# Now clean-up
+cd ..
+rm -vrf cx_Oracle-5.2.1
+</code></pre></div>
+<h5>Verify cx_Oracle was correctly installed</h5>
+<div class="highlight"><pre><code class="language-" data-lang="">python -c "import cx_Oracle"
+</code></pre></div>
+<p>If this reports no errors, then you are ready to use the driver! Oracle is a pain in the ass, hope this helps...</p>
+
+	  ]]></description>
+	</item>
+
+
+</channel>
+</rss>

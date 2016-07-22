@@ -7,7 +7,7 @@
 
     <!-- [[! Page Meta ]] -->
     <title>Author</title>
-    <meta name="description" content="The Laziest Programmer - Because someone else has already built a solution to your problem." />
+    <meta name="description" content="The Laziest Programmer - Because someone else has already solved your problem." />
 
     <meta name="HandheldFriendly" content="True" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -27,33 +27,34 @@
     <script>hljs.initHighlightingOnLoad();</script>
 
     <!-- [[! Ghost outputs important style and meta data with this tag ]] -->
-        <link rel="canonical" href="/" />
+        <link rel="canonical" href="" />
     <meta name="referrer" content="origin" />
     <link rel="next" href="/page2/" />
 
     <meta property="og:site_name" content="The Laziest Programmer" />
     <meta property="og:type" content="website" />
     <meta property="og:title" content="The Laziest Programmer" />
-    <meta property="og:description" content="Because someone else has already built a solution to your problem." />
-    <meta property="og:url" content="/" />
-    <meta property="og:image" content="/assets/images/cover1.jpg" />
+    <meta property="og:description" content="Because someone else has already solved your problem." />
+    <meta property="og:url" content="" />
+    <meta property="og:image" content="/assets/images/tlp_logo_dark.png" />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="The Laziest Programmer" />
-    <meta name="twitter:description" content="Because someone else has already built a solution to your problem." />
-    <meta name="twitter:url" content="/" />
-    <meta name="twitter:image:src" content="/assets/images/cover1.jpg" />
+    <meta name="twitter:description" content="Because someone else has already solved your problem." />
+    <meta name="twitter:url" content="" />
+    <meta name="twitter:image:src" content="/assets/images/tlp_logo_dark.png" />
 
-    <script type="application/ld+json">
+    <!--script type="application/ld+json">
 {
     "@context": "http://schema.org",
     "@type": "Website",
-    "publisher": "Finding The Way Home",
-    "url": "/",
-    "image": "/assets/images/cover1.jpg",
-    "description": "Because someone else has already built a solution to your problem."
+    "url": "",
+    "image": "/assets/images/tlp_logo_dark.png",
+    "description": "Because someone else has already solved your problem.",
+    "name": "The Laziest Programmer",
+    "
 }
-    </script>
+    </script-->
 
     <meta name="generator" content="Jekyll 3.0.0" />
     <link rel="alternate" type="application/rss+xml" title="The Laziest Programmer" href="/feed.xml" />
@@ -68,7 +69,7 @@
         <span class="hidden">Close</span>
     </a>
     <ul>
-        <li class="nav-home " role="presentation"><a href="/">Home</a></li>
+        <li class="nav-home " role="presentation"><a href="">Home</a></li>
         <li class="nav-about " role="presentation"><a href="/about">About</a></li>
         <li class="nav-fiction " role="presentation"><a href="/tag/databases">Databases</a></li>
         <li class="nav-author  nav-current" role="presentation"><a href="/author/Sean">Author</a></li>
@@ -88,9 +89,9 @@
 
 <!-- Everything inside the #author tags pulls data from the author -->
 <!-- #author  -->
-    <header class="main-header author-head " style="background-image: url(/assets/images/cover4.jpg) ">
+    <header class="main-header author-head " style="background-image: url(/assets/images/southie_skyline_small.jpg) ">
         <nav class="main-nav overlay clearfix">
-            <a class="blog-logo" href="/"><img src="/assets/images/ghost.png" alt="Blog Logo" /></a>
+            <a class="blog-logo" href="/"><img src="/assets/images/tlp_logo.png" alt="Blog Logo" /></a>
             
                 <a class="menu-button icon-menu" href="#"><span class="word">Menu</span></a>
             
@@ -100,18 +101,18 @@
     <section class="author-profile inner">
         
         <figure class="author-image">
-            <div class="img" style="background-image: url(/assets/images/tlp_logo.png)"><span class="hidden">Sean Harrington's Picture</span></div>
+            <div class="img" style="background-image: url(/assets/images/headshot.jpg)"><span class="hidden">Sean Harrington's Picture</span></div>
         </figure>
         
         <h1 class="author-title">Sean Harrington</h1>
         
-            <h2 class="author-bio">I believe that an Emajor barre chord sounds best on a Strat's neck pick-up, that Mat Cauthon would make any 14-book series enjoyable, and that college football players can radically evolve into decent software developers.</h2>
+            <h2 class="author-bio">I believe that cover bands should welcome guitarists in the audience on-stage, that Mat Cauthon would make any 14-book series enjoyable, and that college football players can evolve into decent software developers.</h2>
         
         <div class="author-meta">
             <span class="author-location icon-location">Boston, MA</span>
-            <span class="author-link icon-link"><a href="http://seanharr11.github.io">seanharr11.github.io/</a></span>
+            <span class="author-link icon-link"><a href="http://thelaziestprogrammer.com">thelaziestprogrammer.com</a></span>
             <!-- <span class="author-stats"><i class="icon-stats"></i> [[plural ../pagination.total empty='No posts' singular='% post' plural='% posts']]</span> -->
-            <span class="author-stats"><i class="icon-stats"></i>1 post</span>
+            <span class="author-stats"><i class="icon-stats"></i>2 posts</span>
         </div>
     </section>
 <!-- /author -->
@@ -128,6 +129,7 @@
     <span class="page-number"> Page 1 of 1 </span>
      
 </nav>
+
         
     </div>
 
@@ -135,13 +137,37 @@
     
     <article class="post">
         <header class="post-header">
-            <h2 class="post-title"><a href="/etl-alchemy">Migrating Between SQL Databases</a></h2>
+        <h2 class="post-title"><a href="/databases/oracle/install-cx_oracle-mac">Installing cx_Oracle Driver on El Capitan</a></h2>
         </header>
         <section class="post-excerpt">
-            <p>We can all agree on one thing: SQL Databases are here to stay. However, for one reason or another, sometimes they stay in one place for... <a class="read-more" href="/etl-alchemy">&raquo;</a></p>
+        <p>Problem: How to install cx_Oracle driver on Mac (El Capitan) Download Oracle instantclient Navigate to the &#39;Oracle Instant Client Downloads&#39; page. Download instantclient-basic-macos.x64-12.1.0.2.0.zip and instantclient-sdk-macos.x64-12.1.0.2.0.zip You... <a class="read-more" href="/databases/oracle/install-cx_oracle-mac">&raquo;</a></p>
         </section>
         <footer class="post-meta">
-            <img class="author-thumb" src="/assets/images/tlp_logo.png" alt="Author image" nopin="nopin" />
+            <img class="author-thumb" src="/assets/images/headshot.jpg" alt="Author image" nopin="nopin" />
+            <!-- author -->
+            <a href='/author/Sean'>Sean Harrington</a>
+            <!-- [[tags prefix=" on "]] -->
+             
+                on 
+                
+                    
+                       <a href='/tag/databases'>Databases</a>
+                       
+                
+            
+            <time class="post-date" datetime="2016-07-14">14 Jul 2016</time>
+        </footer>
+    </article>
+    
+    <article class="post">
+        <header class="post-header">
+        <h2 class="post-title"><a href="/databases/migrating-between-databases-with-etlalchemy">Migrating Between SQL Databases</a></h2>
+        </header>
+        <section class="post-excerpt">
+        <p>Problem: How to migrate from one SQL database to another. We can all agree on one thing: SQL Databases are here to stay. However, for one... <a class="read-more" href="/databases/migrating-between-databases-with-etlalchemy">&raquo;</a></p>
+        </section>
+        <footer class="post-meta">
+            <img class="author-thumb" src="/assets/images/headshot.jpg" alt="Author image" nopin="nopin" />
             <!-- author -->
             <a href='/author/Sean'>Sean Harrington</a>
             <!-- [[tags prefix=" on "]] -->
@@ -165,6 +191,7 @@
     <span class="page-number"> Page 1 of 1 </span>
      
 </nav>
+
     
 
 
@@ -172,7 +199,7 @@
 
 
         <footer class="site-footer clearfix">
-          <section class="copyright"><a href="/">The Laziest Programmer</a> &copy; 2016</section>
+          <section class="copyright"><a href="">The Laziest Programmer</a> &copy; 2016</section>
           <section class="poweredby">Proudly published with <a href="https://jekyllrb.com/">Jekyll</a> using <a href="https://github.com/biomadeira/jasper">Jasper</a></section>
         </footer>
     </div>
@@ -190,7 +217,7 @@
 	    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
 	    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
-	    ga('create', 'UA-69281367-1', 'auto');
+	    ga('create', 'UA-80966627-1', 'auto');
 	    ga('send', 'pageview');
 
      </script>   

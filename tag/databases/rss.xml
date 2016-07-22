@@ -5,7 +5,7 @@
    
       <title>thelaziestprogrammer.com</title>
    
-   <link>http://thelaziestprogrammer.com/</link>
+   <link>http://thelaziestprogrammer.com</link>
    <description>Because someone else has already solved your problem.</description>
    <language>en-uk</language>
    <managingEditor> Sean Harrington</managingEditor>
@@ -13,10 +13,10 @@
    
 	<item>
 	  <title>Installing cx_Oracle Driver on El Capitan</title>
-	  <link>//install-cx_oracle-mac</link>
+	  <link>/databases/oracle/install-cx_oracle-mac</link>
 	  <author>Sean Harrington</author>
 	  <pubDate>2016-07-14T01:05:00-04:00</pubDate>
-	  <guid>//install-cx_oracle-mac</guid>
+	  <guid>/databases/oracle/install-cx_oracle-mac</guid>
 	  <description><![CDATA[
 	     <h4>Problem:</h4>
 
@@ -81,10 +81,10 @@ rm -vrf cx_Oracle-5.2.1
 
 	<item>
 	  <title>Migrating Between SQL Databases</title>
-	  <link>//migrating-between-databases-with-etlalchemy</link>
+	  <link>/databases/migrating-between-databases-with-etlalchemy</link>
 	  <author>Sean Harrington</author>
 	  <pubDate>2016-07-14T01:05:00-04:00</pubDate>
-	  <guid>//migrating-between-databases-with-etlalchemy</guid>
+	  <guid>/databases/migrating-between-databases-with-etlalchemy</guid>
 	  <description><![CDATA[
 	     <h5>Problem:</h5>
 
