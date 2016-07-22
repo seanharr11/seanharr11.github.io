@@ -13,10 +13,10 @@
    
 	<item>
 	  <title>Installing cx_Oracle Driver on El Capitan</title>
-	  <link>/databases/oracle/install-cx_oracle-mac</link>
+	  <link>/sharrington/databases/oracle/install-cx_oracle-mac</link>
 	  <author>Sean Harrington</author>
 	  <pubDate>2016-07-14T01:05:00-04:00</pubDate>
-	  <guid>/databases/oracle/install-cx_oracle-mac</guid>
+	  <guid>/sharrington/databases/oracle/install-cx_oracle-mac</guid>
 	  <description><![CDATA[
 	     <h4>Problem:</h4>
 
