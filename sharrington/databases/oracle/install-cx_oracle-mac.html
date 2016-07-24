@@ -146,24 +146,18 @@
 <div class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">cd</span> ~/Downloads
 <span class="c"># Or 'cd &lt;download_directory&gt;'</span>
 unzip instantclient-basic-macos.x64-12.1.0.2.0.zip
+<span class="c"># Running the below 'unzip' command will automagically </span>
+<span class="c"># place the unzipped contents in 'instantclient_12_1/sdk'</span>
 unzip instantclient-sdk-macos.x64-12.1.0.2.0.zip
 </code></pre></div>
-<h5>Configure Oracle instantclient</h5>
+<h5>Move directory and link libclntsh.dylib.12.1</h5>
 <div class="highlight"><pre><code class="language-bash" data-lang="bash">mv instantclient_12_1 /usr/local/opt/instantclient_12_1
 <span class="nb">cd</span> /usr/local/opt/instantclient_12_1
-<span class="c"># setup.py will look in the 'lib' directory</span>
-mkdir lib
-mv <span class="k">*</span>.dylib<span class="k">*</span> lib
-<span class="c"># Create version-agnostic soft links</span>
-<span class="nb">cd</span> /usr/local/opt/instantclient_12_1/lib
 ln -s libclntsh.dylib.12.1 libclntsh.dylib
-ln -s libocci.dylib.12.1 libocci.dylib
 </code></pre></div>
 <h5>Configure environment variables</h5>
 <div class="highlight"><pre><code class="language-" data-lang=""># Tell cx_Oracle setup.py where to find instantclient libs
-echo 'export ORACLE_HOME=/usr/local/opt/instantclient_12_1' &gt;&gt; ~/.bash_profile
-echo 'export DYLD_LIBRARY_PATH=$ORACLE_HOME' &gt;&gt; ~/.bash_profile
-source ~/.bash_profile
+export ORACLE_HOME=/usr/local/opt/instantclient_12_1
 # Set -rpath option to tell gcc to look in ORACLE_HOME when linking
 export FORCE_RPATH=1
 
@@ -174,10 +168,18 @@ pip install cx_Oracle
 </code></pre></div>
 <h5>Verify cx_Oracle was correctly installed</h5>
 <div class="highlight"><pre><code class="language-" data-lang="">python -c "import cx_Oracle"
-# If this fails, reinstall cx_oracle with:
-# pip install --no-cache-dir --allow-external --allow-unverified cx_oracle
 </code></pre></div>
-<p>If this reports no errors, then you are ready to use the driver! Oracle is a pain in the ass, hope this helps...</p>
+<p>If this fails then you may see the following exception:</p>
+<div class="highlight"><pre><code class="language-" data-lang="">Traceback (most recent call last):
+  File "&lt;string&gt;", line 1, in &lt;module&gt;
+ImportError: dlopen(/Library/Python/2.7/site-packages/cx_Oracle.so, 2): Library not loaded: @rpath/libclntsh.dylib.12.1
+  Referenced from: /Library/Python/2.7/site-packages/cx_Oracle.so
+  Reason: image not found
+</code></pre></div>
+<p>If you are seeing this exception, you either skipped setting <code>ORACLE_HOME</code> and <code>FORCE_RPATH</code> (as described above), or you are using a cached version of the cx_Oracle build when installing. To force pip to re-build the package, run:</p>
+<div class="highlight"><pre><code class="language-" data-lang="">pip install --no-cache-dir --allow-external --allow-unverified cx_oracle
+</code></pre></div>
+<p><em>Thanks to <a href="http://stackoverflow.com/users/4799035/christopher-jones">Christopher Jones</a> for help simplifying the above steps.</em></p>
 
 
         </section>
