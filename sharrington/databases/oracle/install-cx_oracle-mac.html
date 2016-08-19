@@ -38,6 +38,8 @@
     <meta property="og:url" content="" />
     <meta property="og:image" content="/assets/images/tlp_logo_dark.png" />
 
+
+
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="The Laziest Programmer" />
     <meta name="twitter:description" content="Because someone else has already solved your problem." />
@@ -71,8 +73,11 @@
     <ul>
         <li class="nav-home " role="presentation"><a href="/">Home</a></li>
         <li class="nav-home" role="presentation"><a href="#">Topics</a>
-           <ul style="padding-top:9px"> 
+           <ul style="padding-top:9px;padding-bottom:0px"> 
              <li class="nav-fiction " role="presentation"><a href="/tag/databases">Databases</a></li>
+           </ul>     
+           <ul style="padding-top:0px"> 
+             <li class="nav-fiction " role="presentation"><a href="/tag/web-development">Web Development</a></li>
            </ul>     
         </li>
         <li class="nav-about " role="presentation"><a href="/about">About This Site</a></li>
@@ -237,6 +242,13 @@ ImportError: dlopen(/Library/Python/2.7/site-packages/cx_Oracle.so, 2): Library 
 <aside class="read-next">
 
     <!-- [[! next_post ]] -->
+    
+        <a class="read-next-story " style="background-image: url(/assets/images/island_wake.jpg)" href="/sharrington/web-development/sqlalchemy-defined-rest-api">
+            <section class="post">
+                <h2>Automagically Generate REST API with Flask-Restless, Marshmallow and SQLAlchemy</h2>
+                <p>This post shows how to auto-generate a REST API from a handful of SQLAlchemy models....</p>
+            </section>
+        </a>
     
     <!-- [[! /next_post ]] -->
     <!-- [[! prev_post ]] -->

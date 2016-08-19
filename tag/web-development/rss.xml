@@ -1,0 +1,351 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+   
+      <title>thelaziestprogrammer.com</title>
+   
+   <link>http://thelaziestprogrammer.com</link>
+   <description>Because someone else has already solved your problem.</description>
+   <language>en-uk</language>
+   <managingEditor> Sean Harrington</managingEditor>
+   <atom:link href="rss" rel="self" type="application/rss+xml" />
+   
+	<item>
+	  <title>Automagically Generate REST API with Flask-Restless, Marshmallow and SQLAlchemy</title>
+	  <link>/sharrington/web-development/sqlalchemy-defined-rest-api</link>
+	  <author>Sean Harrington</author>
+	  <pubDate>2016-08-19T02:32:00-04:00</pubDate>
+	  <guid>/sharrington/web-development/sqlalchemy-defined-rest-api</guid>
+	  <description><![CDATA[
+	     <p>This post shows how to auto-generate a REST API from a handful of SQLAlchemy models. This means full CRUD <em>(POST, GET, PUT, DELETE)</em> endpoint generation for each SQLAlchemy model defined. This recipe gracefully handles <strong>one-to-many</strong> relationships between the models as well.. </p>
+
+<p>Let&#39;s say our company is building a mobile app for book readers, and a webapp for librarians that accomplishes the following 2 goals:</p>
+
+<ol>
+<li>Show the availability and information of a given book to readers.</li>
+<li>Allow a librarian to perform CRUD operations to update their libary&#39;s inventory.</li>
+</ol>
+
+<p>We&#39;ve been tasked with building a REST API to allow a webapp and mobile app to interface with our database.</p>
+
+<h4>Environment Setup</h4>
+
+<ol>
+<li><p>Create project root directory.</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">mkdir automagic_api
+</code></pre></div></li>
+<li><p>Create and activate virtualenv.</p>
+<div class="highlight"><pre><code class="language-" data-lang="">cd automagic_api;
+virtualenv env;
+source env/bin/activate
+</code></pre></div></li>
+<li><p>Install flask, flask-restless, marshmallow-sqlalchemy.</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">pip install flask-restless marshmallow-sqlalchemy
+</code></pre></div></li>
+</ol>
+
+<p>Your project directory tree should look as follows:</p>
+<div class="highlight"><pre><code class="language-bash" data-lang="bash">automagic_api/
+env/
+</code></pre></div>
+<h4>Further compartmentalize the project and define our models</h4>
+
+<ol>
+<li><p>Create nested project directory &#39;/automagic_api&#39; to hold Flask-specific files.</p>
+<div class="highlight"><pre><code class="language-" data-lang="">mkdir automagic_api
+cd automagic_api
+</code></pre></div></li>
+<li><p>Create <strong>&#39;models.py&#39;</strong> within the flask-project directory and define <strong>Book</strong> and <strong>Author</strong>..</p></li>
+</ol>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">declarative_base</span><span class="p">,</span> <span class="n">declared_attr</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">ForeignKey</span><span class="p">,</span> <span class="n">Column</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">String</span><span class="p">,</span> <span class="n">Boolean</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">backref</span><span class="p">,</span> <span class="n">relationship</span>
+<span class="kn">from</span> <span class="nn">automagic_api</span> <span class="kn">import</span> <span class="n">Base</span>
+
+<span class="k">class</span> <span class="nc">Author</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="nd">@declared_attr</span>
+    <span class="k">def</span> <span class="nf">__tablename__</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+        <span class="c"># API endpoint will take the form '/api/__tablename__'</span>
+        <span class="k">return</span> <span class="n">cls</span><span class="o">.</span><span class="n">__name__</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> 
+    <span class="n">first_name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">64</span><span class="p">))</span>
+    <span class="n">last_name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">64</span><span class="p">))</span>
+
+<span class="k">class</span> <span class="nc">Book</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="nd">@declared_attr</span>
+    <span class="k">def</span> <span class="nf">__tablename__</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">cls</span><span class="o">.</span><span class="n">__name__</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> 
+    <span class="n">title</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">64</span><span class="p">))</span>
+    <span class="n">author_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> 
+        <span class="n">ForeignKey</span><span class="p">(</span><span class="s">"author.id"</span><span class="p">),</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">author</span> <span class="o">=</span> <span class="n">relationship</span><span class="p">(</span><span class="n">Author</span><span class="p">,</span> 
+        <span class="n">backref</span><span class="o">=</span><span class="n">backref</span><span class="p">(</span><span class="s">'books'</span><span class="p">))</span>  
+    <span class="n">is_available</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Boolean</span><span class="p">)</span>
+
+
+</code></pre></div>
+<p>Your directory structure should now look like this:</p>
+<div class="highlight"><pre><code class="language-" data-lang="">automagic_api/
+   automagic_api/
+       models.py
+   env/
+</code></pre></div>
+<h4>Create marshmallow-sqlalchemy boilerplate</h4>
+
+<p>The code below implements bootstrap function which autogenerates a <a href="https://marshmallow-sqlalchemy.readthedocs.io/en/latest/">Marshmallow.schema</a> for each SQLAlchemy model in our Base. This function is set as an attribute on each model, allowing us to bootstrap them at a later time..</p>
+
+<ol>
+<li><p>Create the &#39;<strong>marshmallow_boilerplate/</strong>&#39; directory, and create file &#39;<strong>__init__.py</strong>&#39; so we can import the module.</p>
+<div class="highlight"><pre><code class="language-" data-lang="">mkdir marshmallow_boilerplate
+touch marshmallow_boilerplate/__init__.py
+</code></pre></div></li>
+<li><p>Open the <strong>__init__.py</strong> file and define the following function which will bootstrap our schema definitions, and allow for many-to-one related objects to be serialized/deserialized as nested objects.</p>
+
+<ul>
+<li><em>A note: this function returns a closure. When called, it binds the &#39;Base&#39; and &#39;session&#39; variables to the function &#39;setup_schema_fn()&#39;, so that we can later call &#39;setup_schema_fn&#39; in the context of these 2 variables.</em></li>
+</ul></li>
+</ol>
+<div class="highlight"><pre><code class="language-python" data-lang="python">
+<span class="kn">from</span> <span class="nn">marshmallow_sqlalchemy</span> <span class="kn">import</span> <span class="n">ModelConversionError</span><span class="p">,</span> <span class="n">ModelSchema</span>
+<span class="kn">from</span> <span class="nn">marshmallow</span> <span class="kn">import</span> <span class="n">fields</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.inspection</span> <span class="kn">import</span> <span class="n">inspect</span>
+
+<span class="k">def</span> <span class="nf">setup_schema</span><span class="p">(</span><span class="n">Base</span><span class="p">,</span> <span class="n">session</span><span class="p">):</span>
+<span class="c"># Create a closure containing 'Base' and 'session'</span>
+    <span class="k">def</span> <span class="nf">setup_schema_fn</span><span class="p">():</span>
+        <span class="n">tablename_to_schema</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">model_to_schema_class</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">tablename_to_nested_columns</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">class_</span> <span class="ow">in</span> <span class="n">Base</span><span class="o">.</span><span class="n">_decl_class_registry</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">class_</span><span class="p">,</span> <span class="s">'__tablename__'</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">class_</span><span class="o">.</span><span class="n">__name__</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">'Schema'</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="n">ModelConversionError</span><span class="p">(</span>
+                <span class="s">"For safety, setup_schema can not be used when"</span>
+                <span class="s">"a Model class ends with 'Schema'"</span>
+                <span class="p">)</span>
+            <span class="n">relations</span> <span class="o">=</span> <span class="n">class_</span><span class="o">.</span><span class="n">__mapper__</span><span class="o">.</span><span class="n">relationships</span>
+            <span class="c"># Iterate over all relations</span>
+            <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">relations</span><span class="p">:</span>
+                <span class="c"># Find 'backref' for nested tables</span>
+                <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">backref</span><span class="p">:</span>
+                    <span class="n">referring_table</span> <span class="o">=</span> <span class="n">class_</span><span class="o">.</span><span class="n">__tablename__</span>
+                    <span class="c"># Find &amp; store referring table and column</span>
+                    <span class="n">tgt</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">name</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">tablename_to_nested_columns</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">tgt</span><span class="p">):</span>
+                        <span class="n">tablename_to_nested_columns</span><span class="p">[</span><span class="n">tgt</span><span class="p">]</span> <span class="o">=</span>\
+                            <span class="p">[(</span><span class="n">referring_table</span><span class="p">,</span> <span class="n">r</span><span class="o">.</span><span class="n">backref</span><span class="p">[</span><span class="mi">0</span><span class="p">],)]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">tablename_to_nested_columns</span><span class="p">[</span><span class="n">tgt</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                            <span class="p">(</span><span class="n">referring_table</span><span class="p">,</span> <span class="n">r</span><span class="o">.</span><span class="n">backref</span><span class="p">[</span><span class="mi">0</span><span class="p">],))</span>
+
+            <span class="k">class</span> <span class="nc">Meta</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+                <span class="n">model</span> <span class="o">=</span> <span class="n">class_</span>
+                <span class="n">sqla_session</span> <span class="o">=</span> <span class="n">session</span>
+
+            <span class="n">schema_class_name</span> <span class="o">=</span> <span class="s">'</span><span class="si">%</span><span class="s">sSchema'</span> <span class="o">%</span> <span class="n">class_</span><span class="o">.</span><span class="n">__name__</span>
+
+            <span class="n">schema_class</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span>
+                <span class="n">schema_class_name</span><span class="p">,</span>
+                <span class="p">(</span><span class="n">ModelSchema</span><span class="p">,),</span>
+                <span class="p">{</span><span class="s">'Meta'</span><span class="p">:</span> <span class="n">Meta</span><span class="p">},</span>
+            <span class="p">)</span>
+
+            <span class="n">model_to_schema_class</span><span class="p">[</span><span class="n">class_</span><span class="o">.</span><span class="n">__name__</span><span class="p">]</span> <span class="o">=</span>\
+                <span class="n">schema_class</span>
+            <span class="n">tablename_to_schema</span><span class="p">[</span><span class="n">class_</span><span class="o">.</span><span class="n">__tablename__</span><span class="p">]</span> <span class="o">=</span>\
+                <span class="n">schema_class</span>
+
+        <span class="k">for</span> <span class="n">class_</span> <span class="ow">in</span> <span class="n">Base</span><span class="o">.</span><span class="n">_decl_class_registry</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">class_</span><span class="p">,</span> <span class="s">'__tablename__'</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="n">c_name</span> <span class="o">=</span> <span class="n">class_</span><span class="o">.</span><span class="n">__name__</span>
+            <span class="n">t_name</span> <span class="o">=</span> <span class="n">class_</span><span class="o">.</span><span class="n">__tablename__</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">class_</span><span class="p">,</span> <span class="s">'__tablename__'</span><span class="p">)</span> <span class="ow">and</span> \
+             <span class="n">model_to_schema_class</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">c_name</span><span class="p">):</span>
+                <span class="n">schema_class</span> <span class="o">=</span> <span class="n">model_to_schema_class</span><span class="p">[</span><span class="n">c_name</span><span class="p">]</span>
+                <span class="c"># Now identify schemas that reference this schema</span>
+                <span class="n">nested_tables</span> <span class="o">=</span>\
+                    <span class="n">tablename_to_nested_columns</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">t_name</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">nested_tables</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="p">(</span><span class="n">nested_t</span><span class="p">,</span> <span class="n">nested_c</span><span class="p">)</span> <span class="ow">in</span> <span class="n">nested_tables</span><span class="p">:</span>
+                        <span class="n">referring_schema</span> <span class="o">=</span>\
+                            <span class="n">tablename_to_schema</span><span class="p">[</span><span class="n">nested_t</span><span class="p">]</span>
+                        <span class="c"># Declare that 'nested_c' should contain </span>
+                        <span class="c"># nested objs rather than PKs (many=True)</span>
+                        <span class="n">schema_class</span><span class="o">.</span><span class="n">_declared_fields</span><span class="p">[</span><span class="n">nested_c</span><span class="p">]</span> <span class="o">=</span>\
+                          <span class="n">fields</span><span class="o">.</span><span class="n">Nested</span><span class="p">(</span><span class="n">referring_schema</span><span class="p">,</span> <span class="n">many</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                <span class="c"># Create class-attr for marshmallow Schema</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="n">class_</span><span class="p">,</span> <span class="s">'__marshmallow__'</span><span class="p">,</span><span class="n">schema_class</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">setup_schema_fn</span>
+
+</code></pre></div>
+<p>Your directory structure should now look like this:</p>
+<div class="highlight"><pre><code class="language-" data-lang="">automagic_api/
+   automagic_api/
+       models.py
+       marshmallow_boilerplate/
+           __init__.py
+   env/
+</code></pre></div>
+<h4>Create controllers.py to define endpoints</h4>
+
+<p>Below we define our 2 <a href="http://flask-restless.readthedocs.io/en/stable/basicusage.html">Flask-restless API blueprints</a>: one for <strong>Book</strong> and one for <strong>Author</strong>, which when instantiated, construct the CRUD endpoints for each respective model.</p>
+
+<ol>
+<li>We instantiate both model&#39;s Schema class with <code>getattr(Author, &#39;__marshmallow__&#39;)()</code>
+
+<ul>
+<li><em>Remember __marshmallow__ is set when our bootstrap function (defined above) is called.</em></li>
+</ul></li>
+<li>We use this Marshmallow.Schema object to supply the flask-restless API manager with proper serialize/deserialize functions</li>
+</ol>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="kn">from</span> <span class="nn">automagic_api</span> <span class="kn">import</span> <span class="n">app</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">manager</span>
+<span class="kn">from</span> <span class="nn">automagic_api.models</span>\
+    <span class="kn">import</span> <span class="n">Book</span><span class="p">,</span> <span class="n">Author</span>
+<span class="c"># Instantiate marshmallow.Schema objects</span>
+<span class="n">author_schema</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">Author</span><span class="p">,</span> <span class="s">'__marshmallow__'</span><span class="p">)()</span>
+<span class="n">book_schema</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">Book</span><span class="p">,</span> <span class="s">'__marshmallow__'</span><span class="p">)()</span>
+
+<span class="n">author_api_blueprint</span> <span class="o">=</span> <span class="n">manager</span><span class="o">.</span><span class="n">create_api_blueprint</span><span class="p">(</span><span class="n">Author</span><span class="p">,</span>\
+        <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">'GET'</span><span class="p">,</span> <span class="s">'PATCH'</span><span class="p">,</span> <span class="s">'POST'</span><span class="p">,</span> <span class="s">'DELETE'</span><span class="p">],</span>\
+        <span class="n">serializer</span><span class="o">=</span><span class="k">lambda</span> <span class="n">author</span><span class="p">:</span> <span class="n">author_schema</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">author</span><span class="p">)</span><span class="o">.</span><span class="n">data</span><span class="p">,</span>
+        <span class="n">deserializer</span><span class="o">=</span><span class="k">lambda</span> <span class="n">a_json</span><span class="p">:</span> <span class="n">author_schema</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">a_json</span><span class="p">)</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+<span class="n">book_api_blueprint</span> <span class="o">=</span> <span class="n">manager</span><span class="o">.</span><span class="n">create_api_blueprint</span><span class="p">(</span><span class="n">Book</span><span class="p">,</span>\
+        <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">'GET'</span><span class="p">,</span> <span class="s">'PATCH'</span><span class="p">,</span> <span class="s">'POST'</span><span class="p">,</span> <span class="s">'DELETE'</span><span class="p">],</span>\
+        <span class="n">serializer</span><span class="o">=</span><span class="k">lambda</span> <span class="n">book</span><span class="p">:</span> <span class="n">book_schema</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">book</span><span class="p">)</span><span class="o">.</span><span class="n">data</span><span class="p">,</span>
+        <span class="n">deserializer</span><span class="o">=</span><span class="k">lambda</span> <span class="n">b_json</span><span class="p">:</span> <span class="n">book_schema</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">b_json</span><span class="p">)</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+
+</code></pre></div>
+<h4>Your directory should now look like:</h4>
+<div class="highlight"><pre><code class="language-" data-lang="">automagic_api/
+   automagic_api/
+       models.py
+       controllers.py
+       marshmallow_boilerplate/
+           __init__.py
+   env/
+</code></pre></div>
+<h4>Create __init__.py in our Flask-project</h4>
+
+<p>Create the file in <strong>&#39;automagic_api/automagic_api/&#39;</strong>. This file will import our <strong>models.py</strong>, our <strong>controllers.py</strong>, and our <code>setup_schema()</code> bootstrap function, and will bring all of these together to instantiate our API.</p>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="kn">import</span> <span class="nn">flask</span>
+<span class="kn">import</span> <span class="nn">flask_restless</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">declarative_base</span><span class="p">,</span> <span class="n">declared_attr</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">sessionmaker</span><span class="p">,</span> <span class="n">scoped_session</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="c"># Import our function that bootstraps our schema</span>
+<span class="kn">from</span> <span class="nn">marshmallow_boilerplate</span> <span class="kn">import</span> <span class="n">setup_schema</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">flask</span><span class="o">.</span><span class="n">Flask</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+<span class="c"># Create our SQLAlchemy DB engine</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">'sqlite:///foobar.db'</span><span class="p">)</span>
+<span class="n">Session</span> <span class="o">=</span> <span class="n">sessionmaker</span><span class="p">(</span><span class="n">bind</span><span class="o">=</span><span class="n">engine</span><span class="p">,</span> <span class="n">autocommit</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">autoflush</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="n">s</span> <span class="o">=</span> <span class="n">scoped_session</span><span class="p">(</span><span class="n">Session</span><span class="p">)</span>
+
+<span class="n">Base</span> <span class="o">=</span> <span class="n">declarative_base</span><span class="p">()</span>
+<span class="n">Base</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">bind</span> <span class="o">=</span> <span class="n">engine</span>
+
+<span class="c"># Import all models to add them to Base.metadata</span>
+<span class="kn">from</span> <span class="nn">models</span> <span class="kn">import</span> <span class="n">Book</span><span class="p">,</span> <span class="n">Author</span>
+
+<span class="n">Base</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">create_all</span><span class="p">()</span>
+<span class="c"># Set each model's '__marshmallow__' attr  below</span>
+<span class="n">setup_schema</span><span class="p">(</span><span class="n">Base</span><span class="p">,</span> <span class="n">s</span><span class="p">)()</span>
+
+<span class="n">manager</span> <span class="o">=</span> <span class="n">flask_restless</span><span class="o">.</span><span class="n">APIManager</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="n">session</span><span class="o">=</span><span class="n">s</span><span class="p">)</span>
+<span class="c"># Register flask-restless blueprints to instantiate CRUD endpoints</span>
+<span class="kn">from</span> <span class="nn">controllers</span> <span class="kn">import</span> <span class="n">book_api_blueprint</span><span class="p">,</span> <span class="n">author_api_blueprint</span>
+<span class="n">app</span><span class="o">.</span><span class="n">register_blueprint</span><span class="p">(</span><span class="n">author_api_blueprint</span><span class="p">)</span>
+<span class="n">app</span><span class="o">.</span><span class="n">register_blueprint</span><span class="p">(</span><span class="n">book_api_blueprint</span><span class="p">)</span>
+</code></pre></div>
+<h4>Create run.py</h4>
+
+<p>Create <strong>run.py</strong> in our root directory</p>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="kn">from</span> <span class="nn">automagic_api</span> <span class="kn">import</span> <span class="n">app</span>
+
+<span class="n">app</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">debug</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="s">'0.0.0.0'</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">5000</span><span class="p">)</span>
+</code></pre></div>
+<h4>Your final directory structure should look as follows:</h4>
+<div class="highlight"><pre><code class="language-" data-lang="">automagic_api/
+   run.py
+   automagic_api/
+       __init__.py
+       models.py
+       controllers.py
+       marshmallow_boilerplate/
+           __init__.py
+   env/
+</code></pre></div>
+<h4>Start and test your API!</h4>
+
+<p>In the project root, start the server
+<code>
+env/bin/python run.py
+</code></p>
+
+<p>In a python CLI, create a POST request to create a new <strong>Book</strong>:</p>
+<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">requests</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">json</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">payload</span> <span class="o">=</span> <span class="p">{</span> 
+    <span class="s">'title'</span><span class="p">:</span> <span class="s">"The Eye of the World"</span><span class="p">,</span>
+    <span class="s">'author'</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s">'first_name'</span><span class="p">:</span> <span class="s">"Robert"</span><span class="p">,</span>
+        <span class="s">'last_name'</span><span class="p">:</span> <span class="s">"Jordan"</span>
+        <span class="p">},</span>  
+    <span class="s">'is_available'</span><span class="p">:</span> <span class="bp">True</span>
+<span class="p">}</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span><span class="s">'content-type'</span><span class="p">:</span> <span class="s">'application/json'</span><span class="p">}</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s">"http://localhost:5000/api/book"</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">payload</span><span class="p">),</span><span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="k">print</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span>
+<span class="mi">201</span>
+</code></pre></div>
+<p>Go ahead and open up a web browser, and navigate to <a href="http://localhost:5000/api/book">http://localhost:5000/api/book</a> to see the <em>Book</em> object that you just POSTed to your sqlite database. </p>
+
+<p>Likewise, you can invert this request and check out <a href="http://localhost:5000/api/author">http://localhost:5000/api/author</a> to see the <em>Author</em> object that was created, and the nested <em>&quot;books&quot;</em> attribute that the author has written.</p>
+
+<ul>
+<li><em><strong>Note</strong>: URLs for the API are constructed based off of the <strong>__tablename__</strong> of the sqlalchemy model, and are prefixed with &quot;/api&quot; (i.e Book -&gt; &quot;/api/book&quot;)</em></li>
+</ul>
+
+<p>Congratulations, you now have a working boilerplate for a SQLAlchemy-model defined REST API. Now go ahead and add more models and endpoints!</p>
+
+<h4>Final Remarks</h4>
+
+<p>At first glance this may look like a case-study of a time to use Flask-restless, and only Flask-restless. However, the power behind this implementation of our model-defined CRUD API is that it respects <strong>one-to-many</strong> relations across all CRUD actions.</p>
+
+<p>What does this mean? This means that when you post the payload below:</p>
+<div class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="p">{</span> 
+    <span class="s1">'title'</span><span class="err">:</span> <span class="s2">"The Eye of the World"</span><span class="p">,</span>
+    <span class="s1">'author'</span><span class="err">:</span> <span class="p">{</span>
+        <span class="s1">'first_name'</span><span class="err">:</span> <span class="s2">"Robert"</span><span class="p">,</span>
+        <span class="s1">'last_name'</span><span class="err">:</span> <span class="s2">"Jordan"</span>
+        <span class="p">},</span>  
+    <span class="s1">'is_available'</span><span class="err">:</span> <span class="nx">True</span>
+<span class="p">}</span>
+</code></pre></div>
+<p>You are implicitly CREATing the <strong>Author</strong> object, with <code>first_name: &quot;Robert&quot;</code> and <code>last_name: &quot;Jordan&quot;</code>, <strong>within the same POST request</strong> that CREATes the <strong>Book</strong> object, all while relating the 2 objects via the <em>author_id</em> FK that gets abstracted away. With Flask-restless this would take 2 separate queries. In addition, when you issue the GET request in the web browser, you will notice that the <em>Author</em> object is nested nicely within a collection, as an attribute &#39;authors&#39; of the <strong>Book</strong> object.</p>
+
+<p>The respect that this recipe has for <strong>one-to-many</strong> relations provides a higher level of abstraction between the Database and the API, while allowing you to easily add additional endpoints by defining new models. This means we can easily scale our API endpoints, without letting our client application know the underlying relational model of our SQL database. All it needs to know is the JSON model laid out above.</p>
+
+<p>If you wanted to create a <em>new</em> <strong>Book</strong> written by Robert Jordan, you would just change your payload to the following <em>to avoid re-creating Robert Jordan</em>.</p>
+<div class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="p">{</span> 
+    <span class="s1">'title'</span><span class="err">:</span> <span class="s2">"A Memory of Light"</span><span class="p">,</span>
+    <span class="c1">//Robert Jordan has an "id" of 1</span>
+    <span class="s1">'author'</span><span class="err">:</span> <span class="p">{</span><span class="s1">'id'</span><span class="err">:</span> <span class="mi">1</span><span class="p">},</span>  
+    <span class="s1">'is_available'</span><span class="err">:</span> <span class="nx">True</span>
+<span class="p">}</span>
+</code></pre></div>
+<p><em>A huge thanks to the brilliant developers of Flask, Flask-restless, Marshmallow and SQLAlchemy.</em></p>
+
+	  ]]></description>
+	</item>
+
+
+</channel>
+</rss>
