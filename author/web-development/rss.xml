@@ -341,7 +341,7 @@ env/bin/python run.py
     <span class="s1">'is_available'</span><span class="err">:</span> <span class="nx">True</span>
 <span class="p">}</span>
 </code></pre></div>
-<p><em>A huge thanks to the brilliant developers of Flask, Flask-restless, Marshmallow and SQLAlchemy.</em></p>
+<p><em>A huge thanks to the brilliant developers of Flask, Flask-restless, Marshmallow, Marshmallow-sqlalchemy and SQLAlchemy.</em></p>
 
 	  ]]></description>
 	</item>
