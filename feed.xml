@@ -8,9 +8,9 @@
     
       
       <item>
-        <title>Automagically Generate REST API with Flask-Restless, Marshmallow and SQLAlchemy</title>
+        <title>REST API with Flask-Restless and SQLAlchemy</title>
         
-          <description>&lt;p&gt;This post shows how to auto-generate a REST API from a handful of SQLAlchemy models. This means full CRUD &lt;em&gt;(POST, GET, PUT, DELETE)&lt;/em&gt; endpoint generation for each SQLAlchemy model defined. This recipe gracefully handles &lt;strong&gt;one-to-many&lt;/strong&gt; relationships between the models as well.. &lt;/p&gt;
+          <description>&lt;p&gt;This post shows how to auto-generate a REST API from a handful of SQLAlchemy models. This means full CRUD &lt;em&gt;(POST, GET, PUT, DELETE)&lt;/em&gt; endpoint generation for each SQLAlchemy model defined. &lt;/p&gt;
 </description>
         
         <pubDate>Fri, 19 Aug 2016 02:32:00 -0400</pubDate>
