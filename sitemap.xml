@@ -22,12 +22,6 @@
 <loc>http://thelaziestprogrammer.com/about/</loc>
 </url>
 <url>
-<loc>http://thelaziestprogrammer.com/tag/databases/</loc>
-</url>
-<url>
-<loc>http://thelaziestprogrammer.com/tag/web-development/</loc>
-</url>
-<url>
 <loc>http://thelaziestprogrammer.com/author/sharrington/</loc>
 </url>
 <url>
@@ -38,5 +32,11 @@
 </url>
 <url>
 <loc>http://thelaziestprogrammer.com/author/web-development/</loc>
+</url>
+<url>
+<loc>http://thelaziestprogrammer.com/tag/databases/</loc>
+</url>
+<url>
+<loc>http://thelaziestprogrammer.com/tag/web-development/</loc>
 </url>
 </urlset>

@@ -83,13 +83,7 @@ ImportError: dlopen(/Library/Python/2.7/site-packages/cx_Oracle.so, 2): Library 
 	  <pubDate>2016-07-14T01:05:00-04:00</pubDate>
 	  <guid>/sharrington/databases/migrating-between-databases-with-etlalchemy</guid>
 	  <description><![CDATA[
-	     <h5>Problem:</h5>
-
-<blockquote>
-<p>How to migrate from one SQL database to another.</p>
-</blockquote>
-
-<p>We can all agree on one thing: SQL Databases are here to stay. </p>
+	     <p>We can all agree on one thing: SQL Databases are here to stay. </p>
 
 <p>However, for one reason or another, sometimes they stay in one place for too long.</p>
 
