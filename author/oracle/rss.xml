@@ -18,13 +18,7 @@
 	  <pubDate>2016-07-14T01:05:00-04:00</pubDate>
 	  <guid>/sharrington/databases/oracle/install-cx_oracle-mac</guid>
 	  <description><![CDATA[
-	     <h4>Problem:</h4>
-
-<blockquote>
-<p>How to install cx_Oracle driver on Mac (El Capitan)</p>
-</blockquote>
-
-<h5>Download Oracle instantclient</h5>
+	     <h5>Download Oracle instantclient</h5>
 
 <ol>
 <li>Navigate to the <a href="http://www.oracle.com/technetwork/topics/intel-macsoft-096467.html">&#39;Oracle Instant Client Downloads&#39;</a> page.</li>
