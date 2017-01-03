@@ -8,9 +8,25 @@
     
       
       <item>
+        <title>Connecting to SQL Server from SQLAlchemy on a Mac</title>
+        
+          <description>&lt;p&gt;&lt;em&gt;This post explains how to connect to SQL Server using SQLAlchemy, pyodbc, UnixODBC and FreeTDS on a Mac&lt;/em&gt;&lt;/p&gt;
+
+</description>
+        
+        <pubDate>Tue, 03 Jan 2017 00:05:00 -0500</pubDate>
+        <link>
+        http://thelaziestprogrammer.com/sharrington/databases/connecting-to-sql-server-with-sqlalchemy</link>
+        <guid isPermaLink="true">http://thelaziestprogrammer.com/sharrington/databases/connecting-to-sql-server-with-sqlalchemy</guid>
+      </item>
+      
+    
+      
+      <item>
         <title>REST API with Flask-Restless and SQLAlchemy</title>
         
-          <description>&lt;p&gt;This post shows how to auto-generate a REST API from a handful of SQLAlchemy models. This means full CRUD &lt;em&gt;(POST, GET, PUT, DELETE)&lt;/em&gt; endpoint generation for each SQLAlchemy model defined. &lt;/p&gt;
+          <description>&lt;p&gt;This post shows how to auto-generate a REST API from a handful of SQLAlchemy models. This means full CRUD &lt;em&gt;(POST, GET, PUT, DELETE)&lt;/em&gt; endpoint generation for each SQLAlchemy model defined.&lt;/p&gt;
+
 </description>
         
         <pubDate>Fri, 19 Aug 2016 02:32:00 -0400</pubDate>
@@ -22,19 +38,34 @@
     
       
       <item>
+        <title>Connecting to SQL Server from SQLAlchemy</title>
+        
+          <description>&lt;p&gt;&lt;em&gt;This post explains how to connect to SQL Server using SQLAlchemy, pyodbc, UnixODBC and FreeTDS on Ubuntu&lt;/em&gt;&lt;/p&gt;
+
+</description>
+        
+        <pubDate>Thu, 14 Jul 2016 01:05:00 -0400</pubDate>
+        <link>
+        http://thelaziestprogrammer.com/sharrington/databases/connecting-to-sql-server-with-sqlalchemy</link>
+        <guid isPermaLink="true">http://thelaziestprogrammer.com/sharrington/databases/connecting-to-sql-server-with-sqlalchemy</guid>
+      </item>
+      
+    
+      
+      <item>
         <title>Installing cx_Oracle Driver on El Capitan</title>
         
-          <description>&lt;h5&gt;Download Oracle instantclient&lt;/h5&gt;
-
+          <description>&lt;h5 id=&quot;download-oracle-instantclient&quot;&gt;Download Oracle instantclient&lt;/h5&gt;
 &lt;ol&gt;
-&lt;li&gt;Navigate to the &lt;a href=&quot;http://www.oracle.com/technetwork/topics/intel-macsoft-096467.html&quot;&gt;&amp;#39;Oracle Instant Client Downloads&amp;#39;&lt;/a&gt; page.&lt;/li&gt;
-&lt;li&gt;Download &lt;strong&gt;instantclient-basic-macos.x64-12.1.0.2.0.zip&lt;/strong&gt; and &lt;strong&gt;instantclient-sdk-macos.x64-12.1.0.2.0.zip&lt;/strong&gt;
-
-&lt;ul&gt;
-&lt;li&gt;You will need an Oracle account to proceed with the download.&lt;/li&gt;
-&lt;/ul&gt;&lt;/li&gt;
-&lt;li&gt;Enter the &amp;#39;~/Downloads&amp;#39; folder in Terminal, and unzip both downloads:&lt;/li&gt;
+  &lt;li&gt;Navigate to the &lt;a href=&quot;http://www.oracle.com/technetwork/topics/intel-macsoft-096467.html&quot;&gt;‘Oracle Instant Client Downloads’&lt;/a&gt; page.&lt;/li&gt;
+  &lt;li&gt;Download &lt;strong&gt;instantclient-basic-macos.x64-12.1.0.2.0.zip&lt;/strong&gt; and &lt;strong&gt;instantclient-sdk-macos.x64-12.1.0.2.0.zip&lt;/strong&gt;
+    &lt;ul&gt;
+      &lt;li&gt;You will need an Oracle account to proceed with the download.&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Enter the ‘~/Downloads’ folder in Terminal, and unzip both downloads:&lt;/li&gt;
 &lt;/ol&gt;
+
 </description>
         
         <pubDate>Thu, 14 Jul 2016 01:05:00 -0400</pubDate>
@@ -48,8 +79,9 @@
       <item>
         <title>Migrating Between SQL Databases</title>
         
-          <description>&lt;p&gt;&lt;br&gt;
-We can all agree on one thing: SQL Databases are here to stay. &lt;/p&gt;
+          <description>&lt;p&gt;&lt;br /&gt;
+We can all agree on one thing: SQL Databases are here to stay.&lt;/p&gt;
+
 </description>
         
         <pubDate>Thu, 14 Jul 2016 01:05:00 -0400</pubDate>

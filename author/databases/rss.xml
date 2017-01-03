@@ -12,60 +12,294 @@
    <atom:link href="rss" rel="self" type="application/rss+xml" />
    
 	<item>
+	  <title>Connecting to SQL Server from SQLAlchemy on a Mac</title>
+	  <link>/sharrington/databases/connecting-to-sql-server-with-sqlalchemy</link>
+	  <author>Sean Harrington</author>
+	  <pubDate>2017-01-03T00:05:00-05:00</pubDate>
+	  <guid>/sharrington/databases/connecting-to-sql-server-with-sqlalchemy</guid>
+	  <description><![CDATA[
+	     <p><em>This post explains how to connect to SQL Server using SQLAlchemy, pyodbc, UnixODBC and FreeTDS on a Mac</em></p>
+
+<h3>Install UnixODBC &amp; FreeTDS</h3>
+
+<ol>
+  <li>Install via Homebrew
+    <div class="highlighter-rouge"><pre class="highlight"><code>brew install unixodbc
+brew install freetds --with-unixodbc
+</code></pre>
+    </div>
+  </li>
+  <li>Test with FreeTDS from terminal
+    <div class="highlighter-rouge"><pre class="highlight"><code>tsql -S <span class="o">[</span>IP or Hostname] -U <span class="o">[</span>username] -P <span class="o">[</span>password]
+locale is <span class="s2">"en_US.UTF-8"</span>
+locale charset is <span class="s2">"UTF-8"</span>
+using default charset <span class="s2">"UTF-8"</span>
+1&gt;
+</code></pre>
+    </div>
+  </li>
+</ol>
+
+<h3>Configure odbc.ini &amp; odbcinst.ini</h3>
+
+<ol>
+  <li>Open /usr/local/etc/odbcinst.ini, point to the driver at libtdsodbc.so&lt;/h3&gt;
+    <div class="highlighter-rouge"><pre class="highlight"><code><span class="o">[</span>FreeTDS]
+Driver <span class="o">=</span> /usr/local/lib/libtdsodbc.so
+Setup <span class="o">=</span> /usr/local/lib/libtdsodbc.so
+FileUsage <span class="o">=</span> 1
+</code></pre>
+    </div>
+  </li>
+  <li>Open /usr/local/etc/odbc.ini and create new DSN
+    <div class="highlighter-rouge"><pre class="highlight"><code><span class="o">[</span>MSSQL_DSN]
+<span class="nv">Driver</span><span class="o">=</span>FreeTDS
+<span class="nv">Server</span><span class="o">=</span>10.110.0.200
+<span class="nv">Port</span><span class="o">=</span>1433
+<span class="nv">Database</span><span class="o">=</span>my_database_name
+</code></pre>
+    </div>
+  </li>
+  <li>Test the DSN
+    <div class="highlighter-rouge"><pre class="highlight"><code>isql MSSQL_DSN username password -v
++---------------------------------------+
+| Connected!                            |
+|                                       |
+| sql-statement                         |
+| <span class="nb">help</span> <span class="o">[</span>tablename]                      |
+| quit                                  |
+|                                       |
++---------------------------------------+
+<span class="gp">SQL&gt; </span>^D
+</code></pre>
+    </div>
+  </li>
+</ol>
+
+<h3>Install pyodbc</h3>
+<div class="highlighter-rouge"><pre class="highlight"><code>pip install pyodbc
+</code></pre>
+</div>
+
+<h3>Connect with sqlalchemy</h3>
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">create_engine</span>
+
+<span class="n">e</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">"mssql+pyodbc://username:password@MSSQL_DSN"</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<p>Hopefully you can quickly get connected to your SQL Server instance via Python with the steps above. For me, it has been notoriously more difficult to connect to than other databases like MySQL and PostgreSQL. In fact, I built an open-sourced tool to migrate an entire database (or a handful of tables) from SQL Server, to any other RDBMS like MySQL.</p>
+
+<p><a href="https://github.com/seanharr11/etlalchemy">Check out etlalchemy here on github</a></p>
+
+<hr />
+
+<h4>A couple of notes...</h4>
+
+<ol>
+  <li>Depending on the SQL Server version you are connecting to, you may need to specify a TDS Protocol Version in <em>/usr/local/etc/freetds.conf</em>:
+    <div class="highlighter-rouge"><pre class="highlight"><code><span class="o">[</span>global]
+    <span class="c"># Uncomment below to guess protocol</span>
+    <span class="c"># tds version = auto</span>
+    tds version <span class="o">=</span> 7.3
+</code></pre>
+    </div>
+  </li>
+</ol>
+
+<p><strong>Full Compatability Matrix</strong> (from <a href="http://www.freetds.org/userguide/choosingtdsprotocol.htm">http://freetds.org</a>)</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Product</th>
+      <th style="text-align: left">TDS Version</th>
+      <th style="text-align: left">Comment</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Sybase before System 10, Microsoft SQL Server 6.x</td>
+      <td style="text-align: left">4.2</td>
+      <td style="text-align: left">Still works with all products, subject to its limitations.</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Sybase System 10 and above</td>
+      <td style="text-align: left">5.0</td>
+      <td style="text-align: left">Still the most current protocol used by Sybase.</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Sybase System SQL Anywhere</td>
+      <td style="text-align: left">5.0 <em>only</em></td>
+      <td style="text-align: left">Originally Watcom SQL Server, a completely separate codebase. Our best information is that SQL Anywhere first supported TDS in version 5.5.03 using the OpenServer Gateway (OSG), and native TDS 5.0 support arrived with version 6.0.</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Microsoft SQL Server 7.0</td>
+      <td style="text-align: left">7.0</td>
+      <td style="text-align: left">Includes support for the extended datatypes in SQL Server 7.0 (such as char/varchar fields of more than 255 characters), and support for Unicode.</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Microsoft SQL Server 2000</td>
+      <td style="text-align: left">7.1</td>
+      <td style="text-align: left">Include support for bigint (64 bit integers), variant and collation on all fields. Collation is not widely used.</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Microsoft SQL Server 2005</td>
+      <td style="text-align: left">7.2</td>
+      <td style="text-align: left">Includes support for varchar(max), varbinary(max), xml datatypes and MARS[a].</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Microsoft SQL Server 2008</td>
+      <td style="text-align: left">7.3</td>
+      <td style="text-align: left">Includes support for time, date, datetime2, datetimeoffset.</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Microsoft SQL Server 2012 or 2014</td>
+      <td style="text-align: left">7.4</td>
+      <td style="text-align: left">Includes support for session recovery.</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">N/A</td>
+      <td style="text-align: left">8.0</td>
+      <td style="text-align: left">FreeTDS will alias this version to 7.1 for backwards compatibility reasons, but this should be avoided due to future compatibility concerns. See note below on obsolete versions.</td>
+    </tr>
+  </tbody>
+</table>
+
+
+	  ]]></description>
+	</item>
+
+	<item>
+	  <title>Connecting to SQL Server from SQLAlchemy</title>
+	  <link>/sharrington/databases/connecting-to-sql-server-with-sqlalchemy</link>
+	  <author>Sean Harrington</author>
+	  <pubDate>2016-07-14T01:05:00-04:00</pubDate>
+	  <guid>/sharrington/databases/connecting-to-sql-server-with-sqlalchemy</guid>
+	  <description><![CDATA[
+	     <p><em>This post explains how to connect to SQL Server using SQLAlchemy, pyodbc, UnixODBC and FreeTDS on Ubuntu</em></p>
+
+<h3>Update apt-get package index files</h3>
+
+<h3>Install UnixODBC</h3>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>sudo apt-get install unixodbc-dev unixodbc-bin unixodbc
+</code></pre>
+</div>
+<h3>Install FreeTDS</h3>
+<div class="highlighter-rouge"><pre class="highlight"><code>freetds-dev freetds-bin tdsodbc
+</code></pre>
+</div>
+
+<h3>Create /etc/odbcinst.ini, and point driver to libtdsodbc.so</h3>
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="o">[</span>FreeTDS]
+Description <span class="o">=</span> v0.91 with protocol v7.2
+Driver <span class="o">=</span> /usr/lib/x86_64-linux-gnu/odbc/libtdsodbc.so
+
+</code></pre>
+</div>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>pip install etlalchemy
+<span class="c"># On El Capitan:</span>
+<span class="c">### pip install --ignore-installed etlalchemy</span>
+</code></pre>
+</div>
+
+<p>To run the tool:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">etlalchemy</span> <span class="kn">import</span> <span class="n">ETLAlchemySource</span><span class="p">,</span> <span class="n">ETLAlchemyTarget</span>
+<span class="c"># Migrate from SQL Server onto PostgreSQL</span>
+<span class="n">src</span> <span class="o">=</span> <span class="n">ETLAlchemySource</span><span class="p">(</span><span class="s">"mssql+pyodbc://user:passwd@DSN_NAME"</span><span class="p">)</span>
+<span class="n">tgt</span> <span class="o">=</span> <span class="n">ETLAlchemyTarget</span><span class="p">(</span><span class="s">"postgresql://user:passwd@hostname/dbname"</span><span class="p">,</span>
+                          <span class="n">drop_database</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">tgt</span><span class="o">.</span><span class="n">addSource</span><span class="p">(</span><span class="n">src</span><span class="p">)</span>
+<span class="n">tgt</span><span class="o">.</span><span class="n">migrate</span><span class="p">()</span>
+</code></pre>
+</div>
+
+<p>Since solving my problem with the first pass of etlalchemy, I have spent months adding support for PostgreSQL, MySQL, Oracle, SQL Server, and SQLite. This means that with 4 lines of code, you can do things like migrate from SQL Server onto MySQL, migrate from Oracle onto PostgreSQL, or in my case migrate Oracle onto MySQL. Another helpful usecase is to migrate a remote MySQL database onto a local SQLite database to test an application on your local machine.</p>
+
+<p>Happy Database Migrating!</p>
+
+	  ]]></description>
+	</item>
+
+	<item>
 	  <title>Installing cx_Oracle Driver on El Capitan</title>
 	  <link>/sharrington/databases/oracle/install-cx_oracle-mac</link>
 	  <author>Sean Harrington</author>
 	  <pubDate>2016-07-14T01:05:00-04:00</pubDate>
 	  <guid>/sharrington/databases/oracle/install-cx_oracle-mac</guid>
 	  <description><![CDATA[
-	     <h5>Download Oracle instantclient</h5>
-
+	     <h5 id="download-oracle-instantclient">Download Oracle instantclient</h5>
 <ol>
-<li>Navigate to the <a href="http://www.oracle.com/technetwork/topics/intel-macsoft-096467.html">&#39;Oracle Instant Client Downloads&#39;</a> page.</li>
-<li>Download <strong>instantclient-basic-macos.x64-12.1.0.2.0.zip</strong> and <strong>instantclient-sdk-macos.x64-12.1.0.2.0.zip</strong>
-
-<ul>
-<li>You will need an Oracle account to proceed with the download.</li>
-</ul></li>
-<li>Enter the &#39;~/Downloads&#39; folder in Terminal, and unzip both downloads:</li>
+  <li>Navigate to the <a href="http://www.oracle.com/technetwork/topics/intel-macsoft-096467.html">‘Oracle Instant Client Downloads’</a> page.</li>
+  <li>Download <strong>instantclient-basic-macos.x64-12.1.0.2.0.zip</strong> and <strong>instantclient-sdk-macos.x64-12.1.0.2.0.zip</strong>
+    <ul>
+      <li>You will need an Oracle account to proceed with the download.</li>
+    </ul>
+  </li>
+  <li>Enter the ‘~/Downloads’ folder in Terminal, and unzip both downloads:</li>
 </ol>
-<div class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">cd</span> ~/Downloads
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="nb">cd</span> ~/Downloads
 <span class="c"># Or 'cd &lt;download_directory&gt;'</span>
 unzip instantclient-basic-macos.x64-12.1.0.2.0.zip
 <span class="c"># Running the below 'unzip' command will automagically </span>
 <span class="c"># place the unzipped contents in 'instantclient_12_1/sdk'</span>
 unzip instantclient-sdk-macos.x64-12.1.0.2.0.zip
-</code></pre></div>
-<h5>Move directory and link libclntsh.dylib.12.1</h5>
-<div class="highlight"><pre><code class="language-bash" data-lang="bash">mv instantclient_12_1 /usr/local/opt/instantclient_12_1
+</code></pre>
+</div>
+
+<h5 id="move-directory-and-link-libclntshdylib121">Move directory and link libclntsh.dylib.12.1</h5>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>mv instantclient_12_1 /usr/local/opt/instantclient_12_1
 <span class="nb">cd</span> /usr/local/opt/instantclient_12_1
 ln -s libclntsh.dylib.12.1 libclntsh.dylib
-</code></pre></div>
-<h5>Configure environment variables</h5>
-<div class="highlight"><pre><code class="language-" data-lang=""># Tell cx_Oracle setup.py where to find instantclient libs
+</code></pre>
+</div>
+
+<h5 id="configure-environment-variables">Configure environment variables</h5>
+
+<div class="highlighter-rouge"><pre class="highlight"><code># Tell cx_Oracle setup.py where to find instantclient libs
 export ORACLE_HOME=/usr/local/opt/instantclient_12_1
 # Set -rpath option to tell gcc to look in ORACLE_HOME when linking
 export FORCE_RPATH=1
 
-</code></pre></div>
-<h5>Download and install cx_Oracle</h5>
-<div class="highlight"><pre><code class="language-" data-lang=""># Install with pip
+</code></pre>
+</div>
+
+<h5 id="download-and-install-cxoracle">Download and install cx_Oracle</h5>
+
+<div class="highlighter-rouge"><pre class="highlight"><code># Install with pip
 pip install cx_Oracle
-</code></pre></div>
-<h5>Verify cx_Oracle was correctly installed</h5>
-<div class="highlight"><pre><code class="language-" data-lang="">python -c "import cx_Oracle"
-</code></pre></div>
+</code></pre>
+</div>
+
+<h5 id="verify-cxoracle-was-correctly-installed">Verify cx_Oracle was correctly installed</h5>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>python -c "import cx_Oracle"
+</code></pre>
+</div>
+
 <p>If this fails then you may see the following exception:</p>
-<div class="highlight"><pre><code class="language-" data-lang="">Traceback (most recent call last):
+
+<div class="highlighter-rouge"><pre class="highlight"><code>Traceback (most recent call last):
   File "&lt;string&gt;", line 1, in &lt;module&gt;
 ImportError: dlopen(/Library/Python/2.7/site-packages/cx_Oracle.so, 2): Library not loaded: @rpath/libclntsh.dylib.12.1
   Referenced from: /Library/Python/2.7/site-packages/cx_Oracle.so
   Reason: image not found
-</code></pre></div>
-<p>If you are seeing this exception, you either skipped setting <code>ORACLE_HOME</code> and <code>FORCE_RPATH</code> (as described above), or you are using a cached version of the cx_Oracle build when installing. To force pip to re-build the package, run:</p>
-<div class="highlight"><pre><code class="language-" data-lang="">pip install --no-cache-dir --allow-external --allow-unverified cx_oracle
-</code></pre></div>
+</code></pre>
+</div>
+
+<p>If you are seeing this exception, you either skipped setting <code class="highlighter-rouge">ORACLE_HOME</code> and <code class="highlighter-rouge">FORCE_RPATH</code> (as described above), or you are using a cached version of the cx_Oracle build when installing. To force pip to re-build the package, run:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>pip install --no-cache-dir --allow-external --allow-unverified cx_oracle
+</code></pre>
+</div>
+
 <p><em>Thanks to <a href="http://stackoverflow.com/users/4799035/christopher-jones">Christopher Jones</a> for help simplifying the above steps.</em></p>
+
 
 	  ]]></description>
 	</item>
@@ -77,8 +311,8 @@ ImportError: dlopen(/Library/Python/2.7/site-packages/cx_Oracle.so, 2): Library 
 	  <pubDate>2016-07-14T01:05:00-04:00</pubDate>
 	  <guid>/sharrington/databases/migrating-between-databases-with-etlalchemy</guid>
 	  <description><![CDATA[
-	     <p><br>
-We can all agree on one thing: SQL Databases are here to stay. </p>
+	     <p><br />
+We can all agree on one thing: SQL Databases are here to stay.</p>
 
 <p>However, for one reason or another, sometimes they stay in one place for too long.</p>
 
@@ -88,69 +322,74 @@ We can all agree on one thing: SQL Databases are here to stay. </p>
 
 <p>In short, we chose to migrate from Oracle onto MySQL as our target RDBMS. So began my journey to migrate off of a database as old as the sea turtle in the banner above, and onto a modern solution.</p>
 
-<p>As most projects do, the project grew from a simple database migration, to a database migration requiring cleaning data, altering schema, identifying and dropping unused/legacy columns etc... We identified the following requirements when searching for a solution:</p>
+<p>As most projects do, the project grew from a simple database migration, to a database migration requiring cleaning data, altering schema, identifying and dropping unused/legacy columns etc… We identified the following requirements when searching for a solution:</p>
 
 <ol>
-<li><strong>No Loss of Information</strong>
-
-<ul>
-<li><em>Data, schema, constraints and indexes all must be migrated without any loss of information.</em></li>
-</ul></li>
-<li><strong>Automated Solution</strong>
-
-<ul>
-<li><em>Avoid .sql scripts and manual scripting.</em></li>
-<li><em>&#39;Push-button&#39; solution, rather than several small procedures.</em> </li>
-</ul></li>
-<li><strong>High Degree of Customizability.</strong>
-
-<ul>
-<li><em>Adding custom rules for schema transformations.</em></li>
-<li><em>Adding custom rules for data transformations.</em></li>
-</ul></li>
-<li><strong>Performance</strong>
-
-<ul>
-<li><em>Fast enough to test multiple runs per day.</em></li>
-</ul></li>
+  <li><strong>No Loss of Information</strong>
+    <ul>
+      <li><em>Data, schema, constraints and indexes all must be migrated without any loss of information.</em></li>
+    </ul>
+  </li>
+  <li><strong>Automated Solution</strong>
+    <ul>
+      <li><em>Avoid .sql scripts and manual scripting.</em></li>
+      <li><em>‘Push-button’ solution, rather than several small procedures.</em></li>
+    </ul>
+  </li>
+  <li><strong>High Degree of Customizability.</strong>
+    <ul>
+      <li><em>Adding custom rules for schema transformations.</em></li>
+      <li><em>Adding custom rules for data transformations.</em></li>
+    </ul>
+  </li>
+  <li><strong>Performance</strong>
+    <ul>
+      <li><em>Fast enough to test multiple runs per day.</em></li>
+    </ul>
+  </li>
 </ol>
 
 <p>The immediate solutions failed:</p>
 
 <ol>
-<li><strong>MySQL Workbench</strong> involved a great deal of manual configuring, and no &#39;automated&#39; way to migrate from Oracle -&gt; MySQL.
-
-<ul>
-<li>(Why would Oracle allow Enterprise -&gt; Open-source migrations within their own product-line anyway?)</li>
-</ul></li>
-<li><strong>DBConvert</strong> lacked support for Oracle versions before 10.x.x. 
-
-<ul>
-<li>(Pricing also starts at $150 for Personal use, $1000 for Enterprise use)</li>
-</ul></li>
-<li>A few Ruby gems (taps) lacked support for many of the Oracle column types, and the cx_Oracle driver in general.</li>
+  <li><strong>MySQL Workbench</strong> involved a great deal of manual configuring, and no ‘automated’ way to migrate from Oracle -&gt; MySQL.
+    <ul>
+      <li>(Why would Oracle allow Enterprise -&gt; Open-source migrations within their own product-line anyway?)</li>
+    </ul>
+  </li>
+  <li><strong>DBConvert</strong> lacked support for Oracle versions before 10.x.x.
+    <ul>
+      <li>(Pricing also starts at $150 for Personal use, $1000 for Enterprise use)</li>
+    </ul>
+  </li>
+  <li>A few Ruby gems (taps) lacked support for many of the Oracle column types, and the cx_Oracle driver in general.</li>
 </ol>
 
 <p>I decided to dust off an old college project, burn the midnight oil to revitalize it, and leverage it to solve this problem.</p>
 
-<p id='code-snippet'></p>
-
-<p>The project, <a href="https://github.com/seanharr11/etlalchemy" title="Navigate to etlalchemy github page"><strong>etlalchemy</strong></a>, is an open-sourced Python application which sits atop <a href="http://www.sqlalchemy.org/" title="Navigate to sqlalchemy.org"><strong>SQLAlchemy</strong></a>, and allows ETL (Extract, Transform, Load) functionality between any 2 SQL databases. The tool presents a <a href="https://www.python.org/dev/peps/pep-0020/#the-zen-of-python"><em>&quot;Simple over Complex&quot;</em></a> solution to the problem, allowing you to <em>Migrate any SQL Database with 4 Lines of Code</em>. (More advanced features are also available).</p>
+<p id="code-snippet"></p>
+<p>The project, <a href="https://github.com/seanharr11/etlalchemy" title="Navigate to etlalchemy github page"><strong>etlalchemy</strong></a>, is an open-sourced Python application which sits atop <a href="http://www.sqlalchemy.org/" title="Navigate to sqlalchemy.org"><strong>SQLAlchemy</strong></a>, and allows ETL (Extract, Transform, Load) functionality between any 2 SQL databases. The tool presents a <a href="https://www.python.org/dev/peps/pep-0020/#the-zen-of-python"><em>“Simple over Complex”</em></a> solution to the problem, allowing you to <em>Migrate any SQL Database with 4 Lines of Code</em>. (More advanced features are also available).</p>
 
 <p>To install the tool:</p>
-<div class="highlight"><pre><code class="language-bash" data-lang="bash">pip install etlalchemy
+
+<div class="highlighter-rouge"><pre class="highlight"><code>pip install etlalchemy
 <span class="c"># On El Capitan:</span>
 <span class="c">### pip install --ignore-installed etlalchemy</span>
-</code></pre></div>
+</code></pre>
+</div>
+
 <p>To run the tool:</p>
-<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="kn">from</span> <span class="nn">etlalchemy</span> <span class="kn">import</span> <span class="n">ETLAlchemySource</span><span class="p">,</span> <span class="n">ETLAlchemyTarget</span>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">etlalchemy</span> <span class="kn">import</span> <span class="n">ETLAlchemySource</span><span class="p">,</span> <span class="n">ETLAlchemyTarget</span>
 <span class="c"># Migrate from SQL Server onto PostgreSQL</span>
 <span class="n">src</span> <span class="o">=</span> <span class="n">ETLAlchemySource</span><span class="p">(</span><span class="s">"mssql+pyodbc://user:passwd@DSN_NAME"</span><span class="p">)</span>
 <span class="n">tgt</span> <span class="o">=</span> <span class="n">ETLAlchemyTarget</span><span class="p">(</span><span class="s">"postgresql://user:passwd@hostname/dbname"</span><span class="p">,</span>
                           <span class="n">drop_database</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 <span class="n">tgt</span><span class="o">.</span><span class="n">addSource</span><span class="p">(</span><span class="n">src</span><span class="p">)</span>
 <span class="n">tgt</span><span class="o">.</span><span class="n">migrate</span><span class="p">()</span>
-</code></pre></div>
+</code></pre>
+</div>
+
 <p>Since solving my problem with the first pass of etlalchemy, I have spent months adding support for PostgreSQL, MySQL, Oracle, SQL Server, and SQLite. This means that with 4 lines of code, you can do things like migrate from SQL Server onto MySQL, migrate from Oracle onto PostgreSQL, or in my case migrate Oracle onto MySQL. Another helpful usecase is to migrate a remote MySQL database onto a local SQLite database to test an application on your local machine.</p>
 
 <p>Happy Database Migrating!</p>

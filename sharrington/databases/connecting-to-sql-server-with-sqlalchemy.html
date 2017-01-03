@@ -6,7 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 
     <!-- [[! Page Meta ]] -->
-    <title>Migrating Between SQL Databases</title>
+    <title>Connecting to SQL Server from SQLAlchemy on a Mac</title>
     <meta name="description" content="The Laziest Programmer - Because someone else has already solved your problem." />
 
     <meta name="HandheldFriendly" content="True" />
@@ -38,7 +38,7 @@
     
     <meta property='article:tag' content="databases">
     
-    <meta property="og:title" content="Migrating Between SQL Databases" />
+    <meta property="og:title" content="Connecting to SQL Server from SQLAlchemy on a Mac" />
     <meta property="og:description" content="The Laziest Programmer - Because someone else has already solved your problem." />
     <meta property="og:url" content="http://thelaziestprogrammer.com" />
     <meta property="og:image" content="/assets/images/tlp_logo_og.png" />
@@ -48,7 +48,7 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@thelaziestprogrammer" />
     <meta name="twitter:creator" content="@seanharr11" />
-    <meta name="twitter:title" content="Migrating Between SQL Databases" />
+    <meta name="twitter:title" content="Connecting to SQL Server from SQLAlchemy on a Mac" />
     <meta name="twitter:description" content="The Laziest Programmer - Because someone else has already solved your problem." />
     <meta name="twitter:url" content="http://thelaziestprogrammer.com" />
     <meta name="twitter:image" content="http://thelaziestprogrammer.com/assets/images/tlp_logo_og.png" />
@@ -108,7 +108,7 @@
 <!-- Everything inside the #post tags pulls data from the post -->
 <!-- #post -->
 
-<header class="main-header post-head " style="background-image: url(/assets/images/sea_turtle_vertical.jpg) ">
+<header class="main-header post-head " style="background-image: url(/assets/images/missing.jpg) ">
     <nav class="main-nav  overlay  clearfix">
         <a class="blog-logo" href="/"><img src="/assets/images/tlp_logo.png" alt="Blog Logo" /></a>
         
@@ -122,10 +122,10 @@
     <article class="post tag-sql">
 
         <header class="post-header">
-            <h1 class="post-title">Migrating Between SQL Databases</h1>
+            <h1 class="post-title">Connecting to SQL Server from SQLAlchemy on a Mac</h1>
             <section class="post-meta">
             <!-- <a href=''>Sean Harrington</a> -->
-            <time class="post-date" datetime="2016-07-14">14 Jul 2016</time>
+            <time class="post-date" datetime="2017-01-03">03 Jan 2017</time>
                 <!-- [[tags prefix=" on "]] -->
                  
                 on 
@@ -140,88 +140,154 @@
 
         <section class="post-content">
             
-            <p><br />
-We can all agree on one thing: SQL Databases are here to stay.</p>
+            <p><em>This post explains how to connect to SQL Server using SQLAlchemy, pyodbc, UnixODBC and FreeTDS on a Mac</em></p>
 
-<p>However, for one reason or another, sometimes they stay in one place for too long.</p>
-
-<p style="text-align: center"><a href="#code-snippet">Jump to Code Snippet</a></p>
-
-<p>I started my most recent job in June 2015, where I was responsible for projects spanning various fields, ranging from Web Development to Machine Learning. After learning that we kept the majority of our data in an <strong>Oracle 9i</strong> RDBMS, and learning that Oracle pulled support for the system in July 2010, naturally the first move to make was to migrate onto a different RDBMS, or to upgrade.</p>
-
-<p>In short, we chose to migrate from Oracle onto MySQL as our target RDBMS. So began my journey to migrate off of a database as old as the sea turtle in the banner above, and onto a modern solution.</p>
-
-<p>As most projects do, the project grew from a simple database migration, to a database migration requiring cleaning data, altering schema, identifying and dropping unused/legacy columns etc… We identified the following requirements when searching for a solution:</p>
+<h3>Install UnixODBC &amp; FreeTDS</h3>
 
 <ol>
-  <li><strong>No Loss of Information</strong>
-    <ul>
-      <li><em>Data, schema, constraints and indexes all must be migrated without any loss of information.</em></li>
-    </ul>
+  <li>Install via Homebrew
+    <div class="highlighter-rouge"><pre class="highlight"><code>brew install unixodbc
+brew install freetds --with-unixodbc
+</code></pre>
+    </div>
   </li>
-  <li><strong>Automated Solution</strong>
-    <ul>
-      <li><em>Avoid .sql scripts and manual scripting.</em></li>
-      <li><em>‘Push-button’ solution, rather than several small procedures.</em></li>
-    </ul>
-  </li>
-  <li><strong>High Degree of Customizability.</strong>
-    <ul>
-      <li><em>Adding custom rules for schema transformations.</em></li>
-      <li><em>Adding custom rules for data transformations.</em></li>
-    </ul>
-  </li>
-  <li><strong>Performance</strong>
-    <ul>
-      <li><em>Fast enough to test multiple runs per day.</em></li>
-    </ul>
+  <li>Test with FreeTDS from terminal
+    <div class="highlighter-rouge"><pre class="highlight"><code>tsql -S <span class="o">[</span>IP or Hostname] -U <span class="o">[</span>username] -P <span class="o">[</span>password]
+locale is <span class="s2">"en_US.UTF-8"</span>
+locale charset is <span class="s2">"UTF-8"</span>
+using default charset <span class="s2">"UTF-8"</span>
+1&gt;
+</code></pre>
+    </div>
   </li>
 </ol>
 
-<p>The immediate solutions failed:</p>
+<h3>Configure odbc.ini &amp; odbcinst.ini</h3>
 
 <ol>
-  <li><strong>MySQL Workbench</strong> involved a great deal of manual configuring, and no ‘automated’ way to migrate from Oracle -&gt; MySQL.
-    <ul>
-      <li>(Why would Oracle allow Enterprise -&gt; Open-source migrations within their own product-line anyway?)</li>
-    </ul>
+  <li>Open /usr/local/etc/odbcinst.ini, point to the driver at libtdsodbc.so&lt;/h3&gt;
+    <div class="highlighter-rouge"><pre class="highlight"><code><span class="o">[</span>FreeTDS]
+Driver <span class="o">=</span> /usr/local/lib/libtdsodbc.so
+Setup <span class="o">=</span> /usr/local/lib/libtdsodbc.so
+FileUsage <span class="o">=</span> 1
+</code></pre>
+    </div>
   </li>
-  <li><strong>DBConvert</strong> lacked support for Oracle versions before 10.x.x.
-    <ul>
-      <li>(Pricing also starts at $150 for Personal use, $1000 for Enterprise use)</li>
-    </ul>
+  <li>Open /usr/local/etc/odbc.ini and create new DSN
+    <div class="highlighter-rouge"><pre class="highlight"><code><span class="o">[</span>MSSQL_DSN]
+<span class="nv">Driver</span><span class="o">=</span>FreeTDS
+<span class="nv">Server</span><span class="o">=</span>10.110.0.200
+<span class="nv">Port</span><span class="o">=</span>1433
+<span class="nv">Database</span><span class="o">=</span>my_database_name
+</code></pre>
+    </div>
   </li>
-  <li>A few Ruby gems (taps) lacked support for many of the Oracle column types, and the cx_Oracle driver in general.</li>
+  <li>Test the DSN
+    <div class="highlighter-rouge"><pre class="highlight"><code>isql MSSQL_DSN username password -v
++---------------------------------------+
+| Connected!                            |
+|                                       |
+| sql-statement                         |
+| <span class="nb">help</span> <span class="o">[</span>tablename]                      |
+| quit                                  |
+|                                       |
++---------------------------------------+
+<span class="gp">SQL&gt; </span>^D
+</code></pre>
+    </div>
+  </li>
 </ol>
 
-<p>I decided to dust off an old college project, burn the midnight oil to revitalize it, and leverage it to solve this problem.</p>
-
-<p id="code-snippet"></p>
-<p>The project, <a href="https://github.com/seanharr11/etlalchemy" title="Navigate to etlalchemy github page"><strong>etlalchemy</strong></a>, is an open-sourced Python application which sits atop <a href="http://www.sqlalchemy.org/" title="Navigate to sqlalchemy.org"><strong>SQLAlchemy</strong></a>, and allows ETL (Extract, Transform, Load) functionality between any 2 SQL databases. The tool presents a <a href="https://www.python.org/dev/peps/pep-0020/#the-zen-of-python"><em>“Simple over Complex”</em></a> solution to the problem, allowing you to <em>Migrate any SQL Database with 4 Lines of Code</em>. (More advanced features are also available).</p>
-
-<p>To install the tool:</p>
-
-<div class="highlighter-rouge"><pre class="highlight"><code>pip install etlalchemy
-<span class="c"># On El Capitan:</span>
-<span class="c">### pip install --ignore-installed etlalchemy</span>
+<h3>Install pyodbc</h3>
+<div class="highlighter-rouge"><pre class="highlight"><code>pip install pyodbc
 </code></pre>
 </div>
 
-<p>To run the tool:</p>
+<h3>Connect with sqlalchemy</h3>
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">create_engine</span>
 
-<div class="highlighter-rouge"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">etlalchemy</span> <span class="kn">import</span> <span class="n">ETLAlchemySource</span><span class="p">,</span> <span class="n">ETLAlchemyTarget</span>
-<span class="c"># Migrate from SQL Server onto PostgreSQL</span>
-<span class="n">src</span> <span class="o">=</span> <span class="n">ETLAlchemySource</span><span class="p">(</span><span class="s">"mssql+pyodbc://user:passwd@DSN_NAME"</span><span class="p">)</span>
-<span class="n">tgt</span> <span class="o">=</span> <span class="n">ETLAlchemyTarget</span><span class="p">(</span><span class="s">"postgresql://user:passwd@hostname/dbname"</span><span class="p">,</span>
-                          <span class="n">drop_database</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="n">tgt</span><span class="o">.</span><span class="n">addSource</span><span class="p">(</span><span class="n">src</span><span class="p">)</span>
-<span class="n">tgt</span><span class="o">.</span><span class="n">migrate</span><span class="p">()</span>
+<span class="n">e</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="s">"mssql+pyodbc://username:password@MSSQL_DSN"</span><span class="p">)</span>
 </code></pre>
 </div>
 
-<p>Since solving my problem with the first pass of etlalchemy, I have spent months adding support for PostgreSQL, MySQL, Oracle, SQL Server, and SQLite. This means that with 4 lines of code, you can do things like migrate from SQL Server onto MySQL, migrate from Oracle onto PostgreSQL, or in my case migrate Oracle onto MySQL. Another helpful usecase is to migrate a remote MySQL database onto a local SQLite database to test an application on your local machine.</p>
+<p>Hopefully you can quickly get connected to your SQL Server instance via Python with the steps above. For me, it has been notoriously more difficult to connect to than other databases like MySQL and PostgreSQL. In fact, I built an open-sourced tool to migrate an entire database (or a handful of tables) from SQL Server, to any other RDBMS like MySQL.</p>
 
-<p>Happy Database Migrating!</p>
+<p><a href="https://github.com/seanharr11/etlalchemy">Check out etlalchemy here on github</a></p>
+
+<hr />
+
+<h4>A couple of notes...</h4>
+
+<ol>
+  <li>Depending on the SQL Server version you are connecting to, you may need to specify a TDS Protocol Version in <em>/usr/local/etc/freetds.conf</em>:
+    <div class="highlighter-rouge"><pre class="highlight"><code><span class="o">[</span>global]
+    <span class="c"># Uncomment below to guess protocol</span>
+    <span class="c"># tds version = auto</span>
+    tds version <span class="o">=</span> 7.3
+</code></pre>
+    </div>
+  </li>
+</ol>
+
+<p><strong>Full Compatability Matrix</strong> (from <a href="http://www.freetds.org/userguide/choosingtdsprotocol.htm">http://freetds.org</a>)</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: left">Product</th>
+      <th style="text-align: left">TDS Version</th>
+      <th style="text-align: left">Comment</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: left">Sybase before System 10, Microsoft SQL Server 6.x</td>
+      <td style="text-align: left">4.2</td>
+      <td style="text-align: left">Still works with all products, subject to its limitations.</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Sybase System 10 and above</td>
+      <td style="text-align: left">5.0</td>
+      <td style="text-align: left">Still the most current protocol used by Sybase.</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Sybase System SQL Anywhere</td>
+      <td style="text-align: left">5.0 <em>only</em></td>
+      <td style="text-align: left">Originally Watcom SQL Server, a completely separate codebase. Our best information is that SQL Anywhere first supported TDS in version 5.5.03 using the OpenServer Gateway (OSG), and native TDS 5.0 support arrived with version 6.0.</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Microsoft SQL Server 7.0</td>
+      <td style="text-align: left">7.0</td>
+      <td style="text-align: left">Includes support for the extended datatypes in SQL Server 7.0 (such as char/varchar fields of more than 255 characters), and support for Unicode.</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Microsoft SQL Server 2000</td>
+      <td style="text-align: left">7.1</td>
+      <td style="text-align: left">Include support for bigint (64 bit integers), variant and collation on all fields. Collation is not widely used.</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Microsoft SQL Server 2005</td>
+      <td style="text-align: left">7.2</td>
+      <td style="text-align: left">Includes support for varchar(max), varbinary(max), xml datatypes and MARS[a].</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Microsoft SQL Server 2008</td>
+      <td style="text-align: left">7.3</td>
+      <td style="text-align: left">Includes support for time, date, datetime2, datetimeoffset.</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">Microsoft SQL Server 2012 or 2014</td>
+      <td style="text-align: left">7.4</td>
+      <td style="text-align: left">Includes support for session recovery.</td>
+    </tr>
+    <tr>
+      <td style="text-align: left">N/A</td>
+      <td style="text-align: left">8.0</td>
+      <td style="text-align: left">FreeTDS will alias this version to 7.1 for backwards compatibility reasons, but this should be avoided due to future compatibility concerns. See note below on obsolete versions.</td>
+    </tr>
+  </tbody>
+</table>
+
 
 
         </section>
@@ -253,15 +319,15 @@ We can all agree on one thing: SQL Databases are here to stay.</p>
 
             <section class="share">
                 <h4>Share this post</h4>
-                <a class="icon-twitter" href="http://twitter.com/share?text=Migrating Between SQL Databases&amp;url=http://thelaziestprogrammer.comsharringtondatabasesmigrating-between-databases-with-etlalchemy"
+                <a class="icon-twitter" href="http://twitter.com/share?text=Connecting to SQL Server from SQLAlchemy on a Mac&amp;url=http://thelaziestprogrammer.comsharringtondatabasesconnecting-to-sql-server-with-sqlalchemy"
                     onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
                     <span class="hidden">Twitter</span>
                 </a>
-                <a class="icon-facebook" href="https://www.facebook.com/sharer/sharer.php?u=http://thelaziestprogrammer.comsharringtondatabasesmigrating-between-databases-with-etlalchemy"
+                <a class="icon-facebook" href="https://www.facebook.com/sharer/sharer.php?u=http://thelaziestprogrammer.comsharringtondatabasesconnecting-to-sql-server-with-sqlalchemy"
                     onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
                     <span class="hidden">Facebook</span>
                 </a>
-                <a class="icon-google-plus" href="https://plus.google.com/share?url=http://thelaziestprogrammer.comsharringtondatabasesmigrating-between-databases-with-etlalchemy"
+                <a class="icon-google-plus" href="https://plus.google.com/share?url=http://thelaziestprogrammer.comsharringtondatabasesconnecting-to-sql-server-with-sqlalchemy"
                    onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;">
                     <span class="hidden">Google+</span>
                 </a>
@@ -280,15 +346,15 @@ We can all agree on one thing: SQL Databases are here to stay.</p>
 
     <!-- [[! next_post ]] -->
     
-        <a class="read-next-story " style="background-image: url(/assets/images/face_of_urchin_small.jpg)" href="/sharrington/databases/oracle/install-cx_oracle-mac">
-            <section class="post">
-                <h2>Installing cx_Oracle Driver on El Capitan</h2>
-                <p>##### Download Oracle instantclient 1. Navigate to the ['Oracle Instant Client Downloads'](http://www.oracle.com/technetwork/topics/intel-macsoft-096467.html) page. 2. Download...</p>
-            </section>
-        </a>
-    
     <!-- [[! /next_post ]] -->
     <!-- [[! prev_post ]] -->
+    
+        <a class="read-next-story prev " style="background-image: url(/assets/images/island_wake.jpg)" href="/sharrington/web-development/sqlalchemy-defined-rest-api">
+            <section class="post">
+                <h2>REST API with Flask-Restless and SQLAlchemy</h2>
+                <p>This post shows how to auto-generate a REST API from a handful of SQLAlchemy models....</p>
+            </section>
+        </a>
     
     <!-- [[! /prev_post ]] -->
 </aside>

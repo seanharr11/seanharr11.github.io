@@ -18,47 +18,58 @@
 	  <pubDate>2016-08-19T02:32:00-04:00</pubDate>
 	  <guid>/sharrington/web-development/sqlalchemy-defined-rest-api</guid>
 	  <description><![CDATA[
-	     <p>This post shows how to auto-generate a REST API from a handful of SQLAlchemy models. This means full CRUD <em>(POST, GET, PUT, DELETE)</em> endpoint generation for each SQLAlchemy model defined. </p>
+	     <p>This post shows how to auto-generate a REST API from a handful of SQLAlchemy models. This means full CRUD <em>(POST, GET, PUT, DELETE)</em> endpoint generation for each SQLAlchemy model defined.</p>
 
-<p>Let&#39;s say our company is building a Single-Page Application for librarians &amp; readers that accomplishes the following 2 goals:</p>
+<p>Let’s say our company is building a Single-Page Application for librarians &amp; readers that accomplishes the following 2 goals:</p>
 
 <ol>
-<li>Show the availability and information of a given book to readers.</li>
-<li>Allow a librarian to perform CRUD operations to update their libary&#39;s inventory.</li>
+  <li>Show the availability and information of a given book to readers.</li>
+  <li>Allow a librarian to perform CRUD operations to update their libary’s inventory.</li>
 </ol>
 
-<p>We&#39;ve been tasked with building a REST API to allow a Single-Page Application to interface with our database.</p>
+<p>We’ve been tasked with building a REST API to allow a Single-Page Application to interface with our database.</p>
 
-<h4>Environment Setup</h4>
-
+<h4 id="environment-setup">Environment Setup</h4>
 <ol>
-<li><p>Create project root directory.</p>
-<div class="highlight"><pre><code class="language-bash" data-lang="bash">mkdir automagic_api
-</code></pre></div></li>
-<li><p>Create and activate virtualenv.</p>
-<div class="highlight"><pre><code class="language-" data-lang="">cd automagic_api;
+  <li>Create project root directory.
+    <div class="highlighter-rouge"><pre class="highlight"><code>mkdir automagic_api
+</code></pre>
+    </div>
+  </li>
+  <li>Create and activate virtualenv.
+    <div class="highlighter-rouge"><pre class="highlight"><code>cd automagic_api;
 virtualenv env;
 source env/bin/activate
-</code></pre></div></li>
-<li><p>Install flask-restless and sqlalchemy</p>
-<div class="highlight"><pre><code class="language-bash" data-lang="bash">pip install flask-restless sqlalchemy
-</code></pre></div></li>
+</code></pre>
+    </div>
+  </li>
+  <li>Install flask-restless and sqlalchemy
+    <div class="highlighter-rouge"><pre class="highlight"><code>pip install flask-restless sqlalchemy
+</code></pre>
+    </div>
+  </li>
 </ol>
 
 <p>Your project directory tree should look as follows:</p>
-<div class="highlight"><pre><code class="language-bash" data-lang="bash">automagic_api/
+
+<div class="highlighter-rouge"><pre class="highlight"><code>automagic_api/
 env/
-</code></pre></div>
-<h4>Further compartmentalize the project and define our models</h4>
+</code></pre>
+</div>
+
+<h4 id="further-compartmentalize-the-project-and-define-our-models">Further compartmentalize the project and define our models</h4>
 
 <ol>
-<li><p>Create nested project directory &#39;/automagic_api&#39; to hold Flask-specific files.</p>
-<div class="highlight"><pre><code class="language-" data-lang="">mkdir automagic_api
+  <li>Create nested project directory ‘/automagic_api’ to hold Flask-specific files.
+    <div class="highlighter-rouge"><pre class="highlight"><code>mkdir automagic_api
 cd automagic_api
-</code></pre></div></li>
-<li><p>Create <strong>&#39;models.py&#39;</strong> within the flask-project directory and define <strong>Book</strong> and <strong>Author</strong>..</p></li>
+</code></pre>
+    </div>
+  </li>
+  <li>Create <strong>‘models.py’</strong> within the flask-project directory and define <strong>Book</strong> and <strong>Author</strong>..</li>
 </ol>
-<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">declarative_base</span><span class="p">,</span> <span class="n">declared_attr</span>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">declarative_base</span><span class="p">,</span> <span class="n">declared_attr</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">ForeignKey</span><span class="p">,</span> <span class="n">Column</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">String</span><span class="p">,</span> <span class="n">Boolean</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">backref</span><span class="p">,</span> <span class="n">relationship</span>
 <span class="kn">from</span> <span class="nn">automagic_api</span> <span class="kn">import</span> <span class="n">Base</span>
@@ -87,17 +98,23 @@ cd automagic_api
     <span class="n">is_available</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Boolean</span><span class="p">)</span>
 
 
-</code></pre></div>
+</code></pre>
+</div>
+
 <p>Your directory structure should now look like this:</p>
-<div class="highlight"><pre><code class="language-" data-lang="">automagic_api/
+
+<div class="highlighter-rouge"><pre class="highlight"><code>automagic_api/
    automagic_api/
        models.py
    env/
-</code></pre></div>
-<h4>Create controllers.py to define endpoints</h4>
+</code></pre>
+</div>
+
+<h4 id="create-controllerspy-to-define-endpoints">Create controllers.py to define endpoints</h4>
 
 <p>Below we define our 2 <a href="http://flask-restless.readthedocs.io/en/stable/basicusage.html">Flask-restless API blueprints</a>: one for <strong>Book</strong> and one for <strong>Author</strong>, which when instantiated, construct the CRUD endpoints for each respective model.</p>
-<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="kn">from</span> <span class="nn">automagic_api</span> <span class="kn">import</span> <span class="n">app</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">manager</span>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">automagic_api</span> <span class="kn">import</span> <span class="n">app</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">manager</span>
 <span class="kn">from</span> <span class="nn">automagic_api.models</span>\
     <span class="kn">import</span> <span class="n">Book</span><span class="p">,</span> <span class="n">Author</span>
 
@@ -106,18 +123,24 @@ cd automagic_api
 <span class="n">book_api_blueprint</span> <span class="o">=</span> <span class="n">manager</span><span class="o">.</span><span class="n">create_api_blueprint</span><span class="p">(</span><span class="n">Book</span><span class="p">,</span>
         <span class="n">methods</span><span class="o">=</span><span class="p">[</span><span class="s">'GET'</span><span class="p">,</span> <span class="s">'PATCH'</span><span class="p">,</span> <span class="s">'POST'</span><span class="p">,</span> <span class="s">'DELETE'</span><span class="p">])</span>
 
-</code></pre></div>
-<h4>Your directory should now look like:</h4>
-<div class="highlight"><pre><code class="language-" data-lang="">automagic_api/
+</code></pre>
+</div>
+
+<h4 id="your-directory-should-now-look-like">Your directory should now look like:</h4>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>automagic_api/
    automagic_api/
        models.py
        controllers.py
    env/
-</code></pre></div>
-<h4>Create __init__.py in our Flask-project</h4>
+</code></pre>
+</div>
 
-<p>Create the file in <strong>&#39;automagic_api/automagic_api/&#39;</strong>. This file will import our <strong>models.py</strong>, our <strong>controllers.py</strong> and instantiate our API.</p>
-<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="kn">import</span> <span class="nn">flask</span>
+<h4 id="create-initpy-in-our-flask-project">Create __init__.py in our Flask-project</h4>
+
+<p>Create the file in <strong>‘automagic_api/automagic_api/’</strong>. This file will import our <strong>models.py</strong>, our <strong>controllers.py</strong> and instantiate our API.</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">flask</span>
 <span class="kn">import</span> <span class="nn">flask_restless</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">declarative_base</span><span class="p">,</span> <span class="n">declared_attr</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">sessionmaker</span><span class="p">,</span> <span class="n">scoped_session</span>
@@ -143,29 +166,41 @@ cd automagic_api
 <span class="kn">from</span> <span class="nn">controllers</span> <span class="kn">import</span> <span class="n">book_api_blueprint</span><span class="p">,</span> <span class="n">author_api_blueprint</span>
 <span class="n">app</span><span class="o">.</span><span class="n">register_blueprint</span><span class="p">(</span><span class="n">author_api_blueprint</span><span class="p">)</span>
 <span class="n">app</span><span class="o">.</span><span class="n">register_blueprint</span><span class="p">(</span><span class="n">book_api_blueprint</span><span class="p">)</span>
-</code></pre></div>
-<h4>Create run.py</h4>
+</code></pre>
+</div>
+
+<h4 id="create-runpy">Create run.py</h4>
 
 <p>Create <strong>run.py</strong> in our root directory</p>
-<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="kn">from</span> <span class="nn">automagic_api</span> <span class="kn">import</span> <span class="n">app</span>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">automagic_api</span> <span class="kn">import</span> <span class="n">app</span>
 <span class="n">app</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">debug</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">host</span><span class="o">=</span><span class="s">'0.0.0.0'</span><span class="p">,</span> <span class="n">port</span><span class="o">=</span><span class="mi">5000</span><span class="p">)</span>
-</code></pre></div>
-<h4>Your final directory structure should look as follows:</h4>
-<div class="highlight"><pre><code class="language-" data-lang="">automagic_api/
+</code></pre>
+</div>
+
+<h4 id="your-final-directory-structure-should-look-as-follows">Your final directory structure should look as follows:</h4>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>automagic_api/
    run.py
    automagic_api/
        __init__.py
        models.py
        controllers.py
    env/
-</code></pre></div>
-<h4>Start and test your API!</h4>
+</code></pre>
+</div>
+
+<h4 id="start-and-test-your-api">Start and test your API!</h4>
 
 <p>In the project root, start the server</p>
-<div class="highlight"><pre><code class="language-" data-lang="">env/bin/python run.py
-</code></pre></div>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>env/bin/python run.py
+</code></pre>
+</div>
+
 <p>In a python CLI, create a POST request to create a new <strong>Book</strong>:</p>
-<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">requests</span>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">requests</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="kn">import</span> <span class="nn">json</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="n">payload</span> <span class="o">=</span> <span class="p">{</span> 
     <span class="s">'title'</span><span class="p">:</span> <span class="s">"The Eye of the World"</span><span class="p">,</span>
@@ -179,28 +214,31 @@ cd automagic_api
 <span class="o">&gt;&gt;&gt;</span> <span class="n">r</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s">"http://localhost:5000/api/book"</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">payload</span><span class="p">),</span><span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">)</span>
 <span class="o">&gt;&gt;&gt;</span> <span class="k">print</span> <span class="n">r</span><span class="o">.</span><span class="n">status_code</span>
 <span class="mi">201</span>
-</code></pre></div>
-<p>Go ahead and open up a web browser, and navigate to <a href="http://localhost:5000/api/book">http://localhost:5000/api/book</a> to see the <em>Book</em> object that you just POSTed to your sqlite database. </p>
+</code></pre>
+</div>
 
-<p>Likewise, you can invert this request and check out <a href="http://localhost:5000/api/author">http://localhost:5000/api/author</a> to see the <em>Author</em> object that was created, and the nested <em>&quot;books&quot;</em> attribute that the author has written.</p>
+<p>Go ahead and open up a web browser, and navigate to <a href="http://localhost:5000/api/book">http://localhost:5000/api/book</a> to see the <em>Book</em> object that you just POSTed to your sqlite database.</p>
+
+<p>Likewise, you can invert this request and check out <a href="http://localhost:5000/api/author">http://localhost:5000/api/author</a> to see the <em>Author</em> object that was created, and the nested <em>“books”</em> attribute that the author has written.</p>
 
 <ul>
-<li><em><strong>Note</strong>: URLs for the API are constructed based off of the <strong>__tablename__</strong> of the sqlalchemy model, and are prefixed with &quot;/api&quot; (i.e Book -&gt; &quot;/api/book&quot;)</em></li>
+  <li><em><strong>Note</strong>: URLs for the API are constructed based off of the <strong>__tablename__</strong> of the sqlalchemy model, and are prefixed with “/api” (i.e Book -&gt; “/api/book”)</em></li>
 </ul>
 
 <p>Congratulations, you now have a working boilerplate for a SQLAlchemy-model defined REST API. Now go ahead and add more models and endpoints!</p>
 
-<h4>Final Remarks</h4>
+<h4 id="final-remarks">Final Remarks</h4>
 
-<p>The reason that I use Flask-restless for day-to-day APIs is it&#39;s abstraction.</p>
+<p>The reason that I use Flask-restless for day-to-day APIs is it’s abstraction.</p>
 
 <ol>
-<li>It preserves abstraction between the database&#39;s relational model, and the JSON schema expected as input and output to the API</li>
-<li>It preserves abstraction between SQLAlchemy, and the SQL dialect under-the-hood.</li>
+  <li>It preserves abstraction between the database’s relational model, and the JSON schema expected as input and output to the API</li>
+  <li>It preserves abstraction between SQLAlchemy, and the SQL dialect under-the-hood.</li>
 </ol>
 
-<p>For instance, when I POST the following payload from a client application, I don&#39;t care about the relational model between an <strong>Author</strong> and a <strong>Book</strong>, I just care that the JSON <strong>Book</strong> object contains a nested <strong>Author</strong> in its schema. By providing the nested <strong>Author</strong> object <em>WITHOUT</em> an <strong>id</strong> field, I implicitly CREATE this Author in the database.</p>
-<div class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="p">{</span> 
+<p>For instance, when I POST the following payload from a client application, I don’t care about the relational model between an <strong>Author</strong> and a <strong>Book</strong>, I just care that the JSON <strong>Book</strong> object contains a nested <strong>Author</strong> in its schema. By providing the nested <strong>Author</strong> object <em>WITHOUT</em> an <strong>id</strong> field, I implicitly CREATE this Author in the database.</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="p">{</span> 
     <span class="s1">'title'</span><span class="err">:</span> <span class="s2">"The Eye of the World"</span><span class="p">,</span>
     <span class="s1">'author'</span><span class="err">:</span> <span class="p">{</span>
         <span class="s1">'first_name'</span><span class="err">:</span> <span class="s2">"Robert"</span><span class="p">,</span>
@@ -208,9 +246,12 @@ cd automagic_api
         <span class="p">},</span>  
     <span class="s1">'is_available'</span><span class="err">:</span> <span class="nx">True</span>
 <span class="p">}</span>
-</code></pre></div>
+</code></pre>
+</div>
+
 <p>Conversely, if I would like to create a book that references a pre-existing author, I would changed my nested <strong>Author</strong> object to contain the <strong>id</strong> of the <strong>Author</strong> who wrote it.</p>
-<div class="highlight"><pre><code class="language-javascript" data-lang="javascript"><span class="p">{</span> 
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="p">{</span> 
     <span class="s1">'title'</span><span class="err">:</span> <span class="s2">"The Eye of the World"</span><span class="p">,</span>
     <span class="s1">'author'</span><span class="err">:</span> <span class="p">{</span>
          <span class="s1">'id'</span><span class="err">:</span> <span class="mi">1</span>   
@@ -219,23 +260,32 @@ cd automagic_api
      <span class="c1">// 'author_id': 1,</span>
     <span class="s1">'is_available'</span><span class="err">:</span> <span class="nx">True</span>
 <span class="p">}</span>
-</code></pre></div>
-<p>Regarding preservation of SQLAlchemy&#39;s level of abstraction, Flask-restless goes as far as to implement SQLAlchemy&#39;s <a href="http://docs.sqlalchemy.org/en/latest/orm/query.html">Query API</a> at the REST API level. Take the following example:</p>
+</code></pre>
+</div>
+
+<p>Regarding preservation of SQLAlchemy’s level of abstraction, Flask-restless goes as far as to implement SQLAlchemy’s <a href="http://docs.sqlalchemy.org/en/latest/orm/query.html">Query API</a> at the REST API level. Take the following example:</p>
 
 <p>If Robert Jordan wrote 14 books (which he did in a painstakingly long series), and I only wanted to grab all books that Robert Jordan penned which are <strong>available</strong> in the library I could run the following query:</p>
-<div class="highlight"><pre><code class="language-" data-lang="">http://localhost:5000/api/book?q={"filters":[{"name":"is_available","op":"==","val":true},{"name":"author_id","op":"==","val":1}]}
-</code></pre></div>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>http://localhost:5000/api/book?q={"filters":[{"name":"is_available","op":"==","val":true},{"name":"author_id","op":"==","val":1}]}
+</code></pre>
+</div>
+
 <p>This would return our targeted books, and translates to running the following in SQLAlchemy:</p>
-<div class="highlight"><pre><code class="language-python" data-lang="python"><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Book</span><span class="p">)</span><span class="o">.</span><span class="nb">filter</span><span class="p">(</span><span class="n">Book</span><span class="o">.</span><span class="n">author_id</span><span class="o">==</span><span class="mi">1</span><span class="p">,</span> 
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">Book</span><span class="p">)</span><span class="o">.</span><span class="nb">filter</span><span class="p">(</span><span class="n">Book</span><span class="o">.</span><span class="n">author_id</span><span class="o">==</span><span class="mi">1</span><span class="p">,</span> 
     <span class="n">Book</span><span class="o">.</span><span class="n">is_available</span> <span class="o">==</span> <span class="bp">True</span><span class="p">)</span><span class="o">.</span><span class="nb">all</span><span class="p">()</span>
-</code></pre></div>
+</code></pre>
+</div>
+
 <ul>
-<li>The searchformat API also implements <em>order_by</em>, <em>limit</em>, <em>offset</em> and <em>group_by</em>. <br><a href="http://flask-restless.readthedocs.io/en/stable/searchformat.html">See Flask-restless searchformat</a></li>
+  <li>The searchformat API also implements <em>order_by</em>, <em>limit</em>, <em>offset</em> and <em>group_by</em>. <br /><a href="http://flask-restless.readthedocs.io/en/stable/searchformat.html">See Flask-restless searchformat</a></li>
 </ul>
 
 <p>These 2 key features make this tool perfect for Single-Page Applications that need to communicate with an API server.</p>
 
-<p><em>A huge thanks to the brilliant developers of Flask, Flask-restless and SQLAlchemy. I am but a humble messenger spreading the work of others...</em></p>
+<p><em>A huge thanks to the brilliant developers of Flask, Flask-restless and SQLAlchemy. I am but a humble messenger spreading the work of others…</em></p>
+
 
 	  ]]></description>
 	</item>

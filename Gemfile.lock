@@ -135,10 +135,10 @@ PLATFORMS
 DEPENDENCIES
   github-pages (~> 66)
   jekyll (~> 3.0.3)
-  kramdown (~> 1.8)
+  kramdown (~> 1.10.0)
   pygments.rb (~> 0.6.3)
   rake (~> 10.1.1)
   rouge (~> 1.10, >= 1.10.1)
 
 BUNDLED WITH
-   1.10.6
+   1.13.6
