@@ -171,60 +171,6 @@ FileUsage <span class="o">=</span> 1
 	</item>
 
 	<item>
-	  <title>Connecting to SQL Server from SQLAlchemy</title>
-	  <link>/sharrington/databases/connecting-to-sql-server-with-sqlalchemy</link>
-	  <author>Sean Harrington</author>
-	  <pubDate>2016-07-14T01:05:00-04:00</pubDate>
-	  <guid>/sharrington/databases/connecting-to-sql-server-with-sqlalchemy</guid>
-	  <description><![CDATA[
-	     <p><em>This post explains how to connect to SQL Server using SQLAlchemy, pyodbc, UnixODBC and FreeTDS on Ubuntu</em></p>
-
-<h3>Update apt-get package index files</h3>
-
-<h3>Install UnixODBC</h3>
-
-<div class="highlighter-rouge"><pre class="highlight"><code>sudo apt-get install unixodbc-dev unixodbc-bin unixodbc
-</code></pre>
-</div>
-<h3>Install FreeTDS</h3>
-<div class="highlighter-rouge"><pre class="highlight"><code>freetds-dev freetds-bin tdsodbc
-</code></pre>
-</div>
-
-<h3>Create /etc/odbcinst.ini, and point driver to libtdsodbc.so</h3>
-<div class="highlighter-rouge"><pre class="highlight"><code><span class="o">[</span>FreeTDS]
-Description <span class="o">=</span> v0.91 with protocol v7.2
-Driver <span class="o">=</span> /usr/lib/x86_64-linux-gnu/odbc/libtdsodbc.so
-
-</code></pre>
-</div>
-
-<div class="highlighter-rouge"><pre class="highlight"><code>pip install etlalchemy
-<span class="c"># On El Capitan:</span>
-<span class="c">### pip install --ignore-installed etlalchemy</span>
-</code></pre>
-</div>
-
-<p>To run the tool:</p>
-
-<div class="highlighter-rouge"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">etlalchemy</span> <span class="kn">import</span> <span class="n">ETLAlchemySource</span><span class="p">,</span> <span class="n">ETLAlchemyTarget</span>
-<span class="c"># Migrate from SQL Server onto PostgreSQL</span>
-<span class="n">src</span> <span class="o">=</span> <span class="n">ETLAlchemySource</span><span class="p">(</span><span class="s">"mssql+pyodbc://user:passwd@DSN_NAME"</span><span class="p">)</span>
-<span class="n">tgt</span> <span class="o">=</span> <span class="n">ETLAlchemyTarget</span><span class="p">(</span><span class="s">"postgresql://user:passwd@hostname/dbname"</span><span class="p">,</span>
-                          <span class="n">drop_database</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="n">tgt</span><span class="o">.</span><span class="n">addSource</span><span class="p">(</span><span class="n">src</span><span class="p">)</span>
-<span class="n">tgt</span><span class="o">.</span><span class="n">migrate</span><span class="p">()</span>
-</code></pre>
-</div>
-
-<p>Since solving my problem with the first pass of etlalchemy, I have spent months adding support for PostgreSQL, MySQL, Oracle, SQL Server, and SQLite. This means that with 4 lines of code, you can do things like migrate from SQL Server onto MySQL, migrate from Oracle onto PostgreSQL, or in my case migrate Oracle onto MySQL. Another helpful usecase is to migrate a remote MySQL database onto a local SQLite database to test an application on your local machine.</p>
-
-<p>Happy Database Migrating!</p>
-
-	  ]]></description>
-	</item>
-
-	<item>
 	  <title>Installing cx_Oracle Driver on El Capitan</title>
 	  <link>/sharrington/databases/oracle/install-cx_oracle-mac</link>
 	  <author>Sean Harrington</author>
