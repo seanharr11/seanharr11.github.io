@@ -28,6 +28,9 @@
 <p><em>I will be using Python 3.6 (faster dictionaries, default utf-8 strings, etc.), but feel free to follow along with any flavor of Python (some people don’t like to let go…)</em></p>
 
 <h3 id="setup-our-workspace">Setup our workspace</h3>
+
+<p><strong>Important:</strong> <em>If you don’t know what a Python virtual environment is, <a href="https://packaging.python.org/installing/#creating-virtual-environments">read about them here</a> before continuing!</em></p>
+
 <div class="highlighter-rouge"><pre class="highlight"><code>mkdir tweet-harvester
 <span class="nb">cd </span>tweet_harvester
 python -m venv env
@@ -90,7 +93,7 @@ touch tweet_harvester/__init__.py run.py config.py
   <li>Finally, start the server</li>
 </ol>
 
-<p><em>The Flask development server should <strong>never</strong> be used in Production environments, nor should <code class="highlighter-rouge">app.config['DEBUG'] == True</code> in Production. In Production, you’d want to wrap your Flask application with a WSGI server, like <a href="http://gunicorn.org/">Gunicorn</a></em></p>
+<p><strong>Important:</strong> <em>The Flask development server should <strong>never</strong> be used in Production environments, nor should <code class="highlighter-rouge">app.config['DEBUG'] == True</code> in Production. In Production, you’d want to wrap your Flask application with a WSGI server, like <a href="http://gunicorn.org/">Gunicorn</a></em></p>
 
 <div class="highlighter-rouge"><pre class="highlight"><code>python run.py
 </code></pre>
