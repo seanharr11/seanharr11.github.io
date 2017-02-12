@@ -8,6 +8,22 @@
     
       
       <item>
+        <title>Tweet Harvester w/ Flask &amp; Tweepy (Part 1)</title>
+        
+          <description>&lt;h4 id=&quot;intro&quot;&gt;Intro&lt;/h4&gt;
+&lt;p&gt;Flask is a versatile microframework capable of doing just about anything that you ask of it. Flask ships with &lt;strong&gt;Jinja2&lt;/strong&gt; as its HTML Templating Engine, and when combined with &lt;strong&gt;SQLAlchemy&lt;/strong&gt;, provides full-stack development support that rivals bulkier framework (like Django).&lt;/p&gt;
+
+</description>
+        
+        <pubDate>Fri, 10 Feb 2017 20:15:03 -0500</pubDate>
+        <link>
+        http://thelaziestprogrammer.com/sharrington/web-development/tweet-archiver-with-flask-and-tweepy-part-1</link>
+        <guid isPermaLink="true">http://thelaziestprogrammer.com/sharrington/web-development/tweet-archiver-with-flask-and-tweepy-part-1</guid>
+      </item>
+      
+    
+      
+      <item>
         <title>Connecting to SQL Server from SQLAlchemy on a Mac</title>
         
           <description>&lt;p&gt;&lt;em&gt;This post explains how to connect to SQL Server using SQLAlchemy, pyodbc, UnixODBC and FreeTDS on a Mac&lt;/em&gt;&lt;/p&gt;

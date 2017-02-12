@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- [[! Document Settings ]] -->
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+    <!-- [[! Page Meta ]] -->
+    <title>Tweet Archiver with Flask & Tweepy (Part 1)</title>
+    <meta name="description" content="The Laziest Programmer - Because someone else has already solved your problem." />
+
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <link rel="shortcut icon" href="/assets/images/favicon.ico" >
+
+    <!-- [[! Styles'n'Scripts ]] -->
+    <link rel="stylesheet" type="text/css" href="/assets/css/screen.css" />
+    <link rel="stylesheet" type="text/css"
+          href="//fonts.googleapis.com/css?family=Merriweather:300,700,700italic,300italic|Open+Sans:700,400" />
+    <link rel="stylesheet" type="text/css" href="/assets/css/syntax.css" />
+
+    <!-- [[! highlight.js ]] -->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.3.0/styles/default.min.css">
+    <style>.hljs { background: none; }</style>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.3.0/highlight.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="/assets/css/bootstrap.css" />
+    <script>hljs.initHighlightingOnLoad();</script>
+
+    <!-- [[! Ghost outputs important style and meta data with this tag ]] -->
+        <link rel="canonical" href="" />
+    <meta name="referrer" content="origin" />
+    <link rel="next" href="/page2/" />
+
+    <meta property="og:site_name" content="The Laziest Programmer" />
+    <meta property="og:type" content="article" />
+    <meta property='article:section' content="Technology">
+    
+    <meta property='article:tag' content="web-development">
+    
+    <meta property="og:title" content="Tweet Archiver with Flask & Tweepy (Part 1)" />
+    <meta property="og:description" content="The Laziest Programmer - Because someone else has already solved your problem." />
+    <meta property="og:url" content="http://thelaziestprogrammer.com" />
+    <meta property="og:image" content="/assets/images/tlp_logo_og.png" />
+
+
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@thelaziestprogrammer" />
+    <meta name="twitter:creator" content="@seanharr11" />
+    <meta name="twitter:title" content="Tweet Archiver with Flask & Tweepy (Part 1)" />
+    <meta name="twitter:description" content="The Laziest Programmer - Because someone else has already solved your problem." />
+    <meta name="twitter:url" content="http://thelaziestprogrammer.com" />
+    <meta name="twitter:image" content="http://thelaziestprogrammer.com/assets/images/tlp_logo_og.png" />
+
+
+    <!--script type="application/ld+json">
+{
+    "@context": "http://schema.org",
+    "@type": "Website",
+    "url": "",
+    "image": "/assets/images/tlp_logo_dark.png",
+    "description": "Because someone else has already solved your problem.",
+    "name": "The Laziest Programmer",
+    "
+}
+    </script-->
+
+    <meta name="generator" content="Jekyll 3.0.0" />
+    <link rel="alternate" type="application/rss+xml" title="The Laziest Programmer" href="/feed.xml" />
+
+
+</head>
+<body class="home-template nav-closed">
+
+    <div class="nav">
+    <h3 class="nav-title">Menu</h3>
+    <a href="#" class="nav-close">
+        <span class="hidden">Close</span>
+    </a>
+    <ul>
+        <li class="nav-home " role="presentation"><a href="/">Home</a></li>
+        <li class="nav-home" role="presentation"><a href="#">Topics</a>
+           <ul style="padding-top:9px;padding-bottom:0px"> 
+             <li class="nav-fiction " role="presentation"><a href="/tag/databases">Databases</a></li>
+           </ul>     
+           <ul style="padding-top:0px"> 
+             <li class="nav-fiction " role="presentation"><a href="/tag/web-development">Web Development</a></li>
+           </ul>     
+        </li>
+        <li class="nav-about " role="presentation"><a href="/about">About This Site</a></li>
+        <li class="nav-author " role="presentation"><a href="/author/sharrington">The Creator</a></li>
+    </ul>
+    <a class="subscribe-button" href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=DH544PY7RFSLA">Donate</a>
+    <a class="subscribe-button icon-feed" href="/feed.xml">Subscribe</a>
+</div>
+<span class="nav-cover"></span>
+
+
+    <div class="site-wrapper">
+
+        <!-- [[! Everything else gets inserted here ]] -->
+        <!-- < default -->
+
+<!-- The comment above "< default" means - insert everything in this file into -->
+    <!-- the [body] of the default.hbs template, which contains our header/footer. -->
+
+<!-- Everything inside the #post tags pulls data from the post -->
+<!-- #post -->
+
+<header class="main-header post-head " style="background-image: url(/assets/images/harvest_sunset.jpg) ">
+    <nav class="main-nav  overlay  clearfix">
+        <a class="blog-logo" href="/"><img src="/assets/images/tlp_logo.png" alt="Blog Logo" /></a>
+        
+            <a class="menu-button icon-menu" href="#"><span class="word">Menu</span></a>
+        
+    </nav>
+</header>
+
+<main class="content" role="main">
+
+    <article class="post tag-web-development">
+
+        <header class="post-header">
+            <h1 class="post-title">Tweet Archiver with Flask & Tweepy (Part 1)</h1>
+            <section class="post-meta">
+            <!-- <a href=''>Sean Harrington</a> -->
+            <time class="post-date" datetime="2017-02-10">10 Feb 2017</time>
+                <!-- [[tags prefix=" on "]] -->
+                 
+                on 
+                
+                    
+                       <a href='/tag/web-development'>Web-development</a>
+                       
+                
+                
+            </section>
+        </header>
+
+        <section class="post-content">
+            
+            <h4 id="intro">Intro</h4>
+<p>Flask is a versatile microframework capable of doing just about anything that you ask of it. Flask ships with <strong>Jinja2</strong> as its HTML Templating Engine, and when combined with <strong>SQLAlchemy</strong>, provides full-stack development support that rivals bulkier framework (like Django).</p>
+
+<p>All that said, I believe Flask’s best characteristic to be its ‘microframework’ status: there are <a href="http://flask.pocoo.org/extensions/">many add-ons and extensions</a> which can be utilized “a la carte”, rather than “out of the box”. This means multiple solutions to single problems, which almost always leads to better solutions in the open-source community. The “slim” nature of the framework also makes bootstrapping projects easier, with much less boilerplate code &amp; dogmatic “best-practices”.</p>
+
+<p>In the first step, we will use <strong>Tweepy</strong>, and Flask’s core to build a quick dashboard to view a user’s Twitter Activity. In Part II, we will explore <strong>SQLAlchemy</strong> and <strong>Flask-restless</strong> to create an API to harvest &amp; archive Tweets in a database.</p>
+
+<p><em>I will be using Python 3.6 (faster dictionaries, default utf-8 strings, etc.), but feel free to follow along with any flavor of Python (some people don’t like to let go…)</em></p>
+
+<h3 id="setup-our-workspace">Setup our workspace</h3>
+<div class="highlighter-rouge"><pre class="highlight"><code>mkdir tweet-harvester
+<span class="nb">cd </span>tweet_harvester
+python -m venv env
+<span class="c"># Or 'virtualenv env' to start a NEW project with OLD tools</span>
+<span class="nb">source </span>env/bin/activate
+mkdir tweet_harvester
+touch tweet_harvester/__init__.py run.py config.py
+</code></pre>
+</div>
+
+<p>Your directory structure should look like:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>tweet_harvester/
+    tweet_harvester/
+        __init__.py
+    run.py
+    config.py
+    env/
+</code></pre>
+</div>
+
+<h3 id="install-dependencies-with-pip">Install dependencies with pip</h3>
+<div class="highlighter-rouge"><pre class="highlight"><code>pip install flask tweepy flask-restless
+</code></pre>
+</div>
+
+<h3 id="hello-world-from-flask">Hello World from Flask</h3>
+
+<ol>
+  <li>Open up the <code class="highlighter-rouge">__init__.py</code> file created in step (1), entering the following content:</li>
+</ol>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">Flask</span>
+<span class="c"># Instantiate our app...</span>
+<span class="c"># Name it the '__name__' of this module (tweet-harvest)</span>
+<span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+<span class="c"># Later, we will store our Twitter tokens/keys</span>
+<span class="c"># in config.py...we load our config here.</span>
+<span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">from_object</span><span class="p">(</span><span class="s">'config'</span><span class="p">)</span>
+
+<span class="c"># We define our URL route, and the controller to handle requests</span>
+<span class="nd">@app.route</span><span class="p">(</span><span class="s">'/'</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">hello_world</span><span class="p">():</span>
+    <span class="k">return</span> <span class="s">'&lt;h1&gt;Hello World&lt;/h1&gt;'</span>
+</code></pre>
+</div>
+
+<ol start="2">
+  <li>Next open the <code class="highlighter-rouge">run.py</code> file created earlier, inserting the following content:</li>
+</ol>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">tweet_harvester</span> <span class="kn">import</span> <span class="n">app</span>
+<span class="c"># 'app' originates from the line 'app = Flask(__name__)'</span>
+<span class="n">app</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">port</span><span class="o">=</span><span class="mi">8080</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<ol start="3">
+  <li>Finally, start the server</li>
+</ol>
+
+<p><em>The Flask development server should <strong>never</strong> be used in Production environments, nor should <code class="highlighter-rouge">app.config['DEBUG'] == True</code> in Production. In Production, you’d want to wrap your Flask application with a WSGI server, like <a href="http://gunicorn.org/">Gunicorn</a></em></p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>python run.py
+</code></pre>
+</div>
+<p>…and open up your web browser to <a href="http://localhost:8080">http://localhost:8080/</a>, and verify our Hello World test.</p>
+
+<p>Hello World with Flask is <strong>easy</strong>. Setting up and configuring a project is often one of the most difficult tasks when developing on the full-stack, as you only do it a handful of times each year (<em>think about it!</em>). Flask (<em>and Python</em>) make this hurdle an easy one to leap.</p>
+
+<h3 id="create-a-new-twitter-application-tokens-and-keys">Create a new Twitter Application, Tokens and Keys</h3>
+
+<ol>
+  <li>Navigate to <a href="https://apps.twitter.com">https://apps.twitter.com</a>, and sign in with existing Twitter credentials, or make a new account.</li>
+  <li>Click <strong>Create New App</strong> ( or just click <a href="https://apps.twitter.com/app/new">here</a> )</li>
+  <li>Enter a <strong>Name</strong>, a <strong>Description</strong>, and for <strong>Website</strong> enter <em>http://foobar.com</em> (as this does not matter for the time being). Leave the <strong>Callback URL</strong> blank. Accept the developer terms, and click <strong>Create your Twitter application</strong>. <img src="/assets/images/twitter_new_application.png" alt="New Twitter Application" /></li>
+  <li>On the resulting screen after app creation, navigate to the <strong>Keys and Access Tokens</strong> tab. Scroll down to <strong>Your Access Token</strong>, and click the <strong>Create my access token</strong> button. <img src="/assets/images/twitter_tokens_keys_and_secrets.jpg" alt="Twitter Access Tokens" /></li>
+  <li>Once these tokens generate (should take a second or 2), you’ll want to copy and paste them into your app config the next step.</li>
+</ol>
+
+<h3 id="deploy-our-twitter-activity-dashboard">Deploy our Twitter Activity Dashboard</h3>
+
+<ol>
+  <li>Create Twitter config variables in <code class="highlighter-rouge">config.py</code>:</li>
+</ol>
+
+<p><em>Grab these tokens, secrets and keys from the previous step</em></p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="n">DEBUG</span> <span class="o">=</span> <span class="bp">True</span> 
+<span class="c"># Enable stacktrace &amp; debugger in web browser</span>
+<span class="n">TWITTER_CONSUMER_KEY</span> <span class="o">=</span> <span class="s">"your_consumer_key_here"</span>
+<span class="n">TWITTER_CONSUMER_SECRET</span> <span class="o">=</span> <span class="s">"your_consumer_secret_here"</span>
+<span class="n">TWITTER_ACCESS_TOKEN</span> <span class="o">=</span> <span class="s">"your_access_token_here"</span>
+<span class="n">TWITTER_ACCESS_TOKEN_SECRET</span> <span class="o">=</span> <span class="s">"your_access_token_secret_here"</span>
+</code></pre>
+</div>
+
+<ol start="2">
+  <li>Update <code class="highlighter-rouge">__init__.py</code> by adding Twitter authentication</li>
+</ol>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">Flask</span><span class="p">,</span> <span class="n">json</span><span class="p">,</span> <span class="n">request</span>
+<span class="kn">import</span> <span class="nn">tweepy</span>
+
+<span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+<span class="c"># Load our config from an object, or module (config.py)</span>
+<span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">from_object</span><span class="p">(</span><span class="s">'config'</span><span class="p">)</span>
+
+<span class="c"># These config variables come from 'config.py'</span>
+<span class="n">auth</span> <span class="o">=</span> <span class="n">tweepy</span><span class="o">.</span><span class="n">OAuthHandler</span><span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s">'TWITTER_CONSUMER_KEY'</span><span class="p">],</span>
+                           <span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s">'TWITTER_CONSUMER_SECRET'</span><span class="p">])</span>
+<span class="n">auth</span><span class="o">.</span><span class="n">set_access_token</span><span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s">'TWITTER_ACCESS_TOKEN'</span><span class="p">],</span>
+                      <span class="n">app</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s">'TWITTER_ACCESS_TOKEN_SECRET'</span><span class="p">])</span>
+<span class="n">tweepy_api</span> <span class="o">=</span> <span class="n">tweepy</span><span class="o">.</span><span class="n">API</span><span class="p">(</span><span class="n">auth</span><span class="p">)</span>
+
+<span class="nd">@app.route</span><span class="p">(</span><span class="s">'/'</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">hello_world</span><span class="p">():</span>
+    <span class="k">return</span> <span class="s">"&lt;h1&gt;Hello World&lt;/h1&gt;"</span>
+</code></pre>
+</div>
+
+<ol start="3">
+  <li>Define our <code class="highlighter-rouge">get_tweets()</code> function in <code class="highlighter-rouge">__init__.py</code></li>
+</ol>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="k">def</span> <span class="nf">get_tweets</span><span class="p">(</span><span class="n">username</span><span class="p">):</span>
+    <span class="n">tweets</span> <span class="o">=</span> <span class="n">tweepy_api</span><span class="o">.</span><span class="n">user_timeline</span><span class="p">(</span><span class="n">screen_name</span><span class="o">=</span><span class="n">username</span><span class="p">)</span>                                                                            
+    <span class="k">return</span> <span class="p">[{</span><span class="s">'tweet'</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">text</span><span class="p">,</span>
+              <span class="s">'created_at'</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">created_at</span><span class="p">,</span> 
+              <span class="s">'username'</span><span class="p">:</span> <span class="n">username</span><span class="p">,</span>
+              <span class="s">'headshot_url'</span><span class="p">:</span> <span class="n">t</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">profile_image_url</span><span class="p">}</span>
+           <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tweets</span><span class="p">]</span>
+</code></pre>
+</div>
+
+<ol start="4">
+  <li>Create <code class="highlighter-rouge">templates/</code> and <code class="highlighter-rouge">tweets.html</code></li>
+</ol>
+
+<p><em>This HTML file will render the data obtained in the <code class="highlighter-rouge">get_tweets()</code> function above. Note that we load Bootstrap 4 (alpha-release) from maxcdn.</em></p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="c">&lt;!-- templates/tweets.html --&gt;</span>  
+<span class="nt">&lt;html</span> <span class="na">lang=</span><span class="s">"en"</span><span class="nt">&gt;</span>
+  <span class="nt">&lt;head&gt;</span>
+    <span class="nt">&lt;meta</span> <span class="na">charset=</span><span class="s">"utf-8"</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;meta</span> <span class="na">name=</span><span class="s">"viewport"</span> <span class="na">content=</span><span class="s">"width=device-width, initial-scale=1, shrink-to-fit=no"</span><span class="nt">&gt;</span>
+
+    <span class="nt">&lt;title&gt;</span>Tweet Harvester<span class="nt">&lt;/title&gt;</span>
+
+    <span class="c">&lt;!-- Bootstrap 4 Stuff https://v4-alpha.getbootstrap.com/  --&gt;</span> 
+    <span class="nt">&lt;link</span> <span class="na">rel=</span><span class="s">"stylesheet"</span>
+          <span class="na">href=</span><span class="s">"https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css"</span>
+          <span class="na">integrity=</span><span class="s">"sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ"</span>
+          <span class="na">crossorigin=</span><span class="s">"anonymous"</span><span class="nt">&gt;</span>
+    <span class="c">&lt;!-- End Bootstrap 4 stuff --&gt;</span>
+  <span class="nt">&lt;/head&gt;</span>
+  <span class="nt">&lt;body&gt;</span>
+    <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"container"</span><span class="nt">&gt;</span>
+      <span class="nt">&lt;h1</span> <span class="na">class=</span><span class="s">"p-3"</span><span class="nt">&gt;</span>Tweet Harvester<span class="nt">&lt;/h1&gt;</span>
+      {% for tweet in tweets %}
+      <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"list-group"</span><span class="nt">&gt;</span>
+         <span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">"#"</span> <span class="na">class=</span><span class="s">"list-group-item list-group-item-action flex-column align-items-start"</span><span class="nt">&gt;</span>
+           <span class="nt">&lt;div</span> <span class="na">class=</span><span class="s">"d-flex w-100 justify-content-between"</span><span class="nt">&gt;</span>
+             <span class="nt">&lt;img</span> <span class="na">src=</span><span class="s">"{{tweet.headshot_url}}"</span> <span class="na">class=</span><span class="s">"w-12 p-1 float-left image-thumbnail"</span><span class="nt">&gt;</span>  
+             <span class="nt">&lt;h5</span> <span class="na">class=</span><span class="s">"ml-10 w-75 mb-1"</span><span class="nt">&gt;</span>{{ tweet.tweet }}<span class="nt">&lt;/h5&gt;</span>
+             <span class="nt">&lt;small&gt;</span>{{ tweet.created_at }}<span class="nt">&lt;/small&gt;</span>
+           <span class="nt">&lt;/div&gt;</span>
+         <span class="nt">&lt;/a&gt;</span>
+      <span class="nt">&lt;/div&gt;</span>
+      {% endfor %}
+      
+    <span class="nt">&lt;/div&gt;</span>
+  <span class="nt">&lt;/body&gt;</span>
+<span class="nt">&lt;/html&gt;</span>
+</code></pre>
+</div>
+
+<p>Your directory structure should look like:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>tweet_harvester/
+    tweet_harvester/
+        __init__.py
+        templates/
+            tweets.html
+    run.py
+    config.py
+    env/
+</code></pre>
+</div>
+
+<ol start="5">
+  <li>Add <strong>route</strong> and <strong>controller</strong> to <code class="highlighter-rouge">__init__.py</code> to render this template</li>
+</ol>
+
+<p><em>We get the <code class="highlighter-rouge">username</code> parameter below directly from the URL with the <code class="highlighter-rouge">/&lt;string:username&gt;</code> segment of our route’s URL. We then pass it to the <code class="highlighter-rouge">tweets(username)</code> function.</em></p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="nd">@app.route</span><span class="p">(</span><span class="s">'/tweet-harvester/&lt;string:username&gt;'</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">tweets</span><span class="p">(</span><span class="n">username</span><span class="p">):</span>
+  <span class="c"># 'tweets' is passed as a keyword-arg (**kwargs)</span>
+  <span class="c"># **kwargs are bound to the 'tweets.html' Jinja Template context</span>
+  <span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="s">"tweets.html"</span><span class="p">,</span> <span class="n">tweets</span><span class="o">=</span><span class="n">get_tweets</span><span class="p">(</span><span class="n">username</span><span class="p">))</span>
+</code></pre>
+</div>
+<p><em>Flask leverages the Jinja2 Templating Engine. In our Flask controller, we return with:</em></p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="k">return</span> <span class="n">render_template</span><span class="p">(</span><span class="n">foo</span><span class="o">.</span><span class="n">html</span><span class="p">,</span> <span class="n">var1</span><span class="o">=</span><span class="n">obj1</span><span class="p">,</span> <span class="n">var2</span><span class="o">=</span><span class="n">obj2</span><span class="p">,</span> <span class="n">varN</span><span class="o">=</span><span class="n">objN</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<p><em>…with an infinite number of <code class="highlighter-rouge">var=obj</code> bindings. These bindings are <a href="http://stackoverflow.com/questions/1769403/understanding-kwargs-in-python">passed via <strong>**kwargs</strong></a> to create the template’s <strong>context</strong>. This Jinja <strong>context</strong> is available anywhere within a Jinja <strong>block</strong>, where we can embed Python to modify/render values.</em></p>
+
+<p><em>An <strong>example Jinja for-loop block</strong> is as follows:</em></p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>
+<span class="nt">&lt;ul&gt;</span>
+  {% for elem in var1 %}
+  <span class="nt">&lt;li&gt;</span>{{elem}}<span class="nt">&lt;/li&gt;</span>
+  {% endfor %} )
+<span class="nt">&lt;/ul&gt;</span>
+
+</code></pre>
+</div>
+<p><em>…which would render a list-item <strong>&lt;li&gt;</strong> for each <strong>elem</strong> in the <strong>list</strong> bound to <strong>var1</strong>.</em></p>
+
+<ol start="6">
+  <li>Start your server, and test with any Twitter handle</li>
+</ol>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>python run.py
+</code></pre>
+</div>
+<p><em>Navigate to <a href="http://localhost:8080/tweet-harvester/realDonaldTrump#">http://localhost:8080/tweet-harvester/realDonaldTrump</a> to test!</em></p>
+
+<hr />
+
+<h4 id="part-i-complete">Part I Complete!</h4>
+
+<p>You’ve succesfully deployed a simple Twitter Activity dashboard, and have gotten your hands dirty with some of Flask’s core features and concepts, namely:
+1. Jinja2
+2. Flask Routes &amp; Controllers (Views)
+3. Flask Project Structure
+4. Starting the Flask Development Server</p>
+
+<p>Our next step will be to define a SQLAlchemy model for a <strong>Tweet</strong>, and automagically generate CRUD endpoints based off of this model with <strong>Flask-restless</strong>. This will enable us to archive tweets, from our Activity Dashboard to a local SQLite database.</p>
+
+
+
+        </section>
+
+        <footer class="post-footer">
+
+            <!-- Everything inside the #author tags pulls data from the author -->
+            <!-- #author-->
+
+            
+            <figure class="author-image">
+                <a class="img" href="/author/sharrington" style="background-image: url(/assets/images/headshot.jpg)"><span class="hidden">'s Picture</span></a>
+            </figure>
+            
+
+            <section class="author">
+                <h4><a href="/author/sharrington">Sean Harrington</a></h4>
+                
+                
+                    <p> I believe that cover bands should welcome guitarists in the audience on-stage, that Mat Cauthon would make any 14-book series enjoyable, and that college football players can evolve into decent software developers.</p>
+                
+                <div class="author-meta">
+                    <span class="author-location icon-location"> Boston, MA</span> 
+                    <span class="author-link icon-link"><a href="http://github.com/seanharr11"> github.com/seanharr11</a></span> 
+                </div>
+            </section>
+
+            <!-- /author  -->
+
+            <section class="share">
+                <h4>Share this post</h4>
+                <a class="icon-twitter" href="http://twitter.com/share?text=Tweet Archiver with Flask & Tweepy (Part 1)&amp;url=http://thelaziestprogrammer.comsharringtonweb-developmenttweet-archiver-with-flask-and-tweepy"
+                    onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+                    <span class="hidden">Twitter</span>
+                </a>
+                <a class="icon-facebook" href="https://www.facebook.com/sharer/sharer.php?u=http://thelaziestprogrammer.comsharringtonweb-developmenttweet-archiver-with-flask-and-tweepy"
+                    onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
+                    <span class="hidden">Facebook</span>
+                </a>
+                <a class="icon-google-plus" href="https://plus.google.com/share?url=http://thelaziestprogrammer.comsharringtonweb-developmenttweet-archiver-with-flask-and-tweepy"
+                   onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;">
+                    <span class="hidden">Google+</span>
+                </a>
+            </section>
+            
+            <!-- Add Disqus Comments -->
+            
+            
+        </footer>
+
+    </article>
+
+</main>
+
+<aside class="read-next">
+
+    <!-- [[! next_post ]] -->
+    
+    <!-- [[! /next_post ]] -->
+    <!-- [[! prev_post ]] -->
+    
+        <a class="read-next-story prev " style="background-image: url(/assets/images/peter_bay_palm_small.jpg)" href="/sharrington/databases/connecting-to-sql-server-with-sqlalchemy">
+            <section class="post">
+                <h2>Connecting to SQL Server from SQLAlchemy on a Mac</h2>
+                <p>This post explains how to connect to SQL Server using SQLAlchemy, pyodbc, UnixODBC and FreeTDS...</p>
+            </section>
+        </a>
+    
+    <!-- [[! /prev_post ]] -->
+</aside>
+
+<!-- /post -->
+
+
+        <footer class="site-footer clearfix">
+          <section class="copyright"><a href="">The Laziest Programmer</a> &copy; 2017</section>
+          <section class="poweredby">Proudly published with <a href="https://jekyllrb.com/">Jekyll</a> using <a href="https://github.com/biomadeira/jasper">Jasper</a></section>
+        </footer>
+    </div>
+    <!-- [[! Ghost outputs important scripts and data with this tag ]] -->
+    <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+    <!-- [[! The main JavaScript file for Casper ]] -->
+    <script type="text/javascript" src="/assets/js/jquery.fitvids.js"></script>
+    <script type="text/javascript" src="/assets/js/index.js"></script>
+
+    <!-- Add Google Analytics  -->
+        <!-- Google Analytics Tracking code -->
+     <script>
+	    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+	    ga('create', 'UA-80966627-1', 'auto');
+	    ga('send', 'pageview');
+
+     </script>   
+</body>
+</html>
