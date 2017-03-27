@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- [[! Document Settings ]] -->
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+    <!-- [[! Page Meta ]] -->
+    <title>Upgrading to Flask-restless v1.0.0 - Part I</title>
+    <meta name="description" content="The Laziest Programmer - Because someone else has already solved your problem." />
+
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <link rel="shortcut icon" href="/assets/images/favicon.ico" >
+
+    <!-- [[! Styles'n'Scripts ]] -->
+    <link rel="stylesheet" type="text/css" href="/assets/css/screen.css" />
+    <link rel="stylesheet" type="text/css"
+          href="//fonts.googleapis.com/css?family=Merriweather:300,700,700italic,300italic|Open+Sans:700,400" />
+    <link rel="stylesheet" type="text/css" href="/assets/css/syntax.css" />
+    <link rel="stylesheet" type="text/css" href="/assets/css/bootstrap-grid.css" />
+
+    <!-- [[! highlight.js ]] -->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.3.0/styles/default.min.css">
+    <style>.hljs { background: none; }</style>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.3.0/highlight.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="/assets/css/bootstrap.css" />
+    <script>hljs.initHighlightingOnLoad();</script>
+
+    <!-- [[! Ghost outputs important style and meta data with this tag ]] -->
+        <link rel="canonical" href="" />
+    <meta name="referrer" content="origin" />
+    <link rel="next" href="/page2/" />
+
+    <meta property="og:site_name" content="The Laziest Programmer" />
+    <meta property="og:type" content="article" />
+    <meta property='article:section' content="Technology">
+    
+    <meta property='article:tag' content="web-development">
+    
+    <meta property="og:title" content="Upgrading to Flask-restless v1.0.0 - Part I" />
+    <meta property="og:description" content="The Laziest Programmer - Because someone else has already solved your problem." />
+    <meta property="og:url" content="http://thelaziestprogrammer.com" />
+    <meta property="og:image" content="/assets/images/tlp_logo_og.png" />
+
+
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@thelaziestprogrammer" />
+    <meta name="twitter:creator" content="@seanharr11" />
+    <meta name="twitter:title" content="Upgrading to Flask-restless v1.0.0 - Part I" />
+    <meta name="twitter:description" content="The Laziest Programmer - Because someone else has already solved your problem." />
+    <meta name="twitter:url" content="http://thelaziestprogrammer.com" />
+    <meta name="twitter:image" content="http://thelaziestprogrammer.com/assets/images/tlp_logo_og.png" />
+
+
+    <!--script type="application/ld+json">
+{
+    "@context": "http://schema.org",
+    "@type": "Website",
+    "url": "",
+    "image": "/assets/images/tlp_logo_dark.png",
+    "description": "Because someone else has already solved your problem.",
+    "name": "The Laziest Programmer",
+    "
+}
+    </script-->
+
+    <meta name="generator" content="Jekyll 3.0.0" />
+    <link rel="alternate" type="application/rss+xml" title="The Laziest Programmer" href="/feed.xml" />
+
+
+</head>
+<body class="home-template nav-closed">
+
+    <div class="nav">
+    <h3 class="nav-title">Menu</h3>
+    <a href="#" class="nav-close">
+        <span class="hidden">Close</span>
+    </a>
+    <ul>
+        <li class="nav-home " role="presentation"><a href="/">Home</a></li>
+        <li class="nav-home" role="presentation"><a href="#">Topics</a>
+           <ul style="padding-top:9px;padding-bottom:0px"> 
+             <li class="nav-fiction " role="presentation"><a href="/tag/databases">Databases</a></li>
+           </ul>     
+           <ul style="padding-top:0px"> 
+             <li class="nav-fiction " role="presentation"><a href="/tag/web-development">Web Development</a></li>
+           </ul>     
+        </li>
+        <li class="nav-about " role="presentation"><a href="/about">About This Site</a></li>
+        <li class="nav-author " role="presentation"><a href="/author/sharrington">The Creator</a></li>
+    </ul>
+    <a class="subscribe-button" href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=DH544PY7RFSLA">Donate</a>
+    <a class="subscribe-button icon-feed" href="/feed.xml">Subscribe</a>
+</div>
+<span class="nav-cover"></span>
+
+
+    <div class="site-wrapper">
+
+        <!-- [[! Everything else gets inserted here ]] -->
+        <!-- < default -->
+
+<!-- The comment above "< default" means - insert everything in this file into -->
+    <!-- the [body] of the default.hbs template, which contains our header/footer. -->
+
+<!-- Everything inside the #post tags pulls data from the post -->
+<!-- #post -->
+
+<header class="main-header post-head " style="background-image: url(/assets/images/harvest_sunset.jpg) ">
+    <nav class="main-nav  overlay  clearfix">
+        <a class="blog-logo" href="/"><img src="/assets/images/tlp_logo.png" alt="Blog Logo" /></a>
+        
+            <a class="menu-button icon-menu" href="#"><span class="word">Menu</span></a>
+        
+    </nav>
+</header>
+
+<main class="content" role="main">
+
+    <article class="compost tag-web-development">
+
+        <header class="post-header">
+            <h1 class="post-title">Upgrading to Flask-restless v1.0.0 - Part I</h1>
+            <section class="post-meta">
+            <!-- <a href=''>Sean Harrington</a> -->
+            <time class="post-date" datetime="2017-03-25">25 Mar 2017</time>
+                <!-- [[tags prefix=" on "]] -->
+                 
+                on 
+                
+                    
+                       <a href='/tag/web-development'>Web-development</a>
+                       
+                
+                
+            </section>
+        </header>
+
+        <section class="post-content">
+            
+            <p><br />
+<strong>Flask-restless</strong> is a Flask extension providing generation of REST APIs from SQLAlchemy-defined database models. <a href="https://flask-restless.readthedocs.io/en/latest/">Flask-restless v1.0.0</a> introduces adoption of the <a href="http://www.jsonapi.org">jsonapi.org</a> spec, providing  additional features, consistent and strict HTTP Method contracts, at the expense of inherent breaking changes.</p>
+
+<p>This article walks through the most basic of breaking changes found while upgrading from <strong>Flask-restless v0.17</strong> to <strong>Flask-restless v1.0.0</strong>.</p>
+
+<h3 id="flask-app-and-models">Flask App and Models</h3>
+
+<p>For purposes of this walkthrough, we assume a basic understanding of SQLAlchemy, and Flask. We define our Flask app in the following file:</p>
+
+<div class="row">
+<div class="col-md-8 col-md-offset-2 highlighter codetight">
+<pre class="highlight">
+<code class="python">
+from flask import Flask
+import flask_restless
+import flask_sqlalchemy
+import simplejson as json
+
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/flask_restless.db'
+db = flask_sqlalchemy.SQLAlchemy(app)
+
+
+class ProgrammingLanguage(db.Model):
+    __tablename__ = "programming_languages"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String, unique=True)
+    latest_release = db.Column(db.String)
+
+db.create_all()
+# Create the Flask-Restless API manager.
+manager = flask_restless.APIManager(app, flask_sqlalchemy_db=db)
+manager.create_api(ProgrammingLanguage, methods=['GET', 'POST', 'PATCH', 'DELETE'])
+
+if __name__ == "__main__":
+    # Start the server with 'python \&lt;name_of_this_file.py\&gt;'
+    app.run()
+
+</code></pre><br /></div></div>
+
+<h2 id="posting-a-row">POSTing a row</h2>
+
+<p>Throughout the walkthrough, we will compare code samples of requests and responses between Flask-restless v0.17 (left), and v1.0.0 (right).</p>
+
+<p>More specifically, we highlight the <em>updates required to get your code working with v1.0.0</em>.  We start with some basic legacy v0.17 code to POST a <code class="highlighter-rouge">programming_language</code> <a href="http://jsonapi.org/format/#document-resource-objects">Resource Object</a> to our database.</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">"name"</span><span class="p">:</span> <span class="s">"Python"</span><span class="p">,</span>
+    <span class="s">"latest_release"</span><span class="p">:</span> <span class="s">"3.6.0"</span>
+<span class="p">}</span>
+<span class="n">url</span> <span class="o">=</span> <span class="s">"http://localhost:5000/api/programming_languages"</span>
+<span class="n">headers</span> <span class="o">=</span> <span class="p">{</span><span class="s">"Content-Type"</span><span class="p">:</span> <span class="s">"application/json"</span><span class="p">}</span>
+<span class="n">resp</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">simplejson</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">),</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<h4 id="update-1-content-type-header">Update #1: Content-Type Header</h4>
+
+<p>The response content that we receive varies dramatically between Flask-restless v0.17 (left) and v1.0.0 (right).</p>
+
+<div class="row">
+<div class="col-md-4 highlighter codetight">
+<pre class="highlight">
+<code class="python">
+# Flask v0.17 Response
+&gt;&gt;&gt; resp.status_code
+201
+&gt;&gt;&gt; resp.content
+{
+    "id": 1,
+    "name": "Python",
+    "latest_release": "3.6.0" 
+}</code></pre></div>
+  <div class="col-md-8 highlighter codetight">
+    <pre class="highlight">
+<code class="python">
+# Flask v1.0.0 Response
+&gt;&gt;&gt; resp.status_code
+415
+&gt;&gt;&gt; resp.content
+{
+    "errors": [
+        {
+            "code": null,
+            "detail": "Request must have \"Content-Type: application/vnd.api+json\" header",
+            "id": null,
+            "links": null,
+            "meta": null,
+            "source": null,
+            "status": 415,
+            "title": null
+        }
+    ],
+    "jsonapi": {
+        "version": "1.0"
+    }
+}</code></pre>
+  </div>
+</div>
+
+<p>Quite clearly, we see that we did not set the <code class="highlighter-rouge">Content-Type</code> header according to the <a href="http://jsonapi.org/format/#content-negotiation-clients">jsonapi.org spec</a>, so we get a <a href="https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.16">415 - Unsupported Media Type</a> status.</p>
+
+<p>Let’s set the header to <strong>application/vnd.api+json</strong> below and continue…</p>
+
+<h4 id="update-2-json-wrapped-with-top-level-data-key">Update #2: JSON wrapped with top-level “data” key</h4>
+<div class="row">
+<div class="col-md-7 highlighter codetight">
+<pre class="highlight">
+<code class="python">
+data = {
+    "name": "Python",
+    "latest_release": "3.6.0"
+}
+url = "http://localhost:5000/api/programming_languages"
+headers = {"Content-Type": "application/vnd.api+json"}
+
+resp = requests.post(url, simplejson.dumps(data), headers=headers)
+
+&gt;&gt;&gt; resp.status_code
+400
+&gt;&gt;&gt; resp.content
+{
+    "errors": [
+        {
+            "code": null,
+            "detail": "Failed to deserialize object: missing \"data\" element",
+            "id": null,
+            "links": null,
+            "meta": null,
+            "source": null,
+            "status": 400,
+            "title": null
+        }
+    ],
+    "jsonapi": {
+        "version": "1.0"
+    }
+}
+</code>
+</pre>
+</div>
+<div class="col-md-5">
+    <p>This time we see a <a target="_blank" href="https://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html#sec10.4.1">400 - Bad Request</a> status, which generally means that our JSON payload could not be understood by the server.  Specifically, the error states:</p>
+    <p><em>"Failed to deserialize object: missing \"data\" element"</em></p>
+    <p>The JSON API spec expects any POST payload to be delivered with its top-level schema of the form <strong>{"data": {....}},</strong> so let's update our payload as follows and try again.</p>
+</div>
+</div>
+
+<h4 id="update-3-provide-the-type-of-our-posted-object">Update #3: Provide the “type” of our POSTed object</h4>
+<div class="row">
+<div class="col-md-7 highlighter codetight">
+<pre class="highlight">
+<code class="python">
+data = {
+    "name": "Python",
+    "latest_release": "3.6.0"
+}
+url = "http://localhost:5000/api/programming_languages"
+headers = {"Content-Type": "application/vnd.api+json")
+
+resp = requests.post(url, simplejson.dumps({"data": programming_language_obj}), headers=headers)
+
+&gt;&gt;&gt; resp.status_code
+400
+&gt;&gt;&gt; resp.content
+{
+    "errors": [
+        {
+            "code": null,
+            "detail": "Failed to deserialize object: missing \"type\" element",
+            "id": null,
+            "links": null,
+            "meta": null,
+            "source": null,
+            "status": 400,
+            "title": null
+        }
+    ],
+    "jsonapi": {
+        "version": "1.0"
+    }
+}
+</code>
+</pre>
+</div>
+<div class="col-md-5">
+<p>Again, we get a 400 status, with the server telling us:</p>
+<p><em>"Failed to deserialize object: missing \"type\" element"</em></p>
+<p>The <a target="_blank" href="http://jsonapi.org/format/#crud-creating">JSON API spec requires us to provide the <strong>type</strong> of resource that we are creating</a> with our POST request.</p>
+<p>In this case, we are posting to the <strong>programming_languages</strong> table, so let's update our query accordingly...</p>
+
+</div>
+</div>
+
+<h4 id="update-4-provide-attributes-of-our-posted-object">Update #4: Provide “attributes” of our POSTed object</h4>
+
+<div class="row">
+<div class="col-md-7 highlighter codetight">
+<pre class="highlight">
+<code class="python">
+data = {
+    "name": "Python", 
+    "latest_release": "3.6.0"
+    "type": "programming_languages"
+}
+url = "http://localhost:5000/api/programming_languages"
+headers = {"Content-Type": "application/vnd.api+json"}
+
+resp = requests.post(url, simplejson.dumps({"data": data}), headers=headers)
+
+&gt;&gt;&gt; resp.status_code
+201
+&gt;&gt;&gt; resp.content
+{
+    "data": {
+        "attributes": {
+            "name": null,
+            "latest_release" null
+        },
+        "id": "1",
+        "links": {
+            "self": "http://localhost:5001/api/programming_languages/1"
+        },
+        "relationships": {},
+        "type": "programming_languages"
+    },
+    "included": [],
+    "jsonapi": {
+        "version": "1.0"
+    },
+    "links": {},
+    "meta": {}
+}
+</code>
+</pre>
+</div>
+
+<div class="col-md-5">
+<p>Ahhh, finally a <code>201 - Created</code> status code...<strong>wait a minute</strong>...if we access <code>resp.content['attributes']['name']</code> we see that it has a value of <code>null</code>.</p>
+<p>But we created our object with <code>{"name": "Python"}</code>, what happened?</p>
+<p>The JSON API spec ignores our top-level <code>name</code> parameter - it is looking for the <code>attributes</code> top-level key to determine the attribute values (column values) of our new <code>programming_language</code> resource object.</p>
+<p>Let's update our JSON payload one more time, and take a look at the full diff between v0.17 and v1.0.0</p>
+</div>
+</div>
+
+<h4 id="post-request---full-comparison">POST Request - Full Comparison</h4>
+
+<div class="row">
+
+<div class="col-md-6 highlighter codetight">
+<pre class="highlight">
+<code class="python">
+# Flask-restless v0.17 POST request
+data = {
+    "name": "Python",
+    "latest_release": "3.6.0"
+}
+url = "http://localhost:5000/api/programming_languages"
+headers = {"Content-Type": "application/json"}
+
+resp = requests.post(url, simplejson.dumps(data), headers=headers)
+# Viewing the response of the request
+&gt;&gt;&gt; resp.status_code
+201
+&gt;&gt;&gt; resp.content
+{
+    "id": 1,
+    "name": "Python",
+    "latest_release": "3.6.0"
+}</code></pre>
+<p> There are several fields in our <code>resp.content</code> payload that we have not yet mentioned.</p>
+
+<p>Most notable, is the <code>relationships</code> field nested within the Resource Object (<code>data</code> object). This walkthrough does not cover relationships, but these can be <a href="http://jsonapi.org/format/#fetching-relationships" target="_blank">read about here.</a></p>
+
+<p>You should expect a follow up post covering these more advanced use cases of Flask-restless.</p>
+</div>
+
+<div class="col-md-6 highlighter codetight">
+<pre class="highlight">
+<code class="python">
+# Flask-restles v1.0.0 POST request
+data = {
+    "type": "programming_languages",
+    "attributes": {
+        "name": "Python",
+        "latest_release": "3.6.0"
+    }
+}
+url = "http://localhost:5000/api/programming_languages"
+headers = {"Content-Type": "application/vnd.api+json"})
+
+resp = requests.patch(url, simplejson.dumps({"data": data}),
+                      headers=headers)
+# Viewing the response
+&gt;&gt;&gt; resp.status_code
+201
+&gt;&gt;&gt; resp.content
+{
+    "data": {
+        "attributes": {
+            "name": "Python",
+            "latest_release": "3.6.0"
+        },
+        "id": "1",
+        "links": {
+            "self": "http://localhost:5001/api/programming_languages/1"
+        },
+        "relationships": {}
+        "type": "programming_languages"
+    },
+    "included": [],
+    "jsonapi": {
+        "version": "1.0"
+    },
+    "links": {},
+    "meta": {}
+}
+</code>
+</pre>
+</div>
+</div>
+
+<hr />
+
+<h2 id="getting-all-rows">GETting all Rows</h2>
+
+<p>Next, we will retrieve the resources that we recently POSTed to the database with a GET request</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="n">resp</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">"http://localhost:5000/api/programming_languages"</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<div class="row">
+    <div class="col-md-4 codetight">
+        <pre class="highlight"><code class="python">
+# Flask-restless v0.17
+&gt;&gt;&gt; resp.status_code
+200
+&gt;&gt;&gt; resp.content
+{
+    "num_results": 1,
+    "objects": [
+        {
+            "id": 1,
+            "name": "Python",
+            "latest_release": "3.6.0"
+        }
+    ],
+    "page": 1,
+    "total_pages": 1
+}
+           </code>
+        </pre>
+    <br />
+    <h5>Key differences</h5>
+    <p>
+     <ul>
+       <li>Size of the resource collection is now givin in <code>resp.content["meta"]["total"]</code></li>
+       <li>Objects in this collection are nested as a list via <code>resp.content['data']</code></li>
+       <li>Pagination is handled via <code>resp.content["links"]</code></li>
+     </ul>
+    </p>
+    <em><strong>Note</strong>: getting a specific record is still executed via <code>http://localhost:5000/api/programming_languages/1</code>, where 1 is the id of the record. The return format is equal to that of the POSTed data above</em>
+     </div>
+    <div class="col-md-8 codetight">
+        <pre class="highlight"><code class="python">
+# Flask-restless v1.0.0
+&gt;&gt;&gt; resp.status_code
+201
+&gt;&gt;&gt; resp.content
+{
+    "data": [
+        {
+            "attributes": {
+                "name": "Python",
+                "latest_release": "3.6.0"
+            },
+            "id": "1",
+            "links": {
+                "self": "http://localhost:5001/api/programming_languages/1"
+            },
+            "relationships": {},
+            "type": "programming_languages"
+        }
+    ],
+    "included": [],
+    "jsonapi": {
+        "version": "1.0"
+    },
+    "links": {
+        "first": "http://localhost:5001/api/programming_languages?page%5Bsize%5D=10&amp;page%5Bnumber%5D=1",
+        "last": "http://localhost:5001/api/programming_languages?page%5Bsize%5D=10&amp;page%5Bnumber%5D=1",
+        "next": null,
+        "prev": null,
+        "self": "/api/programming_languages"
+    },
+    "meta": {
+        "total": 1
+    }
+}
+           </code>
+        </pre>
+  </div>
+</div>
+
+<h2 id="patching-a-row">PATCHing a row</h2>
+
+<p>We’ve succesfully created and fetched resources from our Flask-restless API - now let’s update our perviously inserted record with a PATCH request. Below is how we would carry this out with <strong>Flask-restless v0.17</strong>:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="c"># Legacy Flask-restless v0.17 code</span>
+<span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">"latest_release"</span><span class="p">:</span> <span class="s">"3.6.1"</span>
+<span class="p">}</span>
+<span class="n">url</span> <span class="o">=</span> <span class="s">"http://localhost:5000/api/programming_languages/1"</span>
+<span class="n">headers</span> <span class="o">=</span> <span class="p">{</span><span class="s">"Content-Type"</span><span class="p">:</span> <span class="s">"application/json"</span><span class="p">}</span>
+<span class="n">resp</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">simplejson</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">data</span><span class="p">),</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<p>…if you read the POST section above, you know that we’ve got some work to do. Let’s apply Updates <a href="#update-1-content-type-header">#1</a>, <a href="update-2-json-wrapped-with-top-level-data-key">#2</a>, <a href="update-3-provide-the-type-of-our-posted-object">#3</a>, and <a href="#update-4-provide-attributes-of-our-posted-object">#4</a> to our PATCH request below to try and get our code working with <strong>Flask-restless v1.0.0</strong>.</p>
+
+<h4 id="update-5-supply-resource-id">Update #5: Supply Resource ID</h4>
+
+<div class="row">
+    <div class="col-md-7 codetight">
+        <pre class="highlight"><code class="python">
+data = {
+    "type": "programming_languages",
+    "attributes": {
+        "latest_release": "3.6.1"
+    }
+}
+url = "http://localhost:5000/api/programming_languages/1"
+headers = {"Content-Type": "application/vnd.api+json"})
+
+resp = requests.patch(url, simplejson.dumps({"data": data}), headers=headers)
+# Print the response
+&gt;&gt;&gt; resp.status_code
+400
+&gt;&gt;&gt; resp.content
+{
+    "errors": [
+        {
+            "code": null,
+            "detail": "Missing resource ID",
+            "id": null,
+            "links": null,
+            "meta": null,
+            "source": null,
+            "status": 400,
+            "title": null
+        }
+    ],
+    "jsonapi": {
+        "version": "1.0"
+    }
+}</code>
+        </pre>
+  </div>
+  <div class="col-md-5">
+      <p>Although we've included the <code>id</code> of the resource we'd like to update in the URL, rather redundantly, the <a href="http://jsonapi.org/format/#crud-updating" target="_blank">JSON API spec for Updates</a> mandates that the "<em>resource object MUST contain <code>id</code> [and <code>type</code>] members</em>".</p>
+
+      <p>Let's add the <code>id</code> field to our resource object (<em>the 'data' object in JSON payload</em>), and fire away...</p>
+  </div>
+</div>
+
+<h4 id="update-6-resource-id-must-be-a-string">Update #6: Resource ID must be a String</h4>
+
+<div class="row">
+    <div class="col-md-8 codetight">
+        <pre class="highlight"><code class="python">
+data = {
+    "type": "programming_languages",
+    "id": 1,
+    "attributes": {
+        "latest_release": "3.6.1"
+    }
+}
+url = "http://localhost:5000/api/programming_languages/1"
+headers = {"Content-Type": "application/vnd.api+json"})
+
+resp = requests.patch(url, simplejson.dumps({"data": data}), headers=headers)
+# Print the response
+&gt;&gt;&gt; resp.status_code
+409
+&gt;&gt;&gt; resp.content
+{
+    "errors": [
+        {
+            "code": null,
+            "detail": "The \"id\" element of the resource object must be a JSON string: 1",
+            "id": null,
+            "links": null,
+            "meta": null,
+            "source": null,
+            "status": 400,
+            "title": null
+        }
+    ],
+    "jsonapi": {
+        "version": "1.0"
+    }
+}</code>
+        </pre>
+  </div>
+  <div class="col-md-4">
+      <p>Congratulations! You've captured the very elusive <code>409 - Conflict</code> Status Code!</p>
+      <p>The spec for this JSON API status code is <a href="http://jsonapi.org/format/#crud-updating-responses-409" target="_blank">explained here</a>, but our specific issue is that our ID needs to be a string (so we can support string-based IDs).</p>
+      <p>Let's change <code>"id": 1</code> to <code>"id": "1"</code> and carry on...</p>
+  </div>
+</div>
+
+<h4 id="patch-request---final-comparison">PATCH Request - Final Comparison</h4>
+
+<div class="row">
+    <div class="col-md-6 codetight">
+        <pre class="highlight"><code class="python">
+# Flask-restless 0.17
+data = {
+    "latest_release": "3.6.1"
+}
+url = "http://localhost:5000/api/programming_languages/1"
+headers={"Content-Type": "application/json"}
+
+resp = requests.patch(url, simplejson.dumps(data), headers=headers)
+
+# Print the response
+&gt;&gt;&gt; resp.status_code    
+200
+&gt;&gt;&gt; resp.content
+{
+    "id": 1,
+    "latest_release": "3.6.1",
+    "name": "Python"
+}</code></pre>
+   </div>
+
+    <div class="col-md-6 codetight">
+        <pre class="highlight"><code class="python">
+# Flask-restless v1.0.0
+data = {
+    "type": "programming_languages",
+    "id": "1",
+    "attributes": {
+        "latest_release": "3.6.1"
+    }
+}
+url = "http://localhost:5000/api/programming_languages/1"
+headers={"Content-Type": "application/vnd.api+json"}
+
+resp = requests.patch(url, simplejson.dumps({"data": data}), headers=headers)
+
+# Print the response
+&gt;&gt;&gt; resp.status_code
+204
+&gt;&gt;&gt; resp.content
+b''
+</code>
+        </pre>
+  </div>
+</div>
+
+<p>Success: We see our <code>204 - No Content</code> status code, and we expect no content to be returned from this method.</p>
+
+<h2 id="deleteing-a-row">DELETEing a Row</h2>
+
+<p>Good news - the request and responses are identical for the DELETE HTTP Method:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="n">resp</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="s">"http://localhost:5000/api/programming_languages/1"</span><span class="p">)</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">resp</span><span class="o">.</span><span class="n">status_code</span>
+<span class="mi">204</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="n">resp</span><span class="o">.</span><span class="n">content</span>
+<span class="n">b</span><span class="s">''</span>
+</code></pre>
+</div>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>That wraps up our walkthrough on how to upgrade from <strong>Flask-restless v0.17</strong> to <strong>Flask-restless v1.0.0</strong>.</p>
+
+<p>This only scratches the surface on great new features (and breaking changes) of Flask-restless v1.0.0. Stay tuned for Part II where we will take a look at Resource Object Relationships, and how we make queries that handle Many-to-one, One-to-Many, and One-to-one relationships.</p>
+
+
+        </section>
+
+        <footer class="post-footer">
+
+            <!-- Everything inside the #author tags pulls data from the author -->
+            <!-- #author-->
+
+            
+            <figure class="author-image">
+                <a class="img" href="/author/sharrington" style="background-image: url(/assets/images/headshot.jpg)"><span class="hidden">'s Picture</span></a>
+            </figure>
+            
+
+            <section class="author">
+                <h4><a href="/author/sharrington">Sean Harrington</a></h4>
+                
+                
+                    <p> I believe that cover bands should welcome guitarists in the audience on-stage, that Mat Cauthon would make any 14-book series enjoyable, and that college football players can evolve into decent software developers.</p>
+                
+                <div class="author-meta">
+                    <span class="author-location icon-location"> Boston, MA</span> 
+                    <span class="author-link icon-link"><a href="http://github.com/seanharr11"> github.com/seanharr11</a></span> 
+                </div>
+            </section>
+
+            <!-- /author  -->
+
+            <section class="share">
+                <h4>Share this post</h4>
+                <a class="icon-twitter" href="http://twitter.com/share?text=Upgrading to Flask-restless v1.0.0 - Part I&amp;url=http://thelaziestprogrammer.comsharringtonweb-developmentupgrading-flask-restless-to-v2.0"
+                    onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+                    <span class="hidden">Twitter</span>
+                </a>
+                <a class="icon-facebook" href="https://www.facebook.com/sharer/sharer.php?u=http://thelaziestprogrammer.comsharringtonweb-developmentupgrading-flask-restless-to-v2.0"
+                    onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
+                    <span class="hidden">Facebook</span>
+                </a>
+                <a class="icon-google-plus" href="https://plus.google.com/share?url=http://thelaziestprogrammer.comsharringtonweb-developmentupgrading-flask-restless-to-v2.0"
+                   onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;">
+                    <span class="hidden">Google+</span>
+                </a>
+            </section>
+            
+            <!-- Add Disqus Comments -->
+            
+            
+        </footer>
+
+    </article>
+
+</main>
+
+<aside class="read-next">
+
+    <!-- [[! next_post ]] -->
+    
+    <!-- [[! /next_post ]] -->
+    <!-- [[! prev_post ]] -->
+    
+        <a class="read-next-story prev " style="background-image: url(/assets/images/harvest_sunset.jpg)" href="/sharrington/web-development/tweet-archiver-with-flask-and-tweepy-part-1">
+            <section class="post">
+                <h2>Tweet Harvester w/ Flask & Tweepy (Part 1)</h2>
+                <p>Intro Flask is a versatile microframework capable of doing just about anything that you ask...</p>
+            </section>
+        </a>
+    
+    <!-- [[! /prev_post ]] -->
+</aside>
+
+<!-- /post -->
+
+
+        <footer class="site-footer clearfix">
+          <section class="copyright"><a href="">The Laziest Programmer</a> &copy; 2017</section>
+          <section class="poweredby">Proudly published with <a href="https://jekyllrb.com/">Jekyll</a> using <a href="https://github.com/biomadeira/jasper">Jasper</a></section>
+        </footer>
+    </div>
+    <!-- [[! Ghost outputs important scripts and data with this tag ]] -->
+    <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+    <!-- [[! The main JavaScript file for Casper ]] -->
+    <script type="text/javascript" src="/assets/js/jquery.fitvids.js"></script>
+    <script type="text/javascript" src="/assets/js/index.js"></script>
+
+    <!-- Add Google Analytics  -->
+        <!-- Google Analytics Tracking code -->
+     <script>
+	    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+	    ga('create', 'UA-80966627-1', 'auto');
+	    ga('send', 'pageview');
+
+     </script>   
+</body>
+</html>

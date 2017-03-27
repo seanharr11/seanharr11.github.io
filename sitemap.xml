@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
+<loc>http://thelaziestprogrammer.com/sharrington/web-development/upgrading-to-flask-restless-v1.0.0-part-1</loc>
+<lastmod>2017-03-25T04:36:00-04:00</lastmod>
+</url>
+<url>
 <loc>http://thelaziestprogrammer.com/sharrington/web-development/tweet-archiver-with-flask-and-tweepy-part-1</loc>
 <lastmod>2017-02-10T20:15:03-05:00</lastmod>
 </url>
@@ -30,7 +34,16 @@
 <loc>http://thelaziestprogrammer.com/about/</loc>
 </url>
 <url>
+<loc>http://thelaziestprogrammer.com/tag/databases/</loc>
+</url>
+<url>
+<loc>http://thelaziestprogrammer.com/tag/web-development/</loc>
+</url>
+<url>
 <loc>http://thelaziestprogrammer.com/author/sharrington/</loc>
+</url>
+<url>
+<loc>http://thelaziestprogrammer.com/author/sharrington/page2/</loc>
 </url>
 <url>
 <loc>http://thelaziestprogrammer.com/author/databases/</loc>
@@ -40,11 +53,5 @@
 </url>
 <url>
 <loc>http://thelaziestprogrammer.com/author/web-development/</loc>
-</url>
-<url>
-<loc>http://thelaziestprogrammer.com/tag/databases/</loc>
-</url>
-<url>
-<loc>http://thelaziestprogrammer.com/tag/web-development/</loc>
 </url>
 </urlset>

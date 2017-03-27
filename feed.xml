@@ -8,6 +8,22 @@
     
       
       <item>
+        <title>Upgrading to Flask-restless v1.0.0 (Part I)</title>
+        
+          <description>&lt;p&gt;&lt;br /&gt;
+&lt;strong&gt;Flask-restless&lt;/strong&gt; is a Flask extension providing generation of REST APIs from SQLAlchemy-defined database models. &lt;a href=&quot;https://flask-restless.readthedocs.io/en/latest/&quot;&gt;Flask-restless v1.0.0&lt;/a&gt; introduces adoption of the &lt;a href=&quot;http://www.jsonapi.org&quot;&gt;jsonapi.org&lt;/a&gt; spec, providing  additional features, consistent and strict HTTP Method contracts, at the expense of inherent breaking changes.&lt;/p&gt;
+
+</description>
+        
+        <pubDate>Sat, 25 Mar 2017 04:36:00 -0400</pubDate>
+        <link>
+        http://thelaziestprogrammer.com/sharrington/web-development/upgrading-to-flask-restless-v1.0.0-part-1</link>
+        <guid isPermaLink="true">http://thelaziestprogrammer.com/sharrington/web-development/upgrading-to-flask-restless-v1.0.0-part-1</guid>
+      </item>
+      
+    
+      
+      <item>
         <title>Tweet Harvester w/ Flask &amp; Tweepy (Part 1)</title>
         
           <description>&lt;h4 id=&quot;intro&quot;&gt;Intro&lt;/h4&gt;
