@@ -8,6 +8,38 @@
     
       
       <item>
+        <title>Gradient Descent: High Learning Rates &amp; Divergence</title>
+        
+          <description>&lt;p&gt;&lt;br /&gt;
+In my &lt;a href=&quot;/sharrington/math-of-machine-learning/the-gradient-a-visual-descent&quot;&gt;previous post on The Gradient&lt;/a&gt;, we walked through the math behind the gradient, visually explored gradient descent, and implemented gradient descent in Python.&lt;/p&gt;
+
+</description>
+        
+        <pubDate>Sat, 01 Jul 2017 03:26:00 -0400</pubDate>
+        <link>
+        http://thelaziestprogrammer.com/sharrington/math-of-machine-learning/gradient-descent-learning-rate-too-high</link>
+        <guid isPermaLink="true">http://thelaziestprogrammer.com/sharrington/math-of-machine-learning/gradient-descent-learning-rate-too-high</guid>
+      </item>
+      
+    
+      
+      <item>
+        <title>The Gradient: A Visual Descent</title>
+        
+          <description>&lt;p&gt;&lt;br /&gt;
+In this post I aim to visually, mathematically and programatically explain &lt;strong&gt;the gradient&lt;/strong&gt;, and how its understanding is crucial for &lt;strong&gt;gradient descent&lt;/strong&gt;. For those unfamiliar, gradient descent is used in various ML models spanning from logistic regression, to neural nets. Ultimately, gradient descent, and transitively &lt;strong&gt;the gradient&lt;/strong&gt;, are the blueprints that guide these models to converge on ideal weights.&lt;/p&gt;
+
+</description>
+        
+        <pubDate>Fri, 16 Jun 2017 09:32:00 -0400</pubDate>
+        <link>
+        http://thelaziestprogrammer.com/sharrington/math-of-machine-learning/the-gradient-a-visual-descent</link>
+        <guid isPermaLink="true">http://thelaziestprogrammer.com/sharrington/math-of-machine-learning/the-gradient-a-visual-descent</guid>
+      </item>
+      
+    
+      
+      <item>
         <title>Upgrading to Flask-restless v1.0.0 (Part I)</title>
         
           <description>&lt;p&gt;&lt;br /&gt;
