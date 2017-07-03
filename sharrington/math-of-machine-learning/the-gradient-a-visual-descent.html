@@ -259,7 +259,11 @@ Thus, our main objective is to minimize the distance between each point and our 
       </li>
     </ul>
   </li>
-  <li>Multiply the gradient by a scalar, (also called a <strong>learning rate</strong>, denoted by \(\eta\))</li>
+  <li>Multiply the gradient by a scalar, (also called a <strong>learning rate</strong>, denoted by \(\eta\))
+    <ul>
+      <li>The learning rate is what we call a <strong>hyperparameter</strong>, and can be tweaked to ensure convergence. <a href="/sharrington/math-of-machine-learning/gradient-descent-learning-rate-too-high">Set too high or low, the model might converge!</a></li>
+    </ul>
+  </li>
   <li>Update our weights using our multiplied gradient:
 <script type="math/tex">\left\langle a, b \right\rangle += \eta \nabla J</script></li>
   <li>Terminate if we have converged!</li>
@@ -328,7 +332,8 @@ Thus, our main objective is to minimize the distance between each point and our 
 
 <p>There are many flavors of Gradient Descent, other than the (naive) implementation provided above. Stochastic Gradient Descent (SGD) is the most commonly used algorithm for minimizations, and is found everywhere from Logistic Regression Classifiers, to Deep Learning and Neural Nets.</p>
 
-<p>Some of you may point out that the above example is trivial! There is a closed solution to this problem of Least Squares Regression! In Part II we explore a second example WITHOUT a closed form solution: Logistic Regression!</p>
+<p>Some of you may point out that the above example is trivial! There is a closed solution to this problem of Least Squares Regression! We’ve used this example for simplicity’s sake, stay tuned for a post on Logistic Regression, where there is no closed form solution.</p>
+
 
 
         </section>
