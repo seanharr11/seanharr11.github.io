@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- [[! Document Settings ]] -->
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+    <!-- [[! Page Meta ]] -->
+    <title>Solving Logistic Regression with Newton's Method</title>
+    <meta name="description" content="The Laziest Programmer - Because someone else has already solved your problem." />
+
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <link rel="shortcut icon" href="/assets/images/favicon.ico" >
+
+    <!-- [[! Styles'n'Scripts ]] -->
+    <link rel="stylesheet" type="text/css" href="/assets/css/screen.css" />
+    <link rel="stylesheet" type="text/css"
+          href="//fonts.googleapis.com/css?family=Merriweather:300,700,700italic,300italic|Open+Sans:700,400" />
+    <link rel="stylesheet" type="text/css" href="/assets/css/syntax.css" />
+    <link rel="stylesheet" type="text/css" href="/assets/css/bootstrap-grid.css" />
+
+    <!-- [[! highlight.js ]] -->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.3.0/styles/default.min.css">
+    <style>.hljs { background: none; }</style>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.3.0/highlight.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="/assets/css/bootstrap.css" />
+    <script>hljs.initHighlightingOnLoad();</script>
+
+    <!-- [[! Ghost outputs important style and meta data with this tag ]] -->
+        <link rel="canonical" href="" />
+    <meta name="referrer" content="origin" />
+    <link rel="next" href="/page2/" />
+
+    <meta property="og:site_name" content="The Laziest Programmer" />
+    <meta property="og:type" content="article" />
+    <meta property='article:section' content="Technology">
+    
+    <meta property='article:tag' content="math-of-machine-learning">
+    
+    <meta property="og:title" content="Solving Logistic Regression with Newton's Method" />
+    <meta property="og:description" content="The Laziest Programmer - Because someone else has already solved your problem." />
+    <meta property="og:url" content="http://thelaziestprogrammer.com" />
+    <meta property="og:image" content="/assets/images/tlp_logo_og.png" />
+
+    <script type="text/javascript"
+        src="/MathJax/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+    </script>
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@thelaziestprogrammer" />
+    <meta name="twitter:creator" content="@seanharr11" />
+    <meta name="twitter:title" content="Solving Logistic Regression with Newton's Method" />
+    <meta name="twitter:description" content="The Laziest Programmer - Because someone else has already solved your problem." />
+    <meta name="twitter:url" content="http://thelaziestprogrammer.com" />
+    <meta name="twitter:image" content="http://thelaziestprogrammer.com/assets/images/tlp_logo_og.png" />
+
+
+    <!--script type="application/ld+json">
+{
+    "@context": "http://schema.org",
+    "@type": "Website",
+    "url": "",
+    "image": "/assets/images/tlp_logo_dark.png",
+    "description": "Because someone else has already solved your problem.",
+    "name": "The Laziest Programmer",
+    "
+}
+    </script-->
+
+    <meta name="generator" content="Jekyll 3.0.0" />
+    <link rel="alternate" type="application/rss+xml" title="The Laziest Programmer" href="/feed.xml" />
+
+
+</head>
+<body class="home-template nav-closed">
+
+    <div class="nav">
+    <h3 class="nav-title">Menu</h3>
+    <a href="#" class="nav-close">
+        <span class="hidden">Close</span>
+    </a>
+    <ul>
+        <li class="nav-home " role="presentation"><a href="/">Home</a></li>
+        <li class="nav-home" role="presentation"><a href="#">Topics</a>
+           <ul style="padding-top:9px;padding-bottom:0px"> 
+             <li class="nav-fiction " role="presentation"><a href="/tag/databases">Databases</a></li>
+           </ul>     
+           <ul style="padding-top:0px; padding-bottom: 0px"> 
+             <li class="nav-fiction " role="presentation"><a href="/tag/web-development">Web Development</a></li>
+           </ul>     
+           <ul style="padding-top:0px"> 
+             <li class="nav-fiction " role="presentation"><a href="/tag/math-of-machine-learning">The Math of ML</a></li>
+           </ul>     
+        </li>
+        <li class="nav-about " role="presentation"><a href="/about">About This Site</a></li>
+        <li class="nav-author " role="presentation"><a href="/author/sharrington">The Creator</a></li>
+    </ul>
+    <a class="subscribe-button" href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=DH544PY7RFSLA">Donate</a>
+    <a class="subscribe-button icon-feed" href="/feed.xml">Subscribe</a>
+</div>
+<span class="nav-cover"></span>
+
+
+    <div class="site-wrapper">
+
+        <!-- [[! Everything else gets inserted here ]] -->
+        <!-- < default -->
+
+<!-- The comment above "< default" means - insert everything in this file into -->
+    <!-- the [body] of the default.hbs template, which contains our header/footer. -->
+
+<!-- Everything inside the #post tags pulls data from the post -->
+<!-- #post -->
+
+<header class="main-header post-head " style="background-image: url(/assets/images/banners/posts/math_of_ml/st_john_panorama.jpg) ">
+    <nav class="main-nav  overlay  clearfix">
+        <a class="blog-logo" href="/"><img src="/assets/images/tlp_logo.png" alt="Blog Logo" /></a>
+        
+            <a class="menu-button icon-menu" href="#"><span class="word">Menu</span></a>
+        
+    </nav>
+</header>
+
+<main class="content" role="main">
+
+    <article class="post tag-math-of-machine-learning">
+
+        <header class="post-header">
+            <h1 class="post-title">Solving Logistic Regression with Newton's Method</h1>
+            <section class="post-meta">
+            <!-- <a href=''>Sean Harrington</a> -->
+            <time class="post-date" datetime="2017-07-06">06 Jul 2017</time>
+                <!-- [[tags prefix=" on "]] -->
+                 
+                on 
+                
+                    
+                       <a href='/tag/math-of-machine-learning'>Math-of-machine-learning</a>
+                       
+                
+                
+            </section>
+        </header>
+
+        <section class="post-content">
+            
+            <p><br />
+In this post we introduce <strong>Newton’s Method</strong>, and how it can be used to solve <strong>Logistic Regression</strong>. Logistic Regression introduces the concept of the <strong>Log-Likelihood</strong> of the Bernoulli distribution, and covers a neat transformation called the <strong>sigmoid function</strong>.</p>
+
+<p>We also introduce <strong>The Hessian</strong>, a square matrix of second-order partial derivatives, and how it is used in conjunction with <strong>The Gradient</strong> to implement Newton’s Method.</p>
+
+<p>Similiar to the <a href="http://thelaziestprogrammer.com/sharrington/math-of-machine-learning/the-gradient-a-visual-descent">initial post covering Linear Regression and The Gradient</a>, we will explore Newton’s Method  visually, mathematically, and programatically with Python to understand how our math concepts translate to implementing a practical solution to the problem of binary classification: Logistic Regression.</p>
+
+<p><strong>Suggested prior knowledge:</strong></p>
+
+<ol>
+  <li>Derivatives and the Chain Rule (<em>Calculus</em>)</li>
+  <li>Partial Derivatives &amp; <a href="http://http://thelaziestprogrammer.com/sharringto
+ n/math-of-machine-learning/the-gradient-a-visual-descent">The Gradient</a>(<em>Multivariate Calculus</em>)</li>
+  <li>Basic Vector Operations (<em>Linear Algebra</em>)</li>
+  <li>Basic Understanding of NumPy</li>
+  <li>Basic Understanding of Independent Probability</li>
+</ol>
+
+<h3 id="the-data">The Data</h3>
+
+<p>Our dataset is made up of South Boston real estate data, including the value of each home, and a (<em>boolean</em>) column indicating if that home <em>has more than 2 bathrooms</em>.</p>
+
+<p><script type="math/tex">\hat{x} = HomeValue = \left\langle 550000.00, 600000.00, ... 578000.00\right\rangle^{T}</script>
+<script type="math/tex">\hat{y} = MoreThan2Bathrooms = \left\langle 1, 0, 0, ... 1\right\rangle^{T}</script></p>
+
+<p><img src="/assets/images/plotly/south_boston_bedroom_logreg_raw.png" alt="S. Boston Homes - Homes with more than 2 Bedrooms" /></p>
+
+<h3 id="the-model">The Model</h3>
+
+<p>We will be learning a <strong>Logistic Regression</strong> model, that will act as a <strong>binary classifier</strong> predicting whether or not a home has more than 2 bathroom, given its value (in dollars).</p>
+
+<p>We still want to solve a linear combination of features &amp; weights, but we need to transform this linear combination by wrapping it in a function that is smooth, and has its range defined as \([0, 1]\) (<em>because we are trying to map our linear combination to a binary output of 0 or 1!</em>)</p>
+
+<p>The logistic function, or <strong>simgoid function</strong>, accomplishes all of these things:</p>
+
+<script type="math/tex; mode=display">h(x) = 1 / (1 + e^{-z}),\ \ z = \theta_{1}x + \theta_{2}</script>
+
+<p><strong>Note:</strong> <em>We add \(\theta_{2}\) to the exponent as “the intercept” to provide more flexibility; we have 1 dimension of data, <strong>house_value</strong>, but we are solving a 2-dimensional model!</em></p>
+
+<p><img src="/assets/images/sigmoid_function.png" alt="Sigmoid Function" /></p>
+
+<p>Similiar to the way we defined our <strong>sum of squares</strong> objective function for linear regression, we want to use our hypothesis function, \(h(x)\), and formulate our <strong>likelihood function</strong> to maximize and fit our weights. <strong>Here’s where things get mathy:</strong></p>
+
+<h3 id="the-math-defining-a-likelihood-function">The Math: Defining a Likelihood Function</h3>
+
+<p>First we need to define a <a href="https://en.wikipedia.org/wiki/Probability_mass_function">Probability Mass Function</a>:</p>
+
+<script type="math/tex; mode=display">P(y=1|\ x;\theta) = h_{\theta}(x)</script>
+
+<script type="math/tex; mode=display">P(y=0|\ x;\theta) = 1 - h_{\theta}(x)</script>
+
+<p><strong>Note:</strong> <em>The left-hand side of the first statement reads “The probability that y equals 1, given a feature-vector \(x\), and the hypothesis function’s weights \(\theta\).” Our hypothesis function (right-hand-side) calculates this probability.</em></p>
+
+<p>These two statements can be condensed into one:</p>
+
+<script type="math/tex; mode=display">P(y|\ x;\theta) = h_{\theta}(x)^{y}(1-h_{\theta}(x))^{1-y}</script>
+
+<p>The table below shows how incorrect predictions by our hypothesis function (i.e. \(h(x)=.25, y=1\)) are penalized by generating low values. It also helps to understand how we condense the two statements into one.</p>
+
+<table>
+  <tbody>
+    <tr>
+      <td>\(h(x)\)</td>
+      <td>\(y=0\)</td>
+      <td>\(y=1\)</td>
+    </tr>
+    <tr>
+      <td>.25</td>
+      <td><strong>.75</strong></td>
+      <td><strong>.25</strong></td>
+    </tr>
+    <tr>
+      <td>.5</td>
+      <td><strong>.5</strong></td>
+      <td><strong>.5</strong></td>
+    </tr>
+    <tr>
+      <td>.75</td>
+      <td><strong>.25</strong></td>
+      <td><strong>.75</strong></td>
+    </tr>
+    <tr>
+      <td>.9</td>
+      <td><strong>.1</strong></td>
+      <td><strong>.9</strong></td>
+    </tr>
+  </tbody>
+</table>
+
+<p>Naturally, we want to maximize the right-hand-side of the above statement, which happens to be our <strong>likelihood function</strong>.</p>
+
+<p>I like to think of the <strong>likelihood function</strong> as “<em>the likelihood that our model will <strong>correctly</strong> predict any given \(y\) value, given its corresponding feature vector \(\hat{x}\)</em>”. It is, however, important to <a href="https://stats.stackexchange.com/questions/2641/what-is-the-difference-between-likelihood-and-probability">distinguish between probability and likelihood.</a>.</p>
+
+<p>Now, we expand our <strong>likelihood</strong> function by applying it to every sample in our training data. We multiply each individual <strong>likelihood</strong> together to get the cumulative likelihood that our model is accurately predicting \(y\) values of our training data:</p>
+
+<script type="math/tex; mode=display">L(\theta) = \prod_{i=1}^{n}p(y_{i}|x_{i};\theta)</script>
+
+<script type="math/tex; mode=display">L(\theta) = \prod_{i=1}^{n}h_{\theta}(x_{i})^{y_{i}}(1-h_{\theta}(x_{i}))^{1-y_{i}}</script>
+
+<p>Seeing that we are multiplying “\(n\)” likelihoods together (<em>all less than 1.0</em>), where \(n\) is the number of training samples, we are going to get a product of magnitude \(10^{-n}\). This is bad news! Eventually, we will <strong>run out of precision</strong>, and Python will turn our very small floats to \(0\).</p>
+
+<p>Our solution is to take the \(log\) of our likelihood function:</p>
+
+<script type="math/tex; mode=display">\ell(\theta) = log\ L(\theta)</script>
+
+<script type="math/tex; mode=display">\ell(\theta) = \sum_{i=1}^{n}y_{i}\log(h_{\theta}(x_{i})) + (1-y_{i})\log(1-h_{\theta}(x_{i}))</script>
+
+<p><strong>Note:</strong> <em>Remember that \(xy = log(x) + log(y)\), and that: \(log(x)^{n} = nlog(x)\)</em>.</p>
+
+<p>This is called the <strong>log-likelihood</strong> of our hypothesis function.</p>
+
+<p>Remember, our hypothesis function penalizes bad predictions by generating small values, so we want to <strong>maximize the log-likelihood.</strong> The curve of our log-likelihood is shown below:</p>
+
+<p><img src="/assets/images/plotly/log_likelihood_normalized.png" alt="Log-likelihood Curve" /></p>
+
+<p><em><strong>Note:</strong> By taking the log of our function to derive the <strong>log-likelihood</strong>, we guarentee (as an added bonus) that our objective function is <strong>strictly concave</strong>, meaning there is 1 global maximum.</em></p>
+
+<h3 id="the-math-newtons-method-with-one-variable">The Math: Newton’s Method with One Variable</h3>
+
+<p>Before we maximize our log-likelihood, let’s introduce <strong>Newton’s Method</strong>.</p>
+
+<p><strong>Newton’s Method</strong> is an iterative equation solver: it is an algorithm to find the roots of a polynomial function. In the simple, one-variable case, Newton’s Method is implemented as follows:</p>
+
+<ol>
+  <li><em>Find the tangent line to \(f(x)\) at point \((x_{n}, y_{n})\)</em>
+    <ul>
+      <li>\(y = f’(x_{n})(x - x_{n}) + f(x_{n})\)</li>
+    </ul>
+  </li>
+  <li><em>Find the x-intercept of the tangent line, \(x_{n+1}\)</em>
+    <ul>
+      <li>\(0 = f’(x_{n})(x_{n+1} - x_{n}) + f(x_{n})\)</li>
+      <li>\(-f(x_{n}) = f’(x_{n})(x_{n+1} - x_{n})\)</li>
+      <li>\(x_{n+1} = x_{n} - \frac{f(x_{n})}{f’(x_{n})}\)</li>
+    </ul>
+  </li>
+  <li><em>Find the \(y\) value at the x-intercept.</em>
+    <ul>
+      <li>\(y_{n+1} = f(x_{n+1})\)</li>
+    </ul>
+  </li>
+  <li><em>If \(y_{n+1} - y_{n} \approx 0\):</em>
+    <ul>
+      <li><strong>return \(y_{n+1}\)</strong> because we’ve converged!</li>
+    </ul>
+  </li>
+  <li><em>Else update point \((x_{n}, y_{n})\), and iterate</em>
+    <ul>
+      <li>\(x = x_{n+1}, y = y_{n+1}\), <strong>goto (1)</strong>.</li>
+    </ul>
+  </li>
+</ol>
+
+<p>The following .gif (from Wikipedia) helps to visualize this method:</p>
+
+<p><img src="https://upload.wikimedia.org/wikipedia/commons/e/e0/NewtonIteration_Ani.gif" alt="Newton's Method .gif" /></p>
+
+<p>If you understand the more-verbose algorithm above, you will see that this boils down to:</p>
+
+<ol>
+  <li><strong>Until \(x_{n} - x_{n+1} \approx 0 \):</strong>
+    <ul>
+      <li>\(x_{n+1} = x_{n} - \frac{f(x_{n})}{f’(x_{n})}\)</li>
+    </ul>
+  </li>
+</ol>
+
+<p>Anyone who passed high school Calculus may be able to understand the above. But how do we generalize to the multivariate, “n-dimensional” case?</p>
+
+<h3 id="the-math-newtons-method-in-n-dimensions">The Math: Newton’s Method in N-dimensions</h3>
+
+<p>Recall that in n-dimensions, we replace single-variable derivatives with a vector of partial derivatives called the <strong>gradient</strong>.</p>
+
+<p><a href="http://thelaziestprogrammer.com/sharrington/math-of-machine-learning/the-gradient-a-visual-descent#the-math-finding-the-gradient">Review the gradient here</a> if this concept is fuzzy to you.</p>
+
+<p>Thus, our update rule, in its multivariate form, becomes our vector of parameters \(\hat{x}\), minus the scalar \(f(\hat{x})\) multiplied by the reciprocal of gradient vector:</p>
+
+<script type="math/tex; mode=display">\hat{x}_{n+1} = \hat{x}_{n} - f(\hat{x}_{n})\frac{1}{\nabla f(\hat{x}_{n})}</script>
+
+<h3 id="the-math-maximizing-log-likelihood-with-newtons-method">The Math: Maximizing Log-Likelihood with Newton’s Method</h3>
+
+<p>Recall that we want to maximize the log-likelihood, \(\ell(\theta)\) of our hypothesis function, \(h_{\theta}(x)\)</p>
+
+<p>To maximize our function, we want to find the partial derivatives of \(\ell(\theta)\), and set them equal to 0, and solve for \(\theta_{1}\) and \(\theta_{2}\) to find the <a href="https://en.wikipedia.org/wiki/Critical_point_(mathematics)#Application_to_optimization">critical point</a> of the partials. This critical point will be the <strong>max</strong> of our log-likelihood.</p>
+
+<p><strong>Note:</strong> <em>Since the log-likelihood is strictly concave, we have one <strong>global max</strong>. This means that we only have 1 <strong>critical point</strong>, so our solution hashed out above is the only solution!</em></p>
+
+<p>This should sound familiar. We are trying to find values for \(\theta_{1}\) and \(\theta_{2}\) that make the partial derivatives 0. We are finding the <em>“roots”</em> of the vector of partials (<em>the gradient</em>). We can use Newton’s Method to this! Recall the update step in Newton’s Method:</p>
+
+<script type="math/tex; mode=display">\hat{x}_{n+1} = \hat{x}_{n} - f(\hat{x}_{n})\frac{1}{\nabla f(\hat{x}_{n})}</script>
+
+<p>We can substitute \(f(\hat{x}_{n})\) with the gradient, \(\nabla \ell(\theta)\), leaving us with:</p>
+
+<script type="math/tex; mode=display">\hat{x}_{n+1} = \hat{x}_{n} - \nabla \ell(\theta)\frac{1}{?}</script>
+
+<p>What about the \(?\) term above? Intuition tells us that we need to take the derivative of the gradient vector, just like we previously took the derivative of \(f(\hat{x}_{n})\).</p>
+
+<p>Enter <strong>The Hessian.</strong></p>
+
+<h3 id="the-math-the-hessian">The Math: The Hessian</h3>
+
+<p>Given our pre-requisite knowledge of <strong>Multivariate Calculus</strong>, we should know that to find the “<em>second-order</em>” partial derivatives of a function, we take the partial derivative of each first-order partial, with respect to each parameter. If we have \(n\) parameters, then we have \(n^{2}\) second-order partial derivatives.</p>
+
+<p>Consequently, The Hessian is a square matrix of second-order partial derivatives of order \(n\ x\ n\).</p>
+
+<p>In our case of 2 parameters, \((\theta_{1}, \theta_{2})\), our Hessian looks as follows:</p>
+
+<script type="math/tex; mode=display">% <![CDATA[
+H_{\ell(\hat{\theta})} = \begin{bmatrix}\begin{split}
+\frac{\partial{\ell}}{\partial{\theta_{1}}\partial{\theta_{1}}} &
+\frac{\partial{\ell}}{\partial{\theta_{1}}\partial{\theta_{2}}}\\
+\frac{\partial{\ell}}{\partial{\theta_{2}}\partial{\theta_{1}}} &
+\frac{\partial{\ell}}{\partial{\theta_{2}}\partial{\theta_{2}}}
+\end{split}\end{bmatrix} %]]></script>
+
+<h3 id="the-math-putting-it-all-together">The Math: Putting it all Together</h3>
+
+<p>By substituting <strong>The Hessian</strong> into the <strong>Newton’s Method</strong> update step, we are left with:</p>
+
+<script type="math/tex; mode=display">\theta_{n+1} = \theta_{n} + H_{\ell(\hat{\theta})}^{-1}\nabla \ell(\theta)</script>
+
+<p><strong>Note:</strong> <em>We take the <strong>inverse</strong> of The Hessian, rather than taking its recipricol because it is a matrix</em></p>
+
+<p>For brevity’s sake, this post leaves out the actual derivation of the gradient and the hessian. Resources to understand the following derivations can be found at:</p>
+
+<ol>
+  <li><a href="http://cs229.stanford.edu/notes/cs229-notes1.pdf">Derivation of the Gradient of our Log-Likelihood</a>, Andrew Ng’s lecture notes, pages 17-18.</li>
+  <li>The derivation of the hessian is pretty straight forward, given Andrew Ng’s notes on the derivative of the <strong>sigmoid function</strong>, \(g’(z)\), once you’ve calculated the gradient.</li>
+</ol>
+
+<p>The <strong>gradient</strong> of \(\ell(\theta)\) is:</p>
+
+<script type="math/tex; mode=display">\nabla \ell = \left\langle\matrix{
+\sum_{i=1}^{n}(y_{i} - h_{\theta}(x_{i}))x_{i}\cr
+\sum_{i=1}^{n}(y_{i} - h_{\theta}(x_{i}))
+}\right\rangle</script>
+
+<p>While the <strong>hessian</strong> of \(\ell(\theta)\) is:</p>
+
+<script type="math/tex; mode=display">% <![CDATA[
+H_{\ell(\hat{\theta})} = \begin{bmatrix}\begin{split}
+\sum_{i=1}^{n}h_{\theta}(x_{i})(1-h_{\theta}(x_{i}))\theta_{1}\theta_{1},\ &
+\sum_{i=1}^{n}h_{\theta}(x_{i})(1-h_{\theta}(x_{i}))\theta_{1}\\
+\sum_{i=1}^{n}h_{\theta}(x_{i})(1-h_{\theta}(x_{i}))\theta_{1},\ &
+\sum_{i=1}^{n}h_{\theta}(x_{i})(1-h_{\theta}(x_{i}))
+\end{split}\end{bmatrix} %]]></script>
+
+<p>Where \(h_{\theta}(x) = \frac{1}{1 + e^{-z}}\) and \(z = \theta_{1}x + \theta_{2}\).</p>
+
+<h3 id="implementing-newtons-method">Implementing Newton’s Method</h3>
+
+<p>We start off by defining our <strong>hypothesis function</strong>, which is the <strong>sigmoid function</strong>.</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="k">def</span> <span class="nf">sigmoid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="err">Θ</span><span class="n">_1</span><span class="p">,</span> <span class="err">Θ</span><span class="n">_2</span><span class="p">):</span>                                                        
+    <span class="n">z</span> <span class="o">=</span> <span class="p">(</span><span class="err">Θ</span><span class="n">_1</span><span class="o">*</span><span class="n">x</span> <span class="o">+</span> <span class="err">Θ</span><span class="n">_2</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s">"float_"</span><span class="p">)</span>                                              
+    <span class="k">return</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">z</span><span class="p">))</span>                                                
+</code></pre>
+</div>
+
+<p>Then we define \(\ell(\theta)\), our <strong>log-likelihood</strong> function:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="k">def</span> <span class="nf">log_likelihood</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="err">Θ</span><span class="n">_1</span><span class="p">,</span> <span class="err">Θ</span><span class="n">_2</span><span class="p">):</span>                                                                
+    <span class="n">sigmoid_probs</span> <span class="o">=</span> <span class="n">sigmoid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="err">Θ</span><span class="n">_1</span><span class="p">,</span> <span class="err">Θ</span><span class="n">_2</span><span class="p">)</span>                                        
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="nb">sum</span><span class="p">(</span><span class="n">y</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">sigmoid_probs</span><span class="p">)</span>
+                  <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">y</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">sigmoid_probs</span><span class="p">))</span>                                     
+</code></pre>
+</div>
+
+<p>Finally, we implement the <strong>gradient</strong> and the <strong>hessian</strong> of our log-likelihood.</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="k">def</span> <span class="nf">gradient</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="err">Θ</span><span class="n">_1</span><span class="p">,</span> <span class="err">Θ</span><span class="n">_2</span><span class="p">):</span>                                                         
+    <span class="n">sigmoid_probs</span> <span class="o">=</span> <span class="n">sigmoid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="err">Θ</span><span class="n">_1</span><span class="p">,</span> <span class="err">Θ</span><span class="n">_2</span><span class="p">)</span>                                        
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">np</span><span class="o">.</span><span class="nb">sum</span><span class="p">((</span><span class="n">y</span> <span class="o">-</span> <span class="n">sigmoid_probs</span><span class="p">)</span> <span class="o">*</span> <span class="n">x</span><span class="p">),</span>                          
+                     <span class="n">np</span><span class="o">.</span><span class="nb">sum</span><span class="p">((</span><span class="n">y</span> <span class="o">-</span> <span class="n">sigmoid_probs</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1</span><span class="p">)]])</span>                         
+
+<span class="k">def</span> <span class="nf">hessian</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="err">Θ</span><span class="n">_1</span><span class="p">,</span> <span class="err">Θ</span><span class="n">_2</span><span class="p">):</span>                                                          
+    <span class="n">sigmoid_probs</span> <span class="o">=</span> <span class="n">sigmoid</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="err">Θ</span><span class="n">_1</span><span class="p">,</span> <span class="err">Θ</span><span class="n">_2</span><span class="p">)</span>                                        
+    <span class="n">d1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="nb">sum</span><span class="p">((</span><span class="n">sigmoid_probs</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">sigmoid_probs</span><span class="p">))</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">x</span><span class="p">)</span>                  
+    <span class="n">d2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="nb">sum</span><span class="p">((</span><span class="n">sigmoid_probs</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">sigmoid_probs</span><span class="p">))</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="mi">1</span><span class="p">)</span>                  
+    <span class="n">d3</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="nb">sum</span><span class="p">((</span><span class="n">sigmoid_probs</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">sigmoid_probs</span><span class="p">))</span> <span class="o">*</span> <span class="mi">1</span> <span class="o">*</span> <span class="mi">1</span><span class="p">)</span>                  
+    <span class="n">H</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">d1</span><span class="p">,</span> <span class="n">d2</span><span class="p">],[</span><span class="n">d2</span><span class="p">,</span> <span class="n">d3</span><span class="p">]])</span>                                           
+    <span class="k">return</span> <span class="n">H</span>
+</code></pre>
+</div>
+
+<p>With all of our math implemented in these 4 functions, we can create the outer <em>while loop</em> and iterate using <strong>Newton’s Method</strong> until we converge on the maximum.</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="k">def</span> <span class="nf">newtons_method</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>                                                             
+    <span class="s">"""
+    :param x (np.array(float)): Vector of Boston House Values in dollars
+    :param y (np.array(boolean)): Vector of Bools indicting if house has &gt; 2 bedrooms:
+    :returns: np.array of logreg's parameters after convergence, [Θ_1, Θ_2]
+    """</span>
+
+    <span class="c"># Initialize log_likelihood &amp; parameters                                                                   </span>
+    <span class="err">Θ</span><span class="n">_1</span> <span class="o">=</span> <span class="mf">15.1</span>                                                                     
+    <span class="err">Θ</span><span class="n">_2</span> <span class="o">=</span> <span class="o">-.</span><span class="mi">4</span> <span class="c"># The intercept term                                                                 </span>
+    <span class="err">Δ</span><span class="n">l</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">Infinity</span>                                                                
+    <span class="n">l</span> <span class="o">=</span> <span class="n">log_likelihood</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="err">Θ</span><span class="n">_1</span><span class="p">,</span> <span class="err">Θ</span><span class="n">_2</span><span class="p">)</span>                                                                 
+    <span class="c"># Convergence Conditions                                                        </span>
+    <span class="err">δ</span> <span class="o">=</span> <span class="o">.</span><span class="mo">0000000001</span>                                                                 
+    <span class="n">max_iterations</span> <span class="o">=</span> <span class="mi">15</span>                                                            
+    <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>                                                                           
+    <span class="k">while</span> <span class="nb">abs</span><span class="p">(</span><span class="err">Δ</span><span class="n">l</span><span class="p">)</span> <span class="o">&gt;</span> <span class="err">δ</span> <span class="ow">and</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">max_iterations</span><span class="p">:</span>                                       
+        <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>                                                                      
+        <span class="n">g</span> <span class="o">=</span> <span class="n">gradient</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="err">Θ</span><span class="n">_1</span><span class="p">,</span> <span class="err">Θ</span><span class="n">_2</span><span class="p">)</span>                                                      
+        <span class="n">hess</span> <span class="o">=</span> <span class="n">hessian</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="err">Θ</span><span class="n">_1</span><span class="p">,</span> <span class="err">Θ</span><span class="n">_2</span><span class="p">)</span>                                                 
+        <span class="n">H_inv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">hess</span><span class="p">)</span>                                                 
+        <span class="c"># @ is syntactic sugar for np.dot(H_inv, g.T)¹</span>
+        <span class="err">Δ</span> <span class="o">=</span> <span class="n">H_inv</span> <span class="err">@</span> <span class="n">g</span><span class="o">.</span><span class="n">T</span>                                                             
+        <span class="err">ΔΘ</span><span class="n">_1</span> <span class="o">=</span> <span class="err">Δ</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>                                                              
+        <span class="err">ΔΘ</span><span class="n">_2</span> <span class="o">=</span> <span class="err">Δ</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>                                                              
+                                                                                    
+        <span class="c"># Perform our update step                                                    </span>
+        <span class="err">Θ</span><span class="n">_1</span> <span class="o">+=</span> <span class="err">ΔΘ</span><span class="n">_1</span>                                                                 
+        <span class="err">Θ</span><span class="n">_2</span> <span class="o">+=</span> <span class="err">ΔΘ</span><span class="n">_2</span>                                                                 
+                                                                                    
+        <span class="c"># Update the log-likelihood at each iteration                                     </span>
+        <span class="n">l_new</span> <span class="o">=</span> <span class="n">log_likelihood</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="err">Θ</span><span class="n">_1</span><span class="p">,</span> <span class="err">Θ</span><span class="n">_2</span><span class="p">)</span>                                                      
+        <span class="err">Δ</span><span class="n">l</span> <span class="o">=</span> <span class="n">l</span> <span class="o">-</span> <span class="n">l_new</span>                                                           
+        <span class="n">l</span> <span class="o">=</span> <span class="n">l_new</span>                                                                
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="err">Θ</span><span class="n">_1</span><span class="p">,</span> <span class="err">Θ</span><span class="n">_2</span><span class="p">])</span>                                       
+</code></pre>
+</div>
+
+<h3 id="visualizing-newtons-method">Visualizing Newton’s Method</h3>
+
+<p>Let’s see what happens when we plot each iteration of Newton’s Method on our log-likelihood function’s surface:</p>
+
+<p><strong>Note:</strong> <em>The first iteration is <em style="color: red">red</em>, the second iteration is <em style="color: orange">orange</em>….final iteration is <em style="color: purple">purple</em></em></p>
+
+<p><img src="/assets/images/plotly/newtons_method_ll.png" alt="Newton's Method Logistic Regression" /></p>
+
+<p>This graphic lends confirmation that our “purple” point is in fact the max, and that we have converged succesfully!</p>
+
+<p><img src="/assets/images/plotly/newtons_method_max.png" alt="Newton's Method Maximum of LL" /></p>
+
+<h3 id="visualizing-our-solution">Visualizing our Solution</h3>
+
+<p>Normally, to visualize a 1-Dimensional dataset, you’d plot all of the points on a number-line, and place a boundary somewhere along the line. The problem here is that all of the data points get bunched together.</p>
+
+<p>So instead, I’ve “stretched them out” along a y-axis, and labeled the points by color. We’ve also drawn 3 linear boundaries to separate the homes into percentiles – explained by the legend.</p>
+
+<p><img src="/assets/images/plotly/south_boston_bedroom_logreg.png" alt="S. Boston Homes - Probability of Having &gt;2 Bedrooms" /></p>
+
+<h3 id="conclusion">Conclusion</h3>
+
+<p>we have covered a number of new topics, including <strong>The Hessian</strong>, <strong>Log-likelihood</strong> and <strong>The Sigmoid Function</strong>. Combining these methods together, we’ve been able implement <strong>Newton’s Method</strong> to solve <strong>Logistic Regression</strong>.</p>
+
+<p>While these concepts enforce a <strong>very</strong> concrete foundation to implement our solution, we still need to be wary of things that can cause Newton’s Method to diverge. These are out of scope here, but you can read more on divergence here!</p>
+
+
+
+        </section>
+
+        <footer class="post-footer">
+
+            <!-- Everything inside the #author tags pulls data from the author -->
+            <!-- #author-->
+
+            
+            <figure class="author-image">
+                <a class="img" href="/author/sharrington" style="background-image: url(/assets/images/headshot.jpg)"><span class="hidden">'s Picture</span></a>
+            </figure>
+            
+
+            <section class="author">
+                <h4><a href="/author/sharrington">Sean Harrington</a></h4>
+                
+                
+                    <p> I believe that cover bands should welcome guitarists in the audience on-stage, that Mat Cauthon would make any 14-book series enjoyable, and that college football players can evolve into decent software developers.</p>
+                
+                <div class="author-meta">
+                    <span class="author-location icon-location"> Boston, MA</span> 
+                    <span class="author-link icon-link"><a href="http://github.com/seanharr11"> github.com/seanharr11</a></span> 
+                </div>
+            </section>
+
+            <!-- /author  -->
+
+            <section class="share">
+                <h4>Share this post</h4>
+                <a class="icon-twitter" href="http://twitter.com/share?text=Solving Logistic Regression with Newton's Method&amp;url=http://thelaziestprogrammer.comsharringtonmath-of-machine-learningsolving-logreg-newtons-method"
+                    onclick="window.open(this.href, 'twitter-share', 'width=550,height=235');return false;">
+                    <span class="hidden">Twitter</span>
+                </a>
+                <a class="icon-facebook" href="https://www.facebook.com/sharer/sharer.php?u=http://thelaziestprogrammer.comsharringtonmath-of-machine-learningsolving-logreg-newtons-method"
+                    onclick="window.open(this.href, 'facebook-share','width=580,height=296');return false;">
+                    <span class="hidden">Facebook</span>
+                </a>
+                <a class="icon-google-plus" href="https://plus.google.com/share?url=http://thelaziestprogrammer.comsharringtonmath-of-machine-learningsolving-logreg-newtons-method"
+                   onclick="window.open(this.href, 'google-plus-share', 'width=490,height=530');return false;">
+                    <span class="hidden">Google+</span>
+                </a>
+            </section>
+            
+            <!-- Add Disqus Comments -->
+            
+            
+        </footer>
+
+    </article>
+
+</main>
+
+<aside class="read-next">
+
+    <!-- [[! next_post ]] -->
+    
+    <!-- [[! /next_post ]] -->
+    <!-- [[! prev_post ]] -->
+    
+        <a class="read-next-story prev " style="background-image: url(/assets/images/banners/posts/math_of_ml/marin_valley.png)" href="/sharrington/math-of-machine-learning/gradient-descent-learning-rate-too-high">
+            <section class="post">
+                <h2>Gradient Descent: High Learning Rates & Divergence</h2>
+                <p>We’ve explored gradient descent, but we haven’t talked about learning rates, and how these hyperparameters...</p>
+            </section>
+        </a>
+    
+    <!-- [[! /prev_post ]] -->
+</aside>
+
+<!-- /post -->
+
+
+        <footer class="site-footer clearfix">
+          <section class="copyright"><a href="">The Laziest Programmer</a> &copy; 2017</section>
+          <section class="poweredby">Proudly published with <a href="https://jekyllrb.com/">Jekyll</a> using <a href="https://github.com/biomadeira/jasper">Jasper</a></section>
+        </footer>
+    </div>
+    <!-- [[! Ghost outputs important scripts and data with this tag ]] -->
+    <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+    <!-- [[! The main JavaScript file for Casper ]] -->
+    <script type="text/javascript" src="/assets/js/jquery.fitvids.js"></script>
+    <script type="text/javascript" src="/assets/js/index.js"></script>
+
+    <!-- Add Google Analytics  -->
+        <!-- Google Analytics Tracking code -->
+     <script>
+	    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+	    ga('create', 'UA-80966627-1', 'auto');
+	    ga('send', 'pageview');
+
+     </script>   
+</body>
+</html>

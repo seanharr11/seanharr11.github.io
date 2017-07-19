@@ -251,22 +251,24 @@ ImportError: dlopen(/Library/Python/2.7/site-packages/cx_Oracle.so, 2): Library 
 	</item>
 
 	<item>
-	  <title>Migrating Between SQL Databases</title>
+	  <title>Migrating Between Relational Databases</title>
 	  <link>/sharrington/databases/migrating-between-databases-with-etlalchemy</link>
 	  <author>Sean Harrington</author>
 	  <pubDate>2016-07-14T01:05:00-04:00</pubDate>
 	  <guid>/sharrington/databases/migrating-between-databases-with-etlalchemy</guid>
 	  <description><![CDATA[
 	     <p><br />
-We can all agree on one thing: SQL Databases are here to stay.</p>
+In this post we show how to migrate off of any RDBMS, onto any other RDBMS. We use a case study of Oracle -&gt; MySQL, but we can move between any 2 combinations (SQL Server -&gt; Postgres, MySQL -&gt; SQLite…etc.)</p>
 
-<p>However, for one reason or another, sometimes they stay in one place for too long.</p>
+<p style="text-align: center"><a href="#code-snippet">TL;DR? Jump to code snippet solution.</a></p>
 
-<p style="text-align: center"><a href="#code-snippet">Jump to Code Snippet</a></p>
+<h3 id="the-new-england-patriots-case-study">The New England Patriots Case Study</h3>
 
-<p>I started my most recent job in June 2015, where I was responsible for projects spanning various fields, ranging from Web Development to Machine Learning. After learning that we kept the majority of our data in an <strong>Oracle 9i</strong> RDBMS, and learning that Oracle pulled support for the system in July 2010, naturally the first move to make was to migrate onto a different RDBMS, or to upgrade.</p>
+<p>With NEP, I was responsible for projects spanning various fields, ranging from Web Development to Machine Learning. After learning that we kept the majority of our data in an <strong>Oracle 9i</strong> RDBMS, and learning that Oracle pulled support for the system in July 2010, naturally the first move to make was to migrate onto a different RDBMS, or to upgrade.</p>
 
-<p>In short, we chose to migrate from Oracle onto MySQL as our target RDBMS. So began my journey to migrate off of a database as old as the sea turtle in the banner above, and onto a modern solution.</p>
+<p>In short, we chose to migrate from <strong>Oracle onto MySQL</strong> as our target RDBMS. So began my journey to migrate off of a <strong>very outdated</strong> database, and onto a modern solution.</p>
+
+<h3 id="the-project-requirements">The Project Requirements</h3>
 
 <p>As most projects do, the project grew from a simple database migration, to a database migration requiring cleaning data, altering schema, identifying and dropping unused/legacy columns etc… We identified the following requirements when searching for a solution:</p>
 
@@ -295,7 +297,7 @@ We can all agree on one thing: SQL Databases are here to stay.</p>
   </li>
 </ol>
 
-<p>The immediate solutions failed:</p>
+<h3 id="the-immediate-solutions-failed">The Immediate Solutions Failed…</h3>
 
 <ol>
   <li><strong>MySQL Workbench</strong> involved a great deal of manual configuring, and no ‘automated’ way to migrate from Oracle -&gt; MySQL.
@@ -311,12 +313,14 @@ We can all agree on one thing: SQL Databases are here to stay.</p>
   <li>A few Ruby gems (taps) lacked support for many of the Oracle column types, and the cx_Oracle driver in general.</li>
 </ol>
 
+<h3 id="the-solution">The Solution</h3>
+
 <p>I decided to dust off an old college project, burn the midnight oil to revitalize it, and leverage it to solve this problem.</p>
 
 <p id="code-snippet"></p>
 <p>The project, <a href="https://github.com/seanharr11/etlalchemy" title="Navigate to etlalchemy github page"><strong>etlalchemy</strong></a>, is an open-sourced Python application which sits atop <a href="http://www.sqlalchemy.org/" title="Navigate to sqlalchemy.org"><strong>SQLAlchemy</strong></a>, and allows ETL (Extract, Transform, Load) functionality between any 2 SQL databases. The tool presents a <a href="https://www.python.org/dev/peps/pep-0020/#the-zen-of-python"><em>“Simple over Complex”</em></a> solution to the problem, allowing you to <em>Migrate any SQL Database with 4 Lines of Code</em>. (More advanced features are also available).</p>
 
-<p>To install the tool:</p>
+<p><strong>To install the tool:</strong></p>
 
 <div class="highlighter-rouge"><pre class="highlight"><code>pip install etlalchemy
 <span class="c"># On El Capitan:</span>
@@ -324,7 +328,7 @@ We can all agree on one thing: SQL Databases are here to stay.</p>
 </code></pre>
 </div>
 
-<p>To run the tool:</p>
+<p><strong>To run the tool:</strong></p>
 
 <div class="highlighter-rouge"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">etlalchemy</span> <span class="kn">import</span> <span class="n">ETLAlchemySource</span><span class="p">,</span> <span class="n">ETLAlchemyTarget</span>
 <span class="c"># Migrate from SQL Server onto PostgreSQL</span>

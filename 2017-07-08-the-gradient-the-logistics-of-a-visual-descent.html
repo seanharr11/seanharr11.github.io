@@ -1,0 +1,194 @@
+<p><br />
+In this post we introduce <strong>The Hessian</strong>: an n-dimensional generalization of the second derivative, which is comprised of second-order partial derivatives.</p>
+
+<p>We explore how <strong>the hessian</strong> is used, in conjunction with <strong>the gradient</strong>, to implement <strong>Newton’s Method</strong>, and how this method allows us to minimize the Log Likelihood objective function. Log Likelihood is a measure of how accurate our Logistic Regression Binary Classifer is, more on this later…</p>
+
+<p>Similiar to the <a href="http://http://thelaziestprogrammer.com/sharrington/math-of-machine-learning/the-gradient-a-visual-descent">initial post covering Linear Regression and The Gradient</a>, we will explore Logistic Regression visually, mathematically, and programatically with Python to understand how our math concepts translate to practical ML models.</p>
+
+<p><em>This post covers a more “real world” example, as there is no <a href="https://en.wikipedia.org/wiki/Closed-form_expression">closed form</a>  solution to minimizing the Log Likelihood function. Thus, we <strong>must</strong> solve it iteratively with Newton’s Method (as a twist, we are choosing this method instead of Gradient Descent)</em></p>
+
+<p><strong>Suggested prior knowledge:</strong></p>
+
+<ol>
+  <li>Derivatives and the Chain Rule (<em>Calculus</em>)</li>
+  <li>Partial Derivatives &amp; <a href="http://http://thelaziestprogrammer.com/sharringto
+ n/math-of-machine-learning/the-gradient-a-visual-descent">The Gradient</a>(<em>Multivariate Calculus</em>)</li>
+  <li>Basic Vector Operations (<em>Linear Algebra</em>)</li>
+  <li>Objective Functions (<em>Also called Loss Function</em>)</li>
+  <li>Basic Understanding of NumPy</li>
+  <li>Basic Understanding of Independent Probability</li>
+</ol>
+
+<h3 id="the-data">The Data</h3>
+
+<p>Our dataset is made up of South Boston home sales, and consists of 2 very simple column vectors:</p>
+
+<p><script type="math/tex">\hat{y} = HomeValue = \left\langle 550000.00, 600000.00, ... 578000.00\right\rangle^{T}</script>
+<script type="math/tex">\hat{x} = LivingArea = \left\langle 990, 1046, ... 1010\right\rangle^{T}</script></p>
+
+<h3 id="the-model">The Model</h3>
+
+<p>We will be learning a simple Linear Regression model, that predicts a home in South Boston’s value (sale price) based solely on the Living Area of the property. We want to fit a line to our data, defined by:</p>
+
+<script type="math/tex; mode=display">\hat{y} = a\hat{x} + b</script>
+
+<p>Our line should overlay our data as follows:
+<img src="/assets/images/plotly/south_boston_home_sales_lr.png" alt="S. Boston - LinReg" />
+Thus, our main objective is to minimize the distance between each point and our line. We will use <strong>Mean Squared Error</strong> as our objective function, which is a fancy way of saying: <em>“For each point (x, y) in our dataset, take the squared distance between the y-value, and the predicted y-value, and add them all up. Then divide by the number of examples, n.”</em></p>
+
+<p>In mathematical fancy notation, the Mean Squared Error looks as follows:</p>
+
+<script type="math/tex; mode=display">J(a, b) = \frac{1}{n}\sum_{i=1}^{n}(y_{i,actual} - y_{i,predicted})^{2}</script>
+
+<p>Using our above objective function, (\(y_{i,predicted} = ax_{i} + b,\)) we get:</p>
+
+<script type="math/tex; mode=display">J(a, b) = \frac{1}{n}\sum_{i=1}^{n}(y_{i} - (ax_{i} + b))^{2}</script>
+
+<p>Our goal is to minimize this function, and we do so with the gradient.</p>
+
+<p>Let’s begin with the most naive solution to find our minimum: take every combination of \(a\) and \(b\), then find the combination that yields the lowest error \(J(a, b\)).</p>
+
+<p>The problem: What if (rather than \(a\) and \(b\) ) we have 10,000 variables to solve for? We would find ourselves in a permutational nightmare that no computer could handle!</p>
+
+<p>We need a way to gracefully and quickly find our minimum: and we use the gradient to do so.</p>
+
+<h3 id="the-math-finding-the-gradient">The Math: Finding the Gradient</h3>
+
+<p>The gradient is a vector of the partial derivatives of a function. It is the n-dimensional generalization of the derivative, defining the rate of change with respect to all “n” variables. It is usually written as follows:</p>
+
+<script type="math/tex; mode=display">\nabla J(\hat{x}) = \left\langle \frac{\partial{J}}{\partial{x_{0}}}, \frac{\partial{J}}{\partial{x_{1}}}, ... \frac{\partial{J}}{\partial{x_{n}}}\right\rangle^{T}</script>
+
+<p>In our case, we need to find both partial derivatives of \(J(a, b)\) - we use the Chain Rule to do so:</p>
+
+<script type="math/tex; mode=display">\frac{\partial{J}}{\partial{a}} = \frac{1}{n}\sum_{i=1}^{n}x_{i} * 2(y_i - (ax_i + b))</script>
+
+<script type="math/tex; mode=display">\frac{\partial{J}}{\partial{b}} = \frac{1}{n}\sum_{i=1}^{n}2(y_i - (ax_i + b))</script>
+
+<p>Don’t be intimidated by the summation notion when calculating the partials! We are just differentiating the function to the right of the symbol!</p>
+
+<p>Rearranging terms, and distributing terms we get our gradient:</p>
+
+<script type="math/tex; mode=display">\nabla J(a, b) = \left\langle\matrix{
+\frac{2}{n}\sum_{i=1}^{n}x_{i}y_{i} - (ax_i^{2} + bx_{i})\cr
+\frac{2}{n}\sum_{i=1}^{n}y_{i} - (ax_i + b)
+}\right\rangle</script>
+
+<h3 id="the-math-visualizing-the-gradients-significance">The Math: Visualizing the Gradient’s Significance</h3>
+
+<p>If we are standing on the mountain-like curve of our objective function, at point \((a, b)\), we want to find the direction with the greatest rate of negative change.</p>
+
+<p>In other words, we want to find the steepest path down the mountain, because the lower our error (height of our curve), the more accurate our model! Below is the surface of our objective function \(J(a, b)\), and our starting point \((a=340, b=380000)\):</p>
+
+<p><img src="/assets/images/plotly/gd_starting_point.png" alt="Gradient Descent: Starting Point" /></p>
+
+<p>Which direction do we step? It turns out that the direction of the gradient vector, at a given point, will naturally point in the steepest direction!</p>
+
+<p>The gradient will be our guide down the mountain!</p>
+
+<h3 id="the-math-proving-the-gradients-significance">The Math: Proving the Gradient’s Significance</h3>
+
+<p>Here’s where things get a bit “mathy”. Let’s prove why the direction of the gradient vector points in the direction of greatest change.</p>
+
+<p>The rate-of-change of \(J(a, b)\), in a certain direction, \(\vec v\), with respect to distance traveled (\(ds\)), is defined as the gradient dotted with a vector indicating the direction to travel (\(\vec v)\), or:</p>
+
+<script type="math/tex; mode=display">\frac{dJ}{ds} = \nabla (J(a, b))\cdot\vec v</script>
+
+<p><em>All we are saying is that given an arbitrary direction, \(\vec v\), down our mountain, if we travel that direction in \(ds\) units, our error, \(J\), changes at a rate described by the above formula, which depends on the gradient.</em></p>
+
+<p>Using the definition of the dot-product (\(x \cdot y = ||x||\ ||y||\ cos(\theta_{x,y})\)), we can re-write this as the product of each vector’s magnitude, times the cosine of the angle between them:</p>
+
+<script type="math/tex; mode=display">\frac{dJ}{ds} = ||\nabla (J(a, b))||\ ||\vec v||\ cos(\theta)</script>
+
+<p>To maximize the rate of change, we would want to maximize \(cos(\theta)\) by setting  \(\theta = 0\), to get \(1\), the highest possible value of the \(cos()\) function.</p>
+
+<p>If the angle between these two vectors is \(0\), then the two vectors are parallel, therefore:</p>
+
+<script type="math/tex; mode=display">dir(\vec v) = dir(\nabla J)</script>
+
+<p><strong>Our steepest step is in the direction of the gradient!</strong> So we want to travel in the <strong>opposite direction</strong> of the gradient, by multiplying it by \(-1\). If you take anything away from this post, remember this!</p>
+
+<p>Given this fact, at each “step” along our descent, we:</p>
+
+<ol>
+  <li>Calculate our gradient at the point \( (a, b) \).
+    <ul>
+      <li>
+        <p style="background-color: #ffff99">We want the negative gradient, so we travel downhill and not uphill!</p>
+      </li>
+    </ul>
+  </li>
+  <li>Multiply the gradient by a scalar, (also called a <strong>learning rate</strong>, denoted by \(\eta\))
+    <ul>
+      <li>The learning rate is what we call a <strong>hyperparameter</strong>, and can be tweaked to ensure convergence. <a href="/sharrington/math-of-machine-learning/gradient-descent-learning-rate-too-high">Set too high or low, the model might converge!</a></li>
+    </ul>
+  </li>
+  <li>Update our weights using our multiplied gradient:
+<script type="math/tex">\left\langle a, b \right\rangle += \eta \nabla J</script></li>
+  <li>Terminate if we have converged!</li>
+</ol>
+
+<h3 id="the-math-implementing-gradient-descent">The Math: Implementing Gradient Descent</h3>
+
+<p>The equivalent code, implemented using Python and NumPy looks as follows:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="c"># I've experimented w/ Python3.6 unicode symbols in this snippet</span>
+<span class="k">def</span> <span class="nf">gradient_descent_mse</span><span class="p">(</span><span class="n">x_vec</span><span class="p">,</span> <span class="n">y_vec</span><span class="p">):</span>                                                 
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">x_vec</span><span class="p">)</span>                                                                      
+    <span class="c"># Define Partials &amp; Objective Function (MSE)</span>
+    <span class="k">def</span> <span class="nf">J</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>                                                                    
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="nb">sum</span><span class="p">(((</span><span class="n">a</span> <span class="o">*</span> <span class="n">x_vec</span> <span class="o">+</span> <span class="n">b</span><span class="p">)</span> <span class="o">-</span> <span class="n">y_vec</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">/</span> <span class="n">n</span><span class="p">)</span>                                   
+    <span class="k">def</span> <span class="nf">dJ_db</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>                                                                
+       <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="nb">sum</span><span class="p">((</span><span class="n">a</span> <span class="o">*</span> <span class="n">x_vec</span> <span class="o">+</span> <span class="n">b</span><span class="p">)</span> <span class="o">-</span> <span class="n">y_vec</span><span class="p">)</span> <span class="o">/</span> <span class="n">n</span>                                           
+    <span class="k">def</span> <span class="nf">dJ_da</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>                                                                
+       <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="nb">sum</span><span class="p">(</span><span class="n">x_vec</span> <span class="o">*</span> <span class="p">((</span><span class="n">a</span> <span class="o">*</span> <span class="n">x_vec</span> <span class="o">+</span> <span class="n">b</span><span class="p">)</span> <span class="o">-</span> <span class="n">y_vec</span><span class="p">))</span> <span class="o">/</span> <span class="n">n</span>                                     
+    <span class="c"># Initialize our weights                                                        </span>
+    <span class="n">a</span> <span class="o">=</span> <span class="mi">350</span>                                                                       
+    <span class="n">b</span> <span class="o">=</span> <span class="mi">380000</span>                                                                      
+    <span class="err">Δ</span><span class="n">j</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">Infinity</span>                                                                
+    <span class="n">j</span> <span class="o">=</span> <span class="n">J</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>                                                                     
+    <span class="c"># Convergence Conditions                                                        </span>
+    <span class="err">δ</span> <span class="o">=</span> <span class="mi">1</span>                                                                           
+    <span class="n">max_iterations</span> <span class="o">=</span> <span class="mi">150</span>                                                             
+    <span class="c"># Learning Rates (separate rate for each partial)</span>
+    <span class="err">ŋ</span><span class="n">_b</span> <span class="o">=</span> <span class="o">.</span><span class="mi">15</span>                                                                       
+    <span class="err">ŋ</span><span class="n">_a</span> <span class="o">=</span> <span class="o">.</span><span class="mo">00000005</span>                                                                 
+    <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>                                                                           
+    <span class="k">while</span> <span class="nb">abs</span><span class="p">(</span><span class="err">Δ</span><span class="n">j</span><span class="p">)</span> <span class="o">&gt;</span> <span class="err">δ</span> <span class="ow">and</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">max_iterations</span><span class="p">:</span>                                       
+        <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>                                                                      
+        <span class="c"># Find the gradient at the point (a, b)                                     </span>
+        <span class="n">grad</span> <span class="o">=</span> <span class="p">[</span><span class="n">dJ_da</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">),</span> <span class="n">dJ_db</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)]</span>                                                     
+        <span class="c"># Multiply each partial deriv by its learning rate                          </span>
+        <span class="err">Δ</span><span class="n">a</span> <span class="o">=</span> <span class="n">grad</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="o">-</span><span class="err">ŋ</span><span class="n">_a</span>                                                         
+        <span class="err">Δ</span><span class="n">b</span> <span class="o">=</span> <span class="n">grad</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="o">-</span><span class="err">ŋ</span><span class="n">_b</span>                                                         
+        <span class="c"># Update our weights                                                        </span>
+        <span class="n">a</span> <span class="o">+=</span> <span class="err">Δ</span><span class="n">a</span>                                                                     
+        <span class="n">b</span> <span class="o">+=</span> <span class="err">Δ</span><span class="n">b</span>                                                                     
+        <span class="c"># Update the error at each iteration                                        </span>
+        <span class="n">j_new</span> <span class="o">=</span> <span class="n">J</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>                                                             
+        <span class="err">Δ</span><span class="n">j</span> <span class="o">=</span> <span class="n">j</span> <span class="o">-</span> <span class="n">j_new</span>                                                              
+        <span class="n">j</span> <span class="o">=</span> <span class="n">j_new</span> 
+    <span class="k">print</span><span class="p">(</span><span class="s">"y = {0}x + {1}"</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">a</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">b</span><span class="p">)))</span>
+</code></pre>
+</div>
+
+<p>We stop our descent when we have maxed out on iterations, or when we see (very small) decreases in the error calculated by \(J\).</p>
+
+<p>To visualize our graceful descent, the following surface plots 150 iterations of our Gradient Descent, and shows us converging on \( a \approx 148, b \approx 380000\).</p>
+
+<p><img src="/assets/images/plotly/gd_ending_point.png" alt="Gradient Descent: Finish" /></p>
+
+<p>You can clearly see the “path down the mountain”, and visually grasp how the algorithm actually converges.</p>
+
+<p>Our final “line of best fit” after 150 iterations, superimposed atop our data, and the closed-form solution, looks almost identical to our closed-form solution (<em>if we had iterated 100 more times, the lines would have been superimposed, and indistinguishable!</em>):</p>
+
+<p><img src="/assets/images/plotly/south_boston_home_sales.png" alt="S. Boston - LinReg vs Gradient Descent" /></p>
+
+<h3 id="conclusion">Conclusion</h3>
+
+<p>In our example here, we have mathematically, programatically, and visually proved the effectiveness of <strong>Gradient Descent</strong> in minimizing Objective Functions. Perhaps more importantly, we have shed light on <strong>the gradient</strong>, and why it is such a graceful solution to our error minimization.</p>
+
+<p>There are many flavors of Gradient Descent, other than the (naive) implementation provided above. Stochastic Gradient Descent (SGD) is the most commonly used algorithm for minimizations, and is found everywhere from Logistic Regression Classifiers, to Deep Learning and Neural Nets.</p>
+
+<p>Some of you may point out that the above example is trivial! There is a closed solution to this problem of Least Squares Regression! We’ve used this example for simplicity’s sake, stay tuned for a post on Logistic Regression, where there is no closed form solution.</p>
+

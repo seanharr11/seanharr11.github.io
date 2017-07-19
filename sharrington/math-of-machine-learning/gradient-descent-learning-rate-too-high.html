@@ -114,7 +114,7 @@
 <!-- Everything inside the #post tags pulls data from the post -->
 <!-- #post -->
 
-<header class="main-header post-head " style="background-image: url(/assets/images/marin_valley.png) ">
+<header class="main-header post-head " style="background-image: url(/assets/images/banners/posts/math_of_ml/marin_valley.png) ">
     <nav class="main-nav  overlay  clearfix">
         <a class="blog-logo" href="/"><img src="/assets/images/tlp_logo.png" alt="Blog Logo" /></a>
         
@@ -147,11 +147,9 @@
         <section class="post-content">
             
             <p><br />
-In my <a href="/sharrington/math-of-machine-learning/the-gradient-a-visual-descent">previous post on The Gradient</a>, we walked through the math behind the gradient, visually explored gradient descent, and implemented gradient descent in Python.</p>
+We’ve <a href="/sharrington/math-of-machine-learning/the-gradient-a-visual-descent">explored gradient descent</a>, but we haven’t talked about learning rates, and how these hyperparameters are the key differentiators between convergence, and divergence.</p>
 
-<p>In this post, I’d like to hone in on 1 specific hyperparameter of our gradient descent algorithm: the <strong>learning rate(s)</strong></p>
-
-<p>More specifically, let’s <strong>visually</strong> explore what happens when we set our learning rate to be too high.</p>
+<p>More specifically, let’s <strong>visually</strong> explore what happens when we set our learning rate to be too high, and talk about strategies to avoid divergence.</p>
 
 <h3 id="the-code">The Code</h3>
 
@@ -276,7 +274,8 @@ In my <a href="/sharrington/math-of-machine-learning/the-gradient-a-visual-desce
 <ol>
   <li><strong>Momentum</strong> - Add an additional term to the weight update formula, which, in our “ball down the hill” analogy, will help to get our ball rolling by compounding past gradients.</li>
   <li><strong>Backtracking Line Search</strong> - Dynamically make <em>smart</em> choices for the learning rate at each iteration by taking a step <em>far enough</em> in the direction of the gradient, but not so far that we increase our error.</li>
-  <li><strong>Stochastic Gradient Descent</strong>, a faster (and often better) optimization algorithm that calculates gradients from single (\(x, y\)) samples, rather than the entire batch. The additional <em>noise</em> can be of help here, as you may get an errant data point that kicks off your path down the valley, rather than our divergent model above.</li>
+  <li><strong>Stochastic Gradient Descent</strong> - A faster (and often better) optimization algorithm that calculates gradients from single (\(x, y\)) samples, rather than the entire batch. The additional <em>noise</em> can be of help here, as you may get an errant data point that kicks off your path down the valley, rather than our divergent model above.</li>
+  <li><strong>Normalization of Data</strong> - Normalizing data creates a less <a href="http://www.ou.edu/class/che-design/che5480-13/Optimization%20of%20Chemical%20Processes-Chapter%204.pdf">elliptical contour</a>, and will influence our objective function to have a more <strong>concentric circle</strong> countour (<em>think a circular mountain base instead of an elliptical base!</em>).</li>
 </ol>
 
 <p>We will not cover these here for the brevity’s sake, but feel free to explore on your own.</p>
@@ -338,10 +337,17 @@ In my <a href="/sharrington/math-of-machine-learning/the-gradient-a-visual-desce
 
     <!-- [[! next_post ]] -->
     
+        <a class="read-next-story " style="background-image: url(/assets/images/banners/posts/math_of_ml/st_john_panorama.jpg)" href="/sharrington/math-of-machine-learning/solving-logreg-newtons-method">
+            <section class="post">
+                <h2>Solving Logistic Regression with Newton's Method</h2>
+                <p>In this post we introduce **Newton's Method**, and how it can be used to solve...</p>
+            </section>
+        </a>
+    
     <!-- [[! /next_post ]] -->
     <!-- [[! prev_post ]] -->
     
-        <a class="read-next-story prev " style="background-image: url(/assets/images/jay_peak_ascending.jpg)" href="/sharrington/math-of-machine-learning/the-gradient-a-visual-descent">
+        <a class="read-next-story prev " style="background-image: url(/assets/images/banners/posts/math_of_ml/jay_peak_ascending.jpg)" href="/sharrington/math-of-machine-learning/the-gradient-a-visual-descent">
             <section class="post">
                 <h2>The Gradient: A Visual Descent</h2>
                 <p>In this post I aim to visually, mathematically and programatically explain the gradient, and how...</p>

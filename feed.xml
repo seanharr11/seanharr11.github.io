@@ -8,10 +8,26 @@
     
       
       <item>
+        <title>Solving Logistic Regression with Newton&#39;s Method</title>
+        
+          <description>&lt;p&gt;&lt;br /&gt;
+In this post we introduce &lt;strong&gt;Newton’s Method&lt;/strong&gt;, and how it can be used to solve &lt;strong&gt;Logistic Regression&lt;/strong&gt;. Logistic Regression introduces the concept of the &lt;strong&gt;Log-Likelihood&lt;/strong&gt; of the Bernoulli distribution, and covers a neat transformation called the &lt;strong&gt;sigmoid function&lt;/strong&gt;.&lt;/p&gt;
+
+</description>
+        
+        <pubDate>Thu, 06 Jul 2017 11:32:00 -0400</pubDate>
+        <link>
+        http://thelaziestprogrammer.com/sharrington/math-of-machine-learning/solving-logreg-newtons-method</link>
+        <guid isPermaLink="true">http://thelaziestprogrammer.com/sharrington/math-of-machine-learning/solving-logreg-newtons-method</guid>
+      </item>
+      
+    
+      
+      <item>
         <title>Gradient Descent: High Learning Rates &amp; Divergence</title>
         
           <description>&lt;p&gt;&lt;br /&gt;
-In my &lt;a href=&quot;/sharrington/math-of-machine-learning/the-gradient-a-visual-descent&quot;&gt;previous post on The Gradient&lt;/a&gt;, we walked through the math behind the gradient, visually explored gradient descent, and implemented gradient descent in Python.&lt;/p&gt;
+We’ve &lt;a href=&quot;/sharrington/math-of-machine-learning/the-gradient-a-visual-descent&quot;&gt;explored gradient descent&lt;/a&gt;, but we haven’t talked about learning rates, and how these hyperparameters are the key differentiators between convergence, and divergence.&lt;/p&gt;
 
 </description>
         
@@ -40,7 +56,7 @@ In this post I aim to visually, mathematically and programatically explain &lt;s
     
       
       <item>
-        <title>Upgrading to Flask-restless v1.0.0 (Part I)</title>
+        <title>Upgrading to Flask-restless v1.0.0</title>
         
           <description>&lt;p&gt;&lt;br /&gt;
 &lt;strong&gt;Flask-restless&lt;/strong&gt; is a Flask extension providing generation of REST APIs from SQLAlchemy-defined database models. &lt;a href=&quot;https://flask-restless.readthedocs.io/en/latest/&quot;&gt;Flask-restless v1.0.0&lt;/a&gt; introduces adoption of the &lt;a href=&quot;http://www.jsonapi.org&quot;&gt;jsonapi.org&lt;/a&gt; spec, providing  additional features, consistent and strict HTTP Method contracts, at the expense of inherent breaking changes.&lt;/p&gt;
@@ -56,7 +72,7 @@ In this post I aim to visually, mathematically and programatically explain &lt;s
     
       
       <item>
-        <title>Tweet Harvester w/ Flask &amp; Tweepy (Part 1)</title>
+        <title>Twitter Dashboard w/ Flask &amp; Tweepy</title>
         
           <description>&lt;h4 id=&quot;intro&quot;&gt;Intro&lt;/h4&gt;
 &lt;p&gt;Flask is a versatile microframework capable of doing just about anything that you ask of it. Flask ships with &lt;strong&gt;Jinja2&lt;/strong&gt; as its HTML Templating Engine, and when combined with &lt;strong&gt;SQLAlchemy&lt;/strong&gt;, provides full-stack development support that rivals bulkier framework (like Django).&lt;/p&gt;
@@ -126,10 +142,10 @@ In this post I aim to visually, mathematically and programatically explain &lt;s
     
       
       <item>
-        <title>Migrating Between SQL Databases</title>
+        <title>Migrating Between Relational Databases</title>
         
           <description>&lt;p&gt;&lt;br /&gt;
-We can all agree on one thing: SQL Databases are here to stay.&lt;/p&gt;
+In this post we show how to migrate off of any RDBMS, onto any other RDBMS. We use a case study of Oracle -&amp;gt; MySQL, but we can move between any 2 combinations (SQL Server -&amp;gt; Postgres, MySQL -&amp;gt; SQLite…etc.)&lt;/p&gt;
 
 </description>
         

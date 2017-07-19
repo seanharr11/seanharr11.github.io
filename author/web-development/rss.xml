@@ -12,7 +12,7 @@
    <atom:link href="rss" rel="self" type="application/rss+xml" />
    
 	<item>
-	  <title>Upgrading to Flask-restless v1.0.0 (Part I)</title>
+	  <title>Upgrading to Flask-restless v1.0.0</title>
 	  <link>/sharrington/web-development/upgrading-to-flask-restless-v1.0.0-part-1</link>
 	  <author>Sean Harrington</author>
 	  <pubDate>2017-03-25T04:36:00-04:00</pubDate>
@@ -598,13 +598,13 @@ b''
 
 <p>That wraps up our walkthrough on how to upgrade from <strong>Flask-restless v0.17</strong> to <strong>Flask-restless v1.0.0</strong>.</p>
 
-<p>This only scratches the surface on great new features (and breaking changes) of Flask-restless v1.0.0. Stay tuned for Part II where we will take a look at Resource Object Relationships, and how we make queries that handle Many-to-one, One-to-Many, and One-to-one relationships.</p>
+<p>This only scratches the surface on great new features (and breaking changes) of Flask-restless v1.0.0. There are many other topics to cover, including: Resource Object Relationships, and how we make queries that handle Many-to-one, One-to-Many, and One-to-one relationships.</p>
 
 	  ]]></description>
 	</item>
 
 	<item>
-	  <title>Tweet Harvester w/ Flask & Tweepy (Part 1)</title>
+	  <title>Twitter Dashboard w/ Flask & Tweepy</title>
 	  <link>/sharrington/web-development/tweet-archiver-with-flask-and-tweepy-part-1</link>
 	  <author>Sean Harrington</author>
 	  <pubDate>2017-02-10T20:15:03-05:00</pubDate>
@@ -883,7 +883,7 @@ EXPORT <span class="nv">TWITTER_ACCESS_TOKEN_SECRET</span><span class="o">=</spa
 
 <hr />
 
-<h4 id="part-i-complete">Part I Complete!</h4>
+<h4 id="success">Success!</h4>
 
 <p>You’ve succesfully deployed a simple Twitter Activity dashboard, and have gotten your hands dirty with some of Flask’s core features and concepts, namely:</p>
 
@@ -893,8 +893,6 @@ EXPORT <span class="nv">TWITTER_ACCESS_TOKEN_SECRET</span><span class="o">=</spa
   <li>Flask Project Structure</li>
   <li>Starting the Flask Development Server</li>
 </ol>
-
-<p>Our next step will be to define a SQLAlchemy model for a <strong>Tweet</strong>, and automagically generate CRUD endpoints based off of this model with <strong>Flask-restless</strong>. This will enable us to archive tweets, from our Activity Dashboard to a local SQLite database.</p>
 
 
 	  ]]></description>
@@ -927,7 +925,8 @@ EXPORT <span class="nv">TWITTER_ACCESS_TOKEN_SECRET</span><span class="o">=</spa
   </li>
   <li>Create and activate virtualenv.
     <div class="highlighter-rouge"><pre class="highlight"><code>cd automagic_api;
-virtualenv env;
+# virtualenv env; Python 2.7
+python -m venv env
 source env/bin/activate
 </code></pre>
     </div>
