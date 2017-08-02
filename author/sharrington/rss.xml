@@ -51,7 +51,7 @@ In this post we introduce <strong>Newton’s Method</strong>, and how it can be 
 
 <p>We still want to solve a linear combination of features &amp; weights, but we need to transform this linear combination by wrapping it in a function that is smooth, and has its range defined as \([0, 1]\) (<em>because we are trying to map our linear combination to a binary output of 0 or 1!</em>)</p>
 
-<p>The logistic function, or <strong>simgoid function</strong>, accomplishes all of these things:</p>
+<p>The logistic function, or <strong>sigmoid function</strong>, accomplishes all of these things:</p>
 
 <script type="math/tex; mode=display">h(x) = 1 / (1 + e^{-z}),\ \ z = \theta_{1}x + \theta_{2}</script>
 
@@ -125,7 +125,7 @@ In this post we introduce <strong>Newton’s Method</strong>, and how it can be 
 
 <script type="math/tex; mode=display">\ell(\theta) = \sum_{i=1}^{n}y_{i}\log(h_{\theta}(x_{i})) + (1-y_{i})\log(1-h_{\theta}(x_{i}))</script>
 
-<p><strong>Note:</strong> <em>Remember that \(xy = log(x) + log(y)\), and that: \(log(x)^{n} = nlog(x)\)</em>.</p>
+<p><strong>Note:</strong> <em>Remember that \(log(xy) = log(x) + log(y)\), and that: \(log(x)^{n} = nlog(x)\)</em>.</p>
 
 <p>This is called the <strong>log-likelihood</strong> of our hypothesis function.</p>
 
@@ -133,7 +133,7 @@ In this post we introduce <strong>Newton’s Method</strong>, and how it can be 
 
 <p><img src="/assets/images/plotly/log_likelihood_normalized.png" alt="Log-likelihood Curve" /></p>
 
-<p><em><strong>Note:</strong> By taking the log of our function to derive the <strong>log-likelihood</strong>, we guarentee (as an added bonus) that our objective function is <strong>strictly concave</strong>, meaning there is 1 global maximum.</em></p>
+<p><em><strong>Note:</strong> By taking the log of our function to derive the <strong>log-likelihood</strong>, we guarantee (as an added bonus) that our objective function is <strong>strictly concave</strong>, meaning there is 1 global maximum.</em></p>
 
 <h3 id="the-math-newtons-method-with-one-variable">The Math: Newton’s Method with One Variable</h3>
 
@@ -193,9 +193,11 @@ In this post we introduce <strong>Newton’s Method</strong>, and how it can be 
 
 <p><a href="http://thelaziestprogrammer.com/sharrington/math-of-machine-learning/the-gradient-a-visual-descent#the-math-finding-the-gradient">Review the gradient here</a> if this concept is fuzzy to you.</p>
 
-<p>Thus, our update rule, in its multivariate form, becomes our vector of parameters \(\hat{x}\), minus the scalar \(f(\hat{x})\) multiplied by the reciprocal of gradient vector:</p>
+<p>Thus, our update rule, in its multivariate form, becomes our vector of parameters \(\hat{x}\), minus the scalar \(f(\hat{x})\) multiplied by the inverse of the gradient vector:</p>
 
-<script type="math/tex; mode=display">\hat{x}_{n+1} = \hat{x}_{n} - f(\hat{x}_{n})\frac{1}{\nabla f(\hat{x}_{n})}</script>
+<script type="math/tex; mode=display">\hat{x}_{n+1} = \hat{x}_{n} - f(\hat{x}_{n})*\nabla f(\hat{x}_{n})^{-1}</script>
+
+<p><strong>Note:</strong> <em>The \(f’(x_{n})\) in \(\frac{f(x_{n})}{f’(x_{n})}\) becomes \(\nabla f(\hat{x}_{n})^{-1}\) because we generalize the “reciprocal of the scalar,  \(f(x_{n})\)” to the multivariate case, replacing it with the “inverse of the gradient, \(\nabla f(\hat{x}_{n})^{-1}\)”.</em></p>
 
 <h3 id="the-math-maximizing-log-likelihood-with-newtons-method">The Math: Maximizing Log-Likelihood with Newton’s Method</h3>
 
@@ -227,10 +229,10 @@ In this post we introduce <strong>Newton’s Method</strong>, and how it can be 
 
 <script type="math/tex; mode=display">% <![CDATA[
 H_{\ell(\hat{\theta})} = \begin{bmatrix}\begin{split}
-\frac{\partial{\ell}}{\partial{\theta_{1}}\partial{\theta_{1}}} &
-\frac{\partial{\ell}}{\partial{\theta_{1}}\partial{\theta_{2}}}\\
-\frac{\partial{\ell}}{\partial{\theta_{2}}\partial{\theta_{1}}} &
-\frac{\partial{\ell}}{\partial{\theta_{2}}\partial{\theta_{2}}}
+\frac{\partial^{2}{\ell}}{\partial{\theta_{1}^{2}}} &
+\frac{\partial^{2}{\ell}}{\partial{\theta_{1}}\partial{\theta_{2}}} \\
+\frac{\partial^{2}{\ell}}{\partial{\theta_{2}}\partial{\theta_{1}}} &
+\frac{\partial^{2}{\ell}}{\partial{\theta_{2}^{2}}} \\
 \end{split}\end{bmatrix} %]]></script>
 
 <h3 id="the-math-putting-it-all-together">The Math: Putting it all Together</h3>
@@ -239,7 +241,7 @@ H_{\ell(\hat{\theta})} = \begin{bmatrix}\begin{split}
 
 <script type="math/tex; mode=display">\theta_{n+1} = \theta_{n} + H_{\ell(\hat{\theta})}^{-1}\nabla \ell(\theta)</script>
 
-<p><strong>Note:</strong> <em>We take the <strong>inverse</strong> of The Hessian, rather than taking its recipricol because it is a matrix</em></p>
+<p><strong>Note:</strong> <em>We take the <strong>inverse</strong> of The Hessian, rather than taking its reciprocal because it is a matrix</em></p>
 
 <p>For brevity’s sake, this post leaves out the actual derivation of the gradient and the hessian. Resources to understand the following derivations can be found at:</p>
 
