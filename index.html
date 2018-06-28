@@ -85,29 +85,32 @@
 <body class="home-template nav-closed">
 
     <div class="nav">
-    <h3 class="nav-title">Menu</h3>
-    <a href="#" class="nav-close">
-        <span class="hidden">Close</span>
-    </a>
-    <ul>
-        <li class="nav-home  nav-current" role="presentation"><a href="/">Home</a></li>
-        <li class="nav-home" role="presentation"><a href="#">Topics</a>
-           <ul style="padding-top:9px;padding-bottom:0px"> 
-             <li class="nav-fiction " role="presentation"><a href="/tag/databases">Databases</a></li>
-           </ul>     
-           <ul style="padding-top:0px; padding-bottom: 0px"> 
-             <li class="nav-fiction " role="presentation"><a href="/tag/web-development">Web Development</a></li>
-           </ul>     
-           <ul style="padding-top:0px"> 
-             <li class="nav-fiction " role="presentation"><a href="/tag/math-of-machine-learning">The Math of ML</a></li>
-           </ul>     
-        </li>
-        <li class="nav-about " role="presentation"><a href="/about">About This Site</a></li>
-        <li class="nav-author " role="presentation"><a href="/author/sharrington">The Author</a></li>
-    </ul>
-    <a class="subscribe-button" href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=DH544PY7RFSLA">Donate</a>
-    <a class="subscribe-button icon-feed" href="/feed.xml">Subscribe</a>
-</div>
+        <h3 class="nav-title">Menu</h3>
+        <a href="#" class="nav-close">
+            <span class="hidden">Close</span>
+        </a>
+        <ul>
+            <li class="nav-home  nav-current" role="presentation"><a href="/">Home</a></li>
+            <li class="nav-home" role="presentation"><a href="#">Topics</a>
+               <ul style="padding-top:9px;padding-bottom:0px"> 
+                 <li class="nav-fiction " role="presentation"><a href="/tag/databases">Databases</a></li>
+               </ul>     
+               <ul style="padding-top:0px; padding-bottom: 0px"> 
+                 <li class="nav-fiction " role="presentation"><a href="/tag/web-development">Web Development</a></li>
+               </ul>     
+               <ul style="padding-top:0px; padding-bottom: 0px"> 
+                 <li class="nav-fiction " role="presentation"><a href="/tag/math-of-machine-learning">The Math of ML</a></li>
+               </ul>     
+               <ul style="padding-top:0px;"> 
+                 <li class="nav-fiction " role="presentation"><a href="/tag/bioinformatics">Bioinformatics</a></li>
+               </ul>     
+            </li>
+            <li class="nav-about " role="presentation"><a href="/about">About This Site</a></li>
+            <li class="nav-author " role="presentation"><a href="/author/sharrington">The Author</a></li>
+        </ul>
+        <a class="subscribe-button" href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=DH544PY7RFSLA">Donate</a>
+        <a class="subscribe-button icon-feed" href="/feed.xml">Subscribe</a>
+    </div>
 <span class="nav-cover"></span>
 
 
@@ -157,6 +160,58 @@
     </div>
 
     <!-- This is the post loop - each post will be output using this markup -->
+    <article class="post">
+        <header class="post-header">
+            <h2 class="post-title"><a href="/bioinformatics/warehousing-DbSNP-Part-I-download-and-create-db">Warehousing DbSNP, Part I: Downloading Chromosome 1 & Creating our Database</a></h2>
+        </header>
+        <section class="post-excerpt">
+            <p>This series of posts cover how to migrate DbSNP’s newly downloadable JSON files into a slimmed-down, relational database, containing population frequency data, associated pubmed IDs,... <a class="read-more" href="/bioinformatics/warehousing-DbSNP-Part-I-download-and-create-db">&raquo;</a></p>
+        </section>
+        <footer class="post-meta">
+            <img class="author-thumb" src="/assets/images/headshot.jpg" alt="Author image" nopin="nopin" />
+            <!-- author -->
+            <a href='/author/sharrington'>Sean Harrington</a>
+                on
+                       <a href='/tag/bioinformatics'>Bioinformatics</a>
+            <time class="post-date" datetime="2018-06-20">20 Jun 2018</time>
+        </footer>
+    </article>
+    
+    <article class="post">
+        <header class="post-header">
+            <h2 class="post-title"><a href="/bioinformatics/warehousing-DbSNP-Part-II-parsing-RefSNP-JSON">Warehousing DbSNP, Part II: Streaming and Parsing SNP Data</a></h2>
+        </header>
+        <section class="post-excerpt">
+            <p>Part II of our adventure to warehouse a subset of DBbSNP’s JSON data picks up where Part I left off. Now that we have our... <a class="read-more" href="/bioinformatics/warehousing-DbSNP-Part-II-parsing-RefSNP-JSON">&raquo;</a></p>
+        </section>
+        <footer class="post-meta">
+            <img class="author-thumb" src="/assets/images/headshot.jpg" alt="Author image" nopin="nopin" />
+            <!-- author -->
+            <a href='/author/sharrington'>Sean Harrington</a>
+            <!-- [[tags prefix=" on "]] -->
+                on
+                       <a href='/tag/bioinformatics'>Bioinformatics</a>
+            <time class="post-date" datetime="2018-06-25">25 Jun 2018</time>
+        </footer>
+    </article>
+    
+    <article class="post">
+        <header class="post-header">
+            <h2 class="post-title"><a href="/bioinformatics/warehousing-DbSNP-Part-III-bulk-inserting-SNP-data">Warehousing DbSNP, Part III: Bulk Inserting SNP Data</a></h2>
+        </header>
+        <section class="post-excerpt">
+            <p>In Part II we parsed the JSON data found in the DbSNP JSON download. In Part III, we will bulk-insert this data into our PostgreSQL... <a class="read-more" href="/bioinformatics/warehousing-DbSNP-Part-III-bulk-inserting-SNP-data">&raquo;</a></p>
+        </section>
+        <footer class="post-meta">
+            <img class="author-thumb" src="/assets/images/headshot.jpg" alt="Author image" nopin="nopin" />
+            <!-- author -->
+            <a href='/author/sharrington'>Sean Harrington</a>
+                on
+                       <a href='/tag/bioinformatics'>Bioinformatics</a>
+            <time class="post-date" datetime="2018-06-25">25 Jun 2018</time>
+        </footer>
+    </article>
+    
     
     <article class="post">
         <header class="post-header">
@@ -296,7 +351,7 @@
 
 
         <footer class="site-footer clearfix">
-          <section class="copyright"><a href="http://thelaziestprogrammer.com">The Laziest Programmer</a> &copy; 2017</section>
+          <section class="copyright"><a href="http://thelaziestprogrammer.com">The Laziest Programmer</a> &copy; 2018</section>
           <section class="poweredby">Proudly published with <a href="https://jekyllrb.com/">Jekyll</a> using <a href="https://github.com/biomadeira/jasper">Jasper</a></section>
         </footer>
     </div>

@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- Document Settings -->
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+    <!-- Page Meta -->
+    <title>Warehousing DbSNP, Part II: Streaming and Parsing SNP Data</title>
+    <meta name="description" content="Because someone else has already solved your problem." />
+
+    <!-- Mobile Meta -->
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Brand icon -->
+    <link rel="shortcut icon" href="/assets/images/favicon.ico" >
+
+    <!-- Styles'n'Scripts -->
+    <link rel="stylesheet" type="text/css" href="/assets/css/screen.css" />
+    <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Merriweather:300,700,700italic,300italic|Open+Sans:700,400" />
+    <link rel="stylesheet" type="text/css" href="/assets/css/syntax.css" />
+
+    <!-- highlight.js -->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.3.0/styles/default.min.css">
+    <style>.hljs { background: none; }</style>
+
+    <!-- Ghost outputs important style and meta data with this tag -->
+        <link rel="canonical" href="http://localhost:4000//bioinformatics/warehousing-DbSNP-Part-II-parsing-RefSNP-JSON" />
+    <meta name="referrer" content="origin" />
+    <link rel="next" href="/page2/" />
+
+    <meta property="og:site_name" content="The Laziest Programmer" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Warehousing DbSNP, Part II: Streaming and Parsing SNP Data" />
+    <meta property="og:description" content="Because someone else has already solved your problem." />
+    <meta property="og:url" content="http://localhost:4000//bioinformatics/warehousing-DbSNP-Part-II-parsing-RefSNP-JSON" />
+    <meta property="og:image" content="/assets/images/southie_sunset_red.jpg" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Warehousing DbSNP, Part II: Streaming and Parsing SNP Data" />
+    <meta name="twitter:description" content="Because someone else has already solved your problem." />
+    <meta name="twitter:url" content="http://localhost:4000//bioinformatics/warehousing-DbSNP-Part-II-parsing-RefSNP-JSON" />
+    <meta name="twitter:image:src" content="/assets/images/southie_sunset_red.jpg" />
+
+    <script type="application/ld+json">
+{
+    "@context": "http://schema.org",
+    "@type": "Website",
+    "publisher": "The Laziest Programmer",
+    "name": "Warehousing DbSNP, Part II: Streaming and Parsing SNP Data",
+    "url": "http://localhost:4000//bioinformatics/warehousing-DbSNP-Part-II-parsing-RefSNP-JSON",
+    "image": "/assets/images/southie_sunset_red.jpg",
+    "description": "Because someone else has already solved your problem."
+}
+    </script>
+
+    <meta name="generator" content="Jekyll 3.0.0" />
+    <link rel="alternate" type="application/rss+xml" title="The Laziest Programmer" href="/feed.xml" />
+
+
+</head>
+<body class="home-template nav-closed">
+
+    <!-- The blog navigation links -->
+    
+<div class="nav">
+    <h3 class="nav-title">Menu</h3>
+    <a href="#" class="nav-close">
+        <span class="hidden">Close</span>
+    </a>
+    <ul>
+        <li class="nav-home  nav-current" role="presentation"><a href="/">Home</a></li>
+        <li class="nav-home" role="presentation"><a href="#">Topics</a>
+           <ul style="padding-top:9px;padding-bottom:0px"> 
+             <li class="nav-fiction " role="presentation"><a href="/tag/databases">Databases</a></li>
+           </ul>     
+           <ul style="padding-top:0px; padding-bottom: 0px"> 
+             <li class="nav-fiction " role="presentation"><a href="/tag/web-development">Web Development</a></li>
+           </ul>     
+           <ul style="padding-top:0px; padding-bottom: 0px"> 
+             <li class="nav-fiction " role="presentation"><a href="/tag/math-of-machine-learning">The Math of ML</a></li>
+           </ul>     
+           <ul style="padding-top:0px;"> 
+             <li class="nav-fiction " role="presentation"><a href="/tag/bioinformatics">Bioinformatics</a></li>
+           </ul>     
+        </li>
+        <li class="nav-about " role="presentation"><a href="/about">About This Site</a></li>
+        <li class="nav-author " role="presentation"><a href="/author/sharrington">The Author</a></li>
+    </ul>
+    <a class="subscribe-button" href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=DH544PY7RFSLA">Donate</a>
+    <a class="subscribe-button icon-feed" href="/feed.xml">Subscribe</a>
+</div>
+<span class="nav-cover"></span>
+
+
+    <div class="site-wrapper">
+
+        <!-- All the main content gets inserted here, index.hbs, post.hbs, etc -->
+        <!-- default -->
+
+<!-- The comment above "< default" means - insert everything in this file into -->
+    <!-- the [body] of the default.hbs template, which contains our header/footer. -->
+
+<!-- Everything inside the #post tags pulls data from the post -->
+<!-- #post -->
+
+<header class="main-header post-head " style="background-image: url(/assets/images/southie_sunset_red.jpg) ">
+    <nav class="main-nav  overlay  clearfix">
+        <a class="blog-logo" href="/"><img src="/assets/images/tlp_logo.png" alt="Blog Logo" /></a>
+        
+            <a class="menu-button icon-menu" href="#"><span class="word">Menu</span></a>
+        
+    </nav>
+</header>
+
+<main class="content" role="main">
+
+    <article class="post tag-test tag-content">
+
+        <header class="post-header">
+            <h1 class="post-title">Warehousing DbSNP, Part II: Streaming and Parsing SNP Data</h1>
+            <section class="post-meta">
+            <!-- <a href='/'></a> -->
+
+            
+            <time class="post-date" datetime="2018-06-25">25 Jun 2018</time>
+                <!-- [[tags prefix=" on "]] -->
+                
+                on
+                
+                    
+                       <a href='/tag/bioinformatics'>Bioinformatics</a>
+                    
+                
+                
+            </section>
+        </header>
+
+        <section class="post-content">
+
+            <h3 id="intro">Intro</h3>
+
+<p>Part II of our adventure to warehouse a subset of DBbSNP’s JSON data picks up <a href="warehousing-DbSNP-Part-I-download-and-create-db#parsing-the-json-data">where Part I left off</a>.</p>
+
+<p>Now that we have our database and chromosome 1 file readily available, let’s work to stream and parse each line of refsnp-chr1.json.gz, in preparation for database insertion.</p>
+
+<h3 id="obtaining-a-file-handle">Obtaining a File Handle</h3>
+
+<p>Typically in Python we would open our file as follows:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">dbsnp_filename</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+    <span class="c"># Do stuff with fp here</span>
+</code></pre></div></div>
+
+<p>However have a slight wrinkle here: we need to decompress our gzipped data. Conveniently, we can leverage the <code class="highlighter-rouge">gzip</code> package as follows:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="nb">open</span><span class="p">(</span><span class="n">dbsnp_filname</span><span class="p">)</span> <span class="k">as</span> <span class="n">gzip_fp</span><span class="p">:</span>
+    <span class="c"># Do stuff here</span>
+</code></pre></div></div>
+<p><em>Credit to <a href="https://twitter.com/__qualname__" target="_blank">Joe Jevnik</a> for pointing out the (now obvious) step of decompressing after loading from disk, rather than decompressing the entire file before iteration</em></p>
+
+<h3 id="sniploader-class">SnipLoader Class</h3>
+
+<p>Let’s start by creating a simple class called <code class="highlighter-rouge">SnipLoader</code> to place all of our methods and attributes under one roof:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">SnipLoader</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">database_name</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">database_name</span> <span class="o">=</span> <span class="n">database_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">file_blocksize</span> <span class="o">=</span> <span class="mi">1024</span> <span class="o">**</span><span class="mi">2</span>
+</code></pre></div></div>
+
+<h3 id="top-level-file-iteration">Top-level File Iteration</h3>
+
+<p>Let’s introduce 2 methods:</p>
+
+<ol>
+  <li><code class="highlighter-rouge">_generate_parsed_data(self, raw_line: str) -&gt; RefSnpCopyFromData:</code>
+    <ul>
+      <li><strong>args</strong>: Takes a <code class="highlighter-rouge">raw_line</code> the JSON text from our file.</li>
+      <li><strong>returns</strong>: An object of type <code class="highlighter-rouge">RefSnpCopyFromData</code>, holding parsed data we care about (<em>defined in Part I</em>)</li>
+    </ul>
+  </li>
+  <li><code class="highlighter-rouge">_load(self, parsed_data_iter: Iterator[RefSnpCopyFromData]) -&gt; None</code>
+    <ul>
+      <li><strong>args</strong>: Takes an <code class="highlighter-rouge">Iterator</code> that yields a <code class="highlighter-rouge">RefSnpCopyFromData</code> object at each iteration.</li>
+      <li><strong>side effects</strong>: Accumulates each iteration, and efficiently inserts the data into our database.</li>
+    </ul>
+  </li>
+</ol>
+
+<p>We tie these 2 ideas together to get our top-level, public API method <code class="highlighter-rouge">load_ref_snps()</code>:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">load_ref_snps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbsnp_filename</span><span class="p">,</span> <span class="n">chromosome</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">chromosome</span> <span class="o">=</span> <span class="n">chromosome</span>
+    <span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="nb">open</span><span class="p">(</span><span class="n">dbsnp_filename</span><span class="p">)</span> <span class="k">as</span> <span class="n">gzip_fp</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_load</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">_generate_parsed_data</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">gzip_fp</span><span class="p">))</span>
+</code></pre></div></div>
+
+<blockquote>
+  <p><strong>Note</strong>: <em>We create an iterator out of our <code class="highlighter-rouge">generate_parsed_data(raw_line)</code> method and our <code class="highlighter-rouge">gzip_fp</code> file handle using the <code class="highlighter-rouge">(func(item) for item in iter)</code> generator-comprehension syntax above, <a href="https://stackoverflow.com/questions/47789/generator-expressions-vs-list-comprehension">which produces a generator</a></em>.</p>
+</blockquote>
+
+<h3 id="dbsnps-json-schema">DbSNP’s JSON Schema</h3>
+
+<p>When implementing <code class="highlighter-rouge">generate_parsed_data(raw_line)</code>, we need to know the JSON schema of each object. There are some <a href="https://api.ncbi.nlm.nih.gov/variation/v0/var_service.yaml">schema details buried here in the Variation Services API</a>, but with JSON, I always find it easier to view the data directly.</p>
+
+<p>For brevity’s sake, here is the top-level of our JSON object (<em>that we care about</em>):</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span>
+    <span class="s2">"refsnp_id"</span><span class="p">:</span> <span class="s2">"242"</span><span class="p">,</span>
+    <span class="p">...,</span>
+    <span class="s2">"primary_snapshot_data"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"placements_with_allele"</span><span class="p">:</span> <span class="p">[</span>
+            <span class="p">{</span>
+                <span class="s2">"placement_annot"</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">"seq_id_traits_by_assembly"</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="p">{</span>
+                            <span class="s2">"assembly_name"</span><span class="p">:</span> <span class="s2">"GRCh38.p7"</span><span class="p">,</span>
+                            <span class="p">...</span>
+                        <span class="p">}</span>
+                    <span class="p">],</span>
+                    <span class="p">...</span>
+                <span class="p">},</span>
+                <span class="s2">"alleles"</span><span class="p">:</span> <span class="p">[...],</span>
+                <span class="p">...</span>
+            <span class="p">},</span>
+            <span class="p">{</span> <span class="cm">/* More placements here*/</span> <span class="p">}</span>
+        <span class="p">],</span>
+        <span class="s2">"allele_annotations"</span><span class="p">:</span> <span class="p">[</span>
+            <span class="cm">/* One allele_annotation per allele above */</span>
+        <span class="p">]</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>In <code class="highlighter-rouge">generate_parsed_data(raw_line)</code>, our first line of code should parse the JSON string into a dict:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">rsnp_json</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">raw_line</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>We use this object moving forward to parse out data.</p>
+
+<h3 id="finding-alleles-from-a-specific-assembly-genome">Finding Alleles from a Specific Assembly Genome</h3>
+<p>We want to first find the <code class="highlighter-rouge">placement</code> that corresponds to our target <code class="highlighter-rouge">assembly_name</code>, which in my specific case is <code class="highlighter-rouge">GRCh38</code> (<em>this is what 23&amp;Me uses in their current pipeline</em>). The most recent build is <code class="highlighter-rouge">GRCh38.p12</code>.</p>
+
+<p>An <code class="highlighter-rouge">assembly</code> is short for an <code class="highlighter-rouge">assembly genome</code>, which is the best representation of the <em>typical human genome</em>, and we use this as a point of reference for detecting variations.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@staticmethod</span>
+<span class="k">def</span> <span class="nf">_find_alleles_from_assembly</span><span class="p">(</span><span class="n">rsnp_placements</span><span class="p">,</span>
+                                <span class="n">assembly_name</span><span class="o">=</span><span class="s">"GRCh38"</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">rsnp_placement</span> <span class="ow">in</span> <span class="n">rsnp_placements</span><span class="p">:</span>
+        <span class="n">annot</span> <span class="o">=</span> <span class="n">rsnp_placement</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'placement_annot'</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">annot</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">annot</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'seq_id_traits_by_assembly'</span><span class="p">):</span>
+            <span class="k">return</span>
+        <span class="n">assembly_info_ls</span> <span class="o">=</span> <span class="n">annot</span><span class="p">[</span><span class="s">'seq_id_traits_by_assembly'</span><span class="p">]</span>
+        <span class="n">assembly_info</span> <span class="o">=</span> <span class="n">assembly_info_ls</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">this_assembly_name</span> <span class="o">=</span> <span class="n">assembly_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">"assembly_name"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">assembly_name</span> <span class="ow">in</span> <span class="n">this_assembly_name</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">rsnp_placement</span><span class="p">[</span><span class="s">'alleles'</span><span class="p">]</span>
+
+<span class="n">rsnp_placements</span> <span class="o">=</span> <span class="n">rsnp_json</span><span class="p">[</span><span class="s">'primary_snapshot_data'</span><span class="p">]</span>
+    <span class="s">'placements_with_allele'</span><span class="p">]</span>
+<span class="n">alleles</span> <span class="o">=</span> <span class="n">_find_alleles_from_assembly</span><span class="p">(</span><span class="n">rsnp_placements</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>This gives us all alleles, or “gene variant”, at that specific RefSNP. Our goal is to find alleles which <em>differ from our assembly genome</em>.</p>
+
+<h3 id="find-variant-alleles-for-refsnp">Find Variant Alleles for RefSNP</h3>
+
+<p>To find our variant alleles, we need to look at one level deeper in our JSON schema to see how they are represented:</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="s2">"alleles"</span><span class="p">:</span> <span class="p">[</span>
+    <span class="p">{</span>
+        <span class="s2">"allele"</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">"spdi"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"seq_id"</span><span class="p">:</span> <span class="s2">"NC_000001.11"</span><span class="p">,</span>
+                <span class="s2">"position"</span><span class="p">:</span> <span class="mi">20542967</span><span class="p">,</span>
+                <span class="s2">"deleted_sequence"</span><span class="p">:</span> <span class="s2">"T"</span><span class="p">,</span>
+                <span class="s2">"inserted_sequence"</span><span class="p">:</span> <span class="s2">"T"</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="s2">"hgvs"</span><span class="p">:</span> <span class="s2">"NC_000001.11:g.20542968T="</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+        <span class="s2">"allele"</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">"spdi"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"seq_id"</span><span class="p">:</span> <span class="s2">"NC_000001.11"</span><span class="p">,</span>
+                <span class="s2">"position"</span><span class="p">:</span> <span class="mi">20542967</span><span class="p">,</span>
+                <span class="s2">"deleted_sequence"</span><span class="p">:</span> <span class="s2">"T"</span><span class="p">,</span>
+                <span class="s2">"inserted_sequence"</span><span class="p">:</span> <span class="s2">""</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="s2">"hgvs"</span><span class="p">:</span> <span class="s2">"NC_000001.11:g.20542968delT"</span>
+    <span class="p">}</span>
+<span class="p">]</span>
+</code></pre></div></div>
+
+<p>Above, we see two alleles of a gene, at a single position where a SNP occurs (<em>by definition, in more than 1% of the population</em>). The first allele is the non-variant. We know this because the <code class="highlighter-rouge">deleted_sequence</code> == <code class="highlighter-rouge">inserted_sequence</code>.</p>
+
+<p>The second is allele, is a variant. Specifically, it is a <strong>deletion</strong> SNP, where a base-pair is deleted from a gene.</p>
+
+<p>We only want to grab variants, like the second allele, and we do so with the following simple logic:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@staticmethod</span>
+<span class="k">def</span> <span class="nf">_get_variant_alleles</span><span class="p">(</span><span class="n">chromosome</span><span class="p">,</span> <span class="n">alleles</span><span class="p">,</span>
+                         <span class="n">ref_snp_id</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">RefSnpAllele</span><span class="p">]:</span>
+    <span class="n">variant_alleles</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">allele</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">alleles</span><span class="p">):</span>
+        <span class="n">spdi</span> <span class="o">=</span> <span class="n">allele</span><span class="p">[</span><span class="s">'allele'</span><span class="p">][</span><span class="s">'spdi'</span><span class="p">]</span>
+        <span class="n">ins</span><span class="p">,</span> <span class="n">delete</span> <span class="o">=</span> <span class="n">spdi</span><span class="p">[</span><span class="s">'inserted_sequence'</span><span class="p">],</span> <span class="n">spdi</span><span class="p">[</span><span class="s">'deleted_sequence'</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">ins</span> <span class="o">!=</span> <span class="n">delete</span><span class="p">:</span>
+            <span class="n">variant_alleles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">RefSnpAllele</span><span class="p">(</span>
+                <span class="n">ins_seq</span><span class="o">=</span><span class="n">ins</span><span class="p">,</span>
+                <span class="n">del_seq</span><span class="o">=</span><span class="n">delete</span><span class="p">,</span>
+                <span class="n">position</span><span class="o">=</span><span class="n">spdi</span><span class="p">[</span><span class="s">'position'</span><span class="p">],</span>
+                <span class="n">ref_snp_allele_idx</span><span class="o">=</span><span class="n">idx</span><span class="p">,</span>
+                <span class="n">chromosome</span><span class="o">=</span><span class="n">chromosome</span><span class="p">,</span>
+                <span class="n">ref_snp_id</span><span class="o">=</span><span class="n">ref_snp_id</span><span class="p">,</span>
+                <span class="n">gene_locii</span><span class="o">=</span><span class="bp">None</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">variant_alleles</span>
+</code></pre></div></div>
+
+<blockquote>
+  <p><strong>Note</strong>: <em>We are returning data from the method above using our <code class="highlighter-rouge">RefSnpAllele</code> Data Transfer Object, <a href="warehousing-DbSNP-Part-I-download-and-create-db#defining-dtos-data-transfer-objects">defined in Part I</a>, for readability, and error prevention! We continue to shuttle data following the same pattern, in methods below, leveraging our other</em> <code class="highlighter-rouge">DTOs</code>.</p>
+</blockquote>
+
+<h3 id="parse-frequency-studies-clinical-diseases-and-gene-locii">Parse Frequency Studies, Clinical Diseases, and Gene Locii</h3>
+
+<p>In our top-level JSON object we had a key named <code class="highlighter-rouge">allele_annotations</code>. This key maps to a list, with 1 element per <code class="highlighter-rouge">allele</code> found our previous section above.</p>
+
+<p>While not made obvious by documentation, the <code class="highlighter-rouge">allele_annotations</code> and <code class="highlighter-rouge">alleles</code> share a common index. Since we had 2 alleles above (1 variant, 1 non-variant), we’d expect 2 annotations in our JSON.</p>
+
+<p>Let’s take a look at the JSON fields (<em>that we care about</em>), only considering the variant allele, again, for brevity’s sake.</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span>
+    <span class="s2">"frequency"</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">"study_name"</span><span class="p">:</span> <span class="s2">"1000Genomes"</span><span class="p">,</span>
+            <span class="p">...</span>
+            <span class="s2">"allele_count"</span><span class="p">:</span> <span class="mi">257</span><span class="p">,</span>
+            <span class="s2">"total_count"</span><span class="p">:</span> <span class="mi">5008</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">],</span>
+    <span class="s2">"clinical"</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">"disease_names"</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s2">"Alzheimer's"</span>
+            <span class="p">],</span>
+            <span class="p">...,</span>
+            <span class="s2">"clinical_significances"</span><span class="p">:</span> <span class="p">[</span>
+            <span class="cm">/* These are ClinVar Enumerated types */</span>
+                <span class="s2">"likely-benign"</span>
+            <span class="p">],</span>
+            <span class="s2">"citations"</span><span class="p">:</span> <span class="p">[</span><span class="mi">12345</span><span class="p">],</span> <span class="cm">/* These are Pubmed IDs */</span>
+        <span class="p">}</span>
+
+    <span class="p">],</span>
+    <span class="s2">"assembly_annotation"</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="p">...,</span>
+            <span class="s2">"genes"</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s2">"locus"</span><span class="p">:</span> <span class="s2">"ASH1L"</span><span class="p">,</span>
+                    <span class="s2">"orientation"</span><span class="p">:</span> <span class="s2">"minus"</span>
+                <span class="p">}</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
+    <span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>We can first parse out Frequency Study information as follows:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@staticmethod</span>
+<span class="k">def</span> <span class="nf">_parse_freq_studies</span><span class="p">(</span><span class="n">allele_annotation</span><span class="p">,</span>
+                        <span class="n">ref_snp_id</span><span class="p">,</span>
+                        <span class="n">allele_idx</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">RefSnpAlleleFreqStudy</span><span class="p">]:</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">RefSnpAlleleFreqStudy</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="n">freq</span><span class="p">[</span><span class="s">'study_name'</span><span class="p">],</span>
+        <span class="n">allele_count</span><span class="o">=</span><span class="n">freq</span><span class="p">[</span><span class="s">'allele_count'</span><span class="p">],</span>
+        <span class="n">total_count</span><span class="o">=</span><span class="n">freq</span><span class="p">[</span><span class="s">'total_count'</span><span class="p">],</span>
+        <span class="n">ref_snp_allele_idx</span><span class="o">=</span><span class="n">allele_idx</span><span class="p">,</span>
+        <span class="n">ref_snp_id</span><span class="o">=</span><span class="n">ref_snp_id</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">freq</span> <span class="ow">in</span> <span class="n">allele_annotation</span><span class="p">[</span><span class="s">'frequency'</span><span class="p">]</span> <span class="ow">or</span> <span class="p">[]]</span>
+</code></pre></div></div>
+
+<p>After these, we can grab the ClinVar (clincial disease) data. <a href="http://www.ncbi.nlm.nih.gov/clinvar/docs/help/">ClinVar data</a> includes PubMed Citation IDs, Disease Names, and <code class="highlighter-rouge">Clinical Signifiance</code>, which takes 1 of the following values:</p>
+
+<ul>
+  <li>not_provided</li>
+  <li>pathogenic</li>
+  <li>likely_pathogenic</li>
+  <li>benign</li>
+  <li>likely_benign</li>
+  <li>drug_response</li>
+  <li>confers_sensitivity</li>
+  <li>risk_factor</li>
+  <li>association</li>
+  <li>protective</li>
+  <li>conflicting_interpretations_of_pathogenicity</li>
+  <li>uncertain_significance</li>
+  <li>affects</li>
+  <li>association_not_found</li>
+  <li>other</li>
+</ul>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@staticmethod</span>
+<span class="k">def</span> <span class="nf">_parse_clin_diseases</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">allele_annotation</span><span class="p">,</span>
+                         <span class="n">ref_snp_id</span><span class="p">,</span>
+                         <span class="n">allele_idx</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span>
+                             <span class="n">RefSnpAlleleClinDisease</span><span class="p">]:</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">RefSnpAlleleClinDisease</span><span class="p">(</span>
+        <span class="n">citation_list</span><span class="o">=</span><span class="n">clin</span><span class="p">[</span><span class="s">'citations'</span><span class="p">],</span>
+        <span class="n">disease_name_csv</span><span class="o">=</span><span class="s">","</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">clin</span><span class="p">[</span><span class="s">'disease_names'</span><span class="p">]),</span>
+        <span class="n">clinical_significance_csv</span><span class="o">=</span><span class="s">","</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="n">clin</span><span class="p">[</span><span class="s">'clinical_significances'</span><span class="p">]),</span>
+        <span class="n">ref_snp_allele_idx</span><span class="o">=</span><span class="n">allele_idx</span><span class="p">,</span>
+        <span class="n">ref_snp_id</span><span class="o">=</span><span class="n">ref_snp_id</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">clin</span> <span class="ow">in</span> <span class="n">allele_annotation</span><span class="p">[</span><span class="s">'clinical'</span><span class="p">]]</span>
+</code></pre></div></div>
+
+<p>Finally, let’s grab the locii of all genes that this SNP has an effect on.</p>
+
+<blockquote>
+  <p><strong>Note:</strong> <em>I am still unsure why there are “multiple genes” per Allele Annotation. My current theory is that NCBI is including effects of this gene being altered on a gene downstream in some network/pathway. If anyone has any insight, <a href="mailto:seanharr11@gmail.com">please send me an email</a></em></p>
+</blockquote>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@staticmethod</span>
+<span class="k">def</span> <span class="nf">_parse_gene_locii</span><span class="p">(</span><span class="n">allele_annotation</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="n">assembly_annotation</span> <span class="o">=</span> <span class="n">allele_annotation</span><span class="p">[</span>
+        <span class="s">'assembly_annotation'</span><span class="p">]</span>
+    <span class="k">return</span> <span class="nb">set</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">gene</span><span class="p">[</span><span class="s">'locus'</span><span class="p">]</span> <span class="k">for</span> <span class="n">gene</span> <span class="ow">in</span>
+            <span class="p">(</span><span class="n">assembly_annotation</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s">'genes'</span><span class="p">]</span>
+             <span class="k">if</span> <span class="n">assembly_annotation</span> <span class="k">else</span> <span class="p">[])])</span>
+</code></pre></div></div>
+
+<h3 id="gathering-data-for-insert">Gathering Data for Insert</h3>
+
+<p>We want to put this all together into a function which returns a <code class="highlighter-rouge">RefSnpCopyFromData</code> object. This houses all data pertaining to a single RefSNP that is to be inserted into our database:</p>
+
+<p>The last two functions look like this:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">_generate_parsed_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">raw_line</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RefSnpCopyFromData</span><span class="p">:</span>
+    <span class="n">rsnp_json</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">raw_line</span><span class="p">)</span>
+    <span class="n">ref_snp_id</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">rsnp_json</span><span class="p">[</span><span class="s">'refsnp_id'</span><span class="p">])</span>
+    <span class="n">rsnp_placements</span> <span class="o">=</span> <span class="n">rsnp_json</span><span class="p">[</span><span class="s">'primary_snapshot_data'</span><span class="p">][</span>
+                            <span class="s">'placements_with_allele'</span><span class="p">]</span>
+    <span class="n">copy_from_data</span> <span class="o">=</span> <span class="n">RefSnpCopyFromData</span><span class="p">(</span>
+        <span class="n">ref_snp_alleles</span><span class="o">=</span><span class="p">[],</span>
+        <span class="n">ref_snp_allele_freq_studies</span><span class="o">=</span><span class="p">[],</span>
+        <span class="n">ref_snp_allele_clin_diseases</span><span class="o">=</span><span class="p">[])</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">rsnp_placements</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">copy_from_data</span>
+    <span class="n">allele_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_find_alleles_from_assembly</span><span class="p">(</span><span class="n">rsnp_placements</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">allele_data</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">copy_from_data</span>
+    <span class="n">variant_ref_snp_alleles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_variant_alleles</span><span class="p">(</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chromosome</span><span class="p">,</span>
+        <span class="n">allele_data</span><span class="p">,</span>
+        <span class="n">ref_snp_id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">variant_ref_snp_alleles</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">copy_from_data</span>
+    <span class="k">for</span> <span class="n">allele</span> <span class="ow">in</span> <span class="n">variant_ref_snp_alleles</span><span class="p">:</span>
+        <span class="n">allele_idx</span> <span class="o">=</span> <span class="n">allele</span><span class="o">.</span><span class="n">ref_snp_allele_idx</span>
+        <span class="n">allele_annotation</span> <span class="o">=</span> <span class="n">rsnp_json</span><span class="p">[</span><span class="s">'primary_snapshot_data'</span><span class="p">][</span>
+            <span class="s">'allele_annotations'</span><span class="p">][</span><span class="n">allele_idx</span><span class="p">]</span>
+        <span class="n">gene_locii</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_gene_locii</span><span class="p">(</span><span class="n">allele_annotation</span><span class="p">)</span>
+        <span class="n">freq_studies</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_freq_studies</span><span class="p">(</span><span class="n">allele_annotation</span><span class="p">,</span>
+                                                <span class="n">ref_snp_id</span><span class="p">,</span>
+                                                <span class="n">allele_idx</span><span class="p">)</span>
+        <span class="n">clin_diseases</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_clin_diseases</span><span class="p">(</span><span class="n">allele_annotation</span><span class="p">,</span>
+                                                  <span class="n">ref_snp_id</span><span class="p">,</span>
+                                                  <span class="n">allele_idx</span><span class="p">)</span>
+        <span class="n">copy_from_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_copy_from_data</span><span class="p">(</span>
+           <span class="n">copy_from_data</span><span class="p">,</span> <span class="n">allele</span><span class="p">,</span> <span class="n">freq_studies</span><span class="p">,</span>
+           <span class="n">clin_diseases</span><span class="p">,</span> <span class="n">gene_locii</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">copy_from_data</span>
+
+<span class="nd">@staticmethod</span>
+<span class="k">def</span> <span class="nf">_update_copy_from_data</span><span class="p">(</span><span class="n">copy_from_data</span><span class="p">:</span> <span class="n">RefSnpCopyFromData</span><span class="p">,</span>
+                           <span class="n">allele</span><span class="p">:</span> <span class="n">RefSnpAllele</span><span class="p">,</span>
+                           <span class="n">freq_studies</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span>
+                               <span class="n">RefSnpAlleleFreqStudy</span><span class="p">],</span>
+                           <span class="n">clin_diseases</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span>
+                               <span class="n">RefSnpAlleleClinDisease</span><span class="p">],</span>
+                           <span class="n">gene_locii</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]):</span>
+    <span class="n">copy_from_data</span><span class="o">.</span><span class="n">ref_snp_alleles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+        <span class="n">RefSnpAllele</span><span class="p">(</span>
+            <span class="n">del_seq</span><span class="o">=</span><span class="n">allele</span><span class="o">.</span><span class="n">del_seq</span><span class="p">,</span>
+            <span class="n">ins_seq</span><span class="o">=</span><span class="n">allele</span><span class="o">.</span><span class="n">ins_seq</span><span class="p">,</span>
+            <span class="n">position</span><span class="o">=</span><span class="n">allele</span><span class="o">.</span><span class="n">position</span><span class="p">,</span>
+            <span class="n">ref_snp_allele_idx</span><span class="o">=</span><span class="n">allele</span><span class="o">.</span><span class="n">ref_snp_allele_idx</span><span class="p">,</span>
+            <span class="n">chromosome</span><span class="o">=</span><span class="n">allele</span><span class="o">.</span><span class="n">chromosome</span><span class="p">,</span>
+            <span class="n">ref_snp_id</span><span class="o">=</span><span class="n">allele</span><span class="o">.</span><span class="n">ref_snp_id</span><span class="p">,</span>
+            <span class="n">gene_locii</span><span class="o">=</span><span class="n">gene_locii</span><span class="p">))</span>
+    <span class="n">copy_from_data</span><span class="o">.</span><span class="n">ref_snp_allele_freq_studies</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+        <span class="n">freq_studies</span><span class="p">)</span>
+    <span class="n">copy_from_data</span><span class="o">.</span><span class="n">ref_snp_allele_clin_diseases</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+        <span class="n">clin_diseases</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">copy_from_data</span>
+</code></pre></div></div>
+
+<blockquote>
+  <p><strong>Note</strong>: <em>We leverage <code class="highlighter-rouge">@staticmethod</code> decorators in almost all of the methods above. Static methods do NOT have access to the object’s internal state (hence why the <code class="highlighter-rouge">self</code> parameter is gone), and therefore have no side-effects. Since these are now explicitly <a href="https://en.wikipedia.org/wiki/Pure_function">pure functions</a>, they are extremely easy to test, and read.</em></p>
+</blockquote>
+
+<p>Woah. That’s a good chunk of code for 1 post. Let’s get to our final destination: <a href="http://localhost:4000/warehousing-DbSNP-Part-III-bulk-inserting-SNP-data">Inserting our DbSNP data efficiently into PostgreSQL</a>.</p>
+
+
+
+        </section>
+
+        <footer class="post-footer">
+
+            <!-- Everything inside the #author tags pulls data from the author -->
+            <!-- #author-->
+            
+
+            <!-- Add Disqus Comments -->
+            
+
+        </footer>
+
+    </article>
+
+</main>
+
+<aside class="read-next">
+
+    <!-- [[! next_post ]] -->
+    
+        <a class="read-next-story " style="background-image: url(/assets/images/southie_fireworks.jpg)" href="/bioinformaticswarehousing-DbSNP-Part-III-bulk-inserting-SNP-data">
+            <section class="post">
+                <h2>Warehousing DbSNP, Part III: Bulk Inserting SNP Data</h2>
+                <p>### Intro In [Part II we parsed the JSON data](warehousing-DbSNP-Part-II-parsing-RefSNP-JSON) found in the DbSNP JSON...</p>
+            </section>
+        </a>
+    
+    <!-- [[! /next_post ]] -->
+    <!-- [[! prev_post ]] -->
+    
+        <a class="read-next-story prev " style="background-image: url(/assets/images/southie_sunset.jpg)" href="/bioinformaticswarehousing-DbSNP-Part-I-download-and-create-db">
+            <section class="post">
+                <h2>Warehousing DbSNP, Part I: Downloading Chromosome 1 & Creating our Database</h2>
+                <p>Intro This series of posts cover how to migrate DbSNP’s newly downloadable JSON files into...</p>
+            </section>
+        </a>
+    
+    <!-- [[! /prev_post ]] -->
+</aside>
+
+<!-- /post -->
+
+
+        <!-- The tiny footer at the very bottom -->
+        <footer class="site-footer clearfix">
+          <section class="copyright"><a href="/">The Laziest Programmer</a> &copy; 2018</section>
+          <section class="poweredby">Proudly published with <a href="https://jekyllrb.com/">Jekyll</a> using <a href="https://github.com/jekyller/jasper">Jasper</a></section>
+        </footer>
+    </div>
+    <!-- highlight.js -->
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.3.0/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+
+    <!-- jQuery needs to come before `` so that jQuery can be used in code injection -->
+    <script type="text/javascript" src="//code.jquery.com/jquery-1.12.0.min.js"></script>
+    <!-- Ghost outputs important scripts and data with this tag -->
+    <!--  -->
+    <!-- Add Google Analytics  -->
+        <!-- Google Analytics Tracking code -->
+     <script>
+	    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+	    ga('create', 'UA-80966627-1', 'auto');
+	    ga('send', 'pageview');
+
+     </script>
+    <!-- Fitvids makes video embeds responsive and awesome -->
+    <script type="text/javascript" src="/assets/js/jquery.fitvids.js"></script>
+    <!-- The main JavaScript file for Casper -->
+    <script type="text/javascript" src="/assets/js/index.js"></script>
+
+</body>
+</html>

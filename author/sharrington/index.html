@@ -98,8 +98,11 @@
            <ul style="padding-top:0px; padding-bottom: 0px"> 
              <li class="nav-fiction " role="presentation"><a href="/tag/web-development">Web Development</a></li>
            </ul>     
-           <ul style="padding-top:0px"> 
+           <ul style="padding-top:0px; padding-bottom: 0px"> 
              <li class="nav-fiction " role="presentation"><a href="/tag/math-of-machine-learning">The Math of ML</a></li>
+           </ul>     
+           <ul style="padding-top:0px"> 
+             <li class="nav-fiction " role="presentation"><a href="/tag/bioinformatics">Bioinformatics</a></li>
            </ul>     
         </li>
         <li class="nav-about " role="presentation"><a href="/about">About This Site</a></li>
@@ -138,30 +141,17 @@
         
         <h1 class="author-title">Sean Harrington</h1>
         
-            <h2 class="author-bio">I believe that cover bands should welcome guitarists in the audience on-stage, that Mat Cauthon would make any 14-book series enjoyable, and that college football players can evolve into decent software developers.</h2>
+        <h2 class="author-bio">Director of Software Engineering @ New England Patriots by day, TheLaziestProgrammer by night.<br><br>Journey before Destination.</h2>
         
         <div class="author-meta">
             <span class="author-location icon-location">Boston, MA</span>
             <span class="author-location icon-twitter"><a target="_blank" href="https://twitter.com/seanharr11">seanharr11</a></span>
             <span class="author-link icon-link"><a target="_blank" href="http://github.com/seanharr11">github.com/seanharr11</a></span>
             <!-- <span class="author-stats"><i class="icon-stats"></i> [[plural ../pagination.total empty='No posts' singular='% post' plural='% posts']]</span> -->
-            <span class="author-stats"><i class="icon-stats"></i>9 posts</span>
         </div>
         <!--a href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=DH544PY7RFSLA"><button class="btn btn-donate">Buy me a Coffee</button></a-->
         </section>
         <section class="author-profile inner">
-       
-        <div style="padding-top: 15px">
-            <h4>Full-stack Web Development</h4>
-                Flask, Django, Angular, SQLAlchemy, JQuery, RESTful APIs, HTML5/CSS3
-            <h4>Data Science</h4>
-                Pandas, Numpy, SciKit-Learn, Plotly
-            <h4>Datastores</h4>
-               ETL Migrations, MySQL, PostgreSQL, MongoDB
-            <h4>Languages</h4>
-            Python, Javascript, C, C++, Bash<br><br>
-            <em>I also love Vim, <a target="_blank" href="https://stackoverflow.blog/2017/06/15/developers-use-spaces-make-money-use-tabs/">spaces (over tabs)</a>, "pip install", "apt-get install", verbose commit messages, <a target="_blank" href="https://stackoverflow.com/users/3923962/the-aelfinn">StackOverflow</a>, and I am extremely passionate about <strong>Bioinformatics</strong> and<strong> Genomics.</strong></em>
-        </div>
            
            <!--div style="background: rgba(0,0,0, .1); margin-top: 35px; padding-bottom: 20px" ><p style="padding-top: 10px;"><a href="mailto:seanharr11@gmail.com">Contact me via Email</a> to learn more. <br><br><span style="color: navy">I also enjoy building websites and mobile apps for <strong>local businesses</strong>:</p></span>
                <a href="http://www.nstarre.com/">North Star Real Estate, Boston, MA</a><br>
@@ -190,7 +180,58 @@
     </div>
 
     <!-- This is the post loop - each post will be output using this markup -->
-    
+   <article class="post">
+        <header class="post-header">
+            <h2 class="post-title"><a href="/bioinformatics/warehousing-DbSNP-Part-I-download-and-create-db">Warehousing DbSNP, Part I: Downloading Chromosome 1 & Creating our Database</a></h2>
+        </header>
+        <section class="post-excerpt">
+            <p>This series of posts cover how to migrate DbSNP’s newly downloadable JSON files into a slimmed-down, relational database, containing population frequency data, associated pubmed IDs,... <a class="read-more" href="/bioinformatics/warehousing-DbSNP-Part-I-download-and-create-db">&raquo;</a></p>
+        </section>
+        <footer class="post-meta">
+            <img class="author-thumb" src="/assets/images/headshot.jpg" alt="Author image" nopin="nopin" />
+            <!-- author -->
+            <a href='/author/sharrington'>Sean Harrington</a>
+                on
+                       <a href='/tag/bioinformatics'>Bioinformatics</a>
+            <time class="post-date" datetime="2018-06-20">20 Jun 2018</time>
+        </footer>
+    </article>
+
+    <article class="post">
+        <header class="post-header">
+            <h2 class="post-title"><a href="/bioinformatics/warehousing-DbSNP-Part-II-parsing-RefSNP-JSON">Warehousing DbSNP, Part II: Streaming and Parsing SNP Data</a></h2>
+        </header>
+        <section class="post-excerpt">
+            <p>Part II of our adventure to warehouse a subset of DBbSNP’s JSON data picks up where Part I left off. Now that we have our... <a class="read-more" href="/bioinformatics/warehousing-DbSNP-Part-II-parsing-RefSNP-JSON">&raquo;</a></p>
+        </section>
+        <footer class="post-meta">
+            <img class="author-thumb" src="/assets/images/headshot.jpg" alt="Author image" nopin="nopin" />
+            <!-- author -->
+            <a href='/author/sharrington'>Sean Harrington</a>
+            <!-- [[tags prefix=" on "]] -->
+                on
+                       <a href='/tag/bioinformatics'>Bioinformatics</a>
+            <time class="post-date" datetime="2018-06-25">25 Jun 2018</time>
+        </footer>
+    </article>
+
+        <article class="post">
+        <header class="post-header">
+            <h2 class="post-title"><a href="/bioinformatics/warehousing-DbSNP-Part-III-bulk-inserting-SNP-data">Warehousing DbSNP, Part III: Bulk Inserting SNP Data</a></h2>
+        </header>
+        <section class="post-excerpt">
+            <p>In Part II we parsed the JSON data found in the DbSNP JSON download. In Part III, we will bulk-insert this data into our PostgreSQL... <a class="read-more" href="/bioinformatics/warehousing-DbSNP-Part-III-bulk-inserting-SNP-data">&raquo;</a></p>
+        </section>
+        <footer class="post-meta">
+            <img class="author-thumb" src="/assets/images/headshot.jpg" alt="Author image" nopin="nopin" />
+            <!-- author -->
+            <a href='/author/sharrington'>Sean Harrington</a>
+                on
+                       <a href='/tag/bioinformatics'>Bioinformatics</a>
+            <time class="post-date" datetime="2018-06-25">25 Jun 2018</time>
+        </footer>
+    </article>
+
     <article class="post">
         <header class="post-header">
         <h2 class="post-title"><a href="/sharrington/math-of-machine-learning/solving-logreg-newtons-method">Solving Logistic Regression with Newton's Method</a></h2>

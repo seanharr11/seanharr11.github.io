@@ -6,6 +6,38 @@
     <link>
     http://thelaziestprogrammer.com</link>
     
+      <item>
+        <title>Warehousing DbSNP, Part I: Downloading Chromosome 1 &amp; Creating our Database</title>
+        
+          <description>This series of posts cover how to migrate DbSNPs newly downloadable JSON files into a slimmed-down, relational database containing population frequency data, associated pubmed IDs, and ClinVar data for each SNP in the database.</description>
+        
+        <pubDate>Wed, 20 Jun 2018 10:18:00 -0400</pubDate>
+        <link>
+            http://thelaziestprogrammer.com/bioinformatics/warehousing-DbSNP-Part-I-download-and-create-db</link>
+        <guid isPermaLink="true">http://thelaziestprogrammer.com/bioinformatics/warehousing-DbSNP-Part-I-download-and-create-db</guid>
+      </item>
+      
+      <item>
+        <title>Warehousing DbSNP, Part II: Streaming and Parsing SNP Data</title>
+        
+          <description>Part II of our adventure to warehouse a subset of DBbSNP's JSON data picks up where Part I left off. Now that we have our database and chromosome 1 file readily available, let's work to stream and parse each line of refsnp-chr1.json.gz, in preparation for database insertion.</description>
+        
+        <pubDate>Mon, 25 Jun 2018 08:24:00 -0400</pubDate>
+        <link>
+            http://thelaziestprogrammer.com/bioinformatics/warehousing-DbSNP-Part-II-parsing-RefSNP-JSON</link>
+        <guid isPermaLink="true">http://thelaziestprogrammer.com/bioinformatics/warehousing-DbSNP-Part-II-parsing-RefSNP-JSON</guid>
+      </item>
+      
+      <item>
+        <title>Warehousing DbSNP, Part III: Bulk Inserting SNP Data</title>
+        
+          <description>In Part II we parsed the JSON data found in the DbSNP JSON download. In Part III, we will bulk-insert this data into our PostgreSQL database.</description>
+        
+        <pubDate>Mon, 25 Jun 2018 08:24:00 -0400</pubDate>
+        <link>
+            http://thelaziestprogrammer.com/bioinformatics/warehousing-DbSNP-Part-III-bulk-inserting-SNP-data</link>
+        <guid isPermaLink="true">http://thelaziestprogrammer.com/bioinformatics/warehousing-DbSNP-Part-III-bulk-inserting-SNP-data</guid>
+      </item>
       
       <item>
         <title>Solving Logistic Regression with Newton&#39;s Method</title>

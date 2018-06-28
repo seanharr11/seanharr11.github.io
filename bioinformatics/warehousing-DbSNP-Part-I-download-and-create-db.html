@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- Document Settings -->
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+    <!-- Page Meta -->
+    <title>Warehousing DbSNP, Part I: Downloading Chromosome 1 & Creating our Database</title>
+    <meta name="description" content="Because someone else has already solved your problem." />
+
+    <!-- Mobile Meta -->
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Brand icon -->
+    <link rel="shortcut icon" href="/assets/images/favicon.ico" >
+
+    <!-- Styles'n'Scripts -->
+    <link rel="stylesheet" type="text/css" href="/assets/css/screen.css" />
+    <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Merriweather:300,700,700italic,300italic|Open+Sans:700,400" />
+    <link rel="stylesheet" type="text/css" href="/assets/css/syntax.css" />
+
+    <!-- highlight.js -->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.3.0/styles/default.min.css">
+    <style>.hljs { background: none; }</style>
+
+    <!-- Ghost outputs important style and meta data with this tag -->
+        <link rel="canonical" href="http://localhost:4000//bioinformatics/warehousing-DbSNP-Part-I-download-and-create-db" />
+    <meta name="referrer" content="origin" />
+    <link rel="next" href="/page2/" />
+
+    <meta property="og:site_name" content="The Laziest Programmer" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Warehousing DbSNP, Part I: Downloading Chromosome 1 & Creating our Database" />
+    <meta property="og:description" content="Because someone else has already solved your problem." />
+    <meta property="og:url" content="http://localhost:4000//bioinformatics/warehousing-DbSNP-Part-I-download-and-create-db" />
+    <meta property="og:image" content="/assets/images/southie_sunset.jpg" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Warehousing DbSNP, Part I: Downloading Chromosome 1 & Creating our Database" />
+    <meta name="twitter:description" content="Because someone else has already solved your problem." />
+    <meta name="twitter:url" content="http://localhost:4000//bioinformatics/warehousing-DbSNP-Part-I-download-and-create-db" />
+    <meta name="twitter:image:src" content="/assets/images/southie_sunset.jpg" />
+
+    <script type="application/ld+json">
+{
+    "@context": "http://schema.org",
+    "@type": "Website",
+    "publisher": "The Laziest Programmer",
+    "name": "Warehousing DbSNP, Part I: Downloading Chromosome 1 & Creating our Database",
+    "url": "http://localhost:4000//bioinformatics/warehousing-DbSNP-Part-I-download-and-create-db",
+    "image": "/assets/images/southie_sunset.jpg",
+    "description": "Because someone else has already solved your problem."
+}
+    </script>
+
+    <meta name="generator" content="Jekyll 3.0.0" />
+    <link rel="alternate" type="application/rss+xml" title="The Laziest Programmer" href="/feed.xml" />
+
+
+</head>
+<body class="home-template nav-closed">
+
+    <!-- The blog navigation links -->
+    
+<div class="nav">
+    <h3 class="nav-title">Menu</h3>
+    <a href="#" class="nav-close">
+        <span class="hidden">Close</span>
+    </a>
+    <ul>
+        <li class="nav-home  nav-current" role="presentation"><a href="/">Home</a></li>
+        <li class="nav-home" role="presentation"><a href="#">Topics</a>
+           <ul style="padding-top:9px;padding-bottom:0px"> 
+             <li class="nav-fiction " role="presentation"><a href="/tag/databases">Databases</a></li>
+           </ul>     
+           <ul style="padding-top:0px; padding-bottom: 0px"> 
+             <li class="nav-fiction " role="presentation"><a href="/tag/web-development">Web Development</a></li>
+           </ul>     
+           <ul style="padding-top:0px; padding-bottom: 0px"> 
+             <li class="nav-fiction " role="presentation"><a href="/tag/math-of-machine-learning">The Math of ML</a></li>
+           </ul>     
+           <ul style="padding-top:0px;"> 
+             <li class="nav-fiction " role="presentation"><a href="/tag/bioinformatics">Bioinformatics</a></li>
+           </ul>     
+        </li>
+        <li class="nav-about " role="presentation"><a href="/about">About This Site</a></li>
+        <li class="nav-author " role="presentation"><a href="/author/sharrington">The Author</a></li>
+    </ul>
+    <a class="subscribe-button" href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=DH544PY7RFSLA">Donate</a>
+    <a class="subscribe-button icon-feed" href="/feed.xml">Subscribe</a>
+</div>
+<span class="nav-cover"></span>
+
+
+    <div class="site-wrapper">
+
+        <!-- All the main content gets inserted here, index.hbs, post.hbs, etc -->
+        <!-- default -->
+
+<!-- The comment above "< default" means - insert everything in this file into -->
+    <!-- the [body] of the default.hbs template, which contains our header/footer. -->
+
+<!-- Everything inside the #post tags pulls data from the post -->
+<!-- #post -->
+
+<header class="main-header post-head " style="background-image: url(/assets/images/southie_sunset.jpg) ">
+    <nav class="main-nav  overlay  clearfix">
+        <a class="blog-logo" href="/"><img src="/assets/images/tlp_logo.png" alt="Blog Logo" /></a>
+        
+            <a class="menu-button icon-menu" href="#"><span class="word">Menu</span></a>
+        
+    </nav>
+</header>
+
+<main class="content" role="main">
+
+    <article class="post tag-test tag-content">
+
+        <header class="post-header">
+            <h1 class="post-title">Warehousing DbSNP, Part I: Downloading Chromosome 1 & Creating our Database</h1>
+            <section class="post-meta">
+            <!-- <a href='/'></a> -->
+
+            
+            <time class="post-date" datetime="2018-06-20">20 Jun 2018</time>
+                <!-- [[tags prefix=" on "]] -->
+                
+                on
+                
+                    
+                       <a href='/tag/bioinformatics'>Bioinformatics</a>
+                    
+                
+                
+            </section>
+        </header>
+
+        <section class="post-content">
+
+            <h3 id="intro">Intro</h3>
+<p>This series of posts cover how to migrate <a href="https://www.ncbi.nlm.nih.gov/projects/SNP" target="_blank">DbSNP</a>’s <a href="https://ncbiinsights.ncbi.nlm.nih.gov/2017/07/07/dbsnp-redesign-supports-future-data-expansion/" target="_blank">newly downloadable JSON files</a> into a slimmed-down, relational database, containing population frequency data, associated pubmed IDs, and clinvar data for each SNP in the database.</p>
+
+<blockquote>
+  <p><a href="https://www.youtube.com/watch?v=bTAFl8P2DkE&amp;feature=youtu.be&amp;t=3115">I gave a lightning talk at PyCon2018</a> about a live, deployed application of this database: <a href="https://github.com/seanharr11/snip-api-client">The Snip API</a>. You can easily turn your 23&amp;Me Raw Data into insights from DbSNP using this (<em>free</em>) API; <a href="https://github.com/seanharr11    /snip-api-client">the client is found here on github</a>.</p>
+</blockquote>
+
+<p>Moving forward, NCBI plans to store 1 JSON file per chromosome, and these files can be found <a href="ftp://ftp.ncbi.nlm.nih.gov/snp/.redesign/latest_release/JSON" target="_blank">here</a>. The total size of this JSON payload is a whopping <strong>104GB</strong> of gzipped data.</p>
+
+<p>The <strong>uncompressed</strong> size of chromosome 1’s file is <strong>162GB</strong>, with the <strong>compressed</strong> size being <strong>8GB</strong>. Using this compression ratio (<strong>1:20</strong>) as a rule-of-thumb, the uncompressed size of the entire dataset is <strong>2.1TB</strong>…that’s a lot of data to process and warehouse. Let’s begin with step 1: downloading <code class="highlighter-rouge">refsnp_chr1.json.gz</code> as our case study.</p>
+
+<h3 id="downloading-the-file">Downloading the file</h3>
+<p>In a perfect, simpler world, the following few LOC would download our 1st file:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">ftplib</span>
+
+<span class="n">dbnsp_filename</span> <span class="o">=</span> <span class="s">"refsnp-chr1.json.gz"</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">dbsnp_filename</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">".gz"</span><span class="p">,</span> <span class="s">""</span><span class="p">),</span> <span class="s">"wb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+    <span class="n">ftp</span> <span class="o">=</span> <span class="n">ftplib</span><span class="o">.</span><span class="n">FTP</span><span class="p">(</span><span class="s">"ftp.ncbi.nlm.nih.gov"</span><span class="p">)</span>
+    <span class="n">ftp</span><span class="o">.</span><span class="n">login</span><span class="p">()</span>
+    <span class="n">ftp</span><span class="o">.</span><span class="n">cwd</span><span class="p">(</span><span class="s">"snp/.redesign/latest_release/JSON"</span><span class="p">)</span>
+    <span class="n">ftp</span><span class="o">.</span><span class="n">retrbinary</span><span class="p">(</span><span class="s">"RETR "</span> <span class="o">+</span> <span class="n">dbsnp_filename</span><span class="p">,</span> <span class="n">fp</span><span class="o">.</span><span class="n">write</span><span class="p">,</span> <span class="mi">1024</span><span class="p">)</span>
+    <span class="n">ftp</span><span class="o">.</span><span class="n">quit</span><span class="p">()</span>
+</code></pre></div></div>
+
+<p>Unfortunately, the combination of the <code class="highlighter-rouge">FTP</code> protocal, large file download size and network latency create a perfect storm for server side &amp; client side timeouts. Running the above code will lead to server side (or client side) timeout, and eventually the download will come to a halt.</p>
+
+<p>Kudos to <a href="https://stackoverflow.com/a/19693709/3923962" target="_blank">this excellent stackoverflow answer</a> for a graceful solution to avoid FTP downloads timing out. We just send simple “NOOP” commands, equivalent to a ‘PING’, from a separate thread, to keep our connection alive:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">ftplib</span>
+
+<span class="n">dbsnp_filename</span> <span class="o">=</span> <span class="s">"refsnp-chr1.json.gz"</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">dbsnp_filename</span><span class="p">,</span> <span class="s">"wb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+    <span class="n">ftp</span> <span class="o">=</span> <span class="n">ftplib</span><span class="o">.</span><span class="n">FTP</span><span class="p">(</span><span class="s">"ftp.ncbi.nlm.nih.gov"</span><span class="p">)</span>
+    <span class="n">ftp</span><span class="o">.</span><span class="n">login</span><span class="p">()</span>
+    <span class="n">ftp</span><span class="o">.</span><span class="n">cwd</span><span class="p">(</span><span class="s">"snp/.redesign/latest_release/JSON"</span><span class="p">)</span>
+    <span class="n">size_gb</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">ftp</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">dbsnp_filename</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1024</span><span class="o">**</span><span class="mi">3</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s">"Filesize: {size_gb} GB"</span><span class="p">)</span>
+    <span class="n">sock</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">while</span> <span class="ow">not</span> <span class="n">sock</span><span class="p">:</span>  <span class="c"># Try to open the socket conn w/ server</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">"Trying to establish FTP conn"</span><span class="p">)</span>
+        <span class="n">sock</span> <span class="o">=</span> <span class="n">ftp</span><span class="o">.</span><span class="n">transfercmd</span><span class="p">(</span><span class="n">f</span><span class="s">"RETR {dbsnp_filename}"</span><span class="p">)</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">download</span><span class="p">():</span>
+        <span class="n">transferred</span><span class="p">,</span> <span class="n">blocks</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+            <span class="n">byte_chunk</span> <span class="o">=</span> <span class="n">sock</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">1024</span><span class="o">*</span><span class="mi">1024</span><span class="o">*</span><span class="mi">8</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">byte_chunk</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="n">blocks</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">transferred</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">byte_chunk</span><span class="p">)</span>
+            <span class="n">transferred_mb</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">transferred</span> <span class="o">/</span> <span class="mi">1024</span> <span class="o">/</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">blocks</span> <span class="o">%</span> <span class="mi">1000</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s">"Transferred {transferred_mb}MB / "</span>
+                      <span class="n">f</span><span class="s">"{size_gb * 1024}MB"</span><span class="p">)</span>
+            <span class="n">fp</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">byte_chunk</span><span class="p">)</span>
+        <span class="n">sock</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">fp</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">download</span><span class="p">)</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+    <span class="k">while</span> <span class="n">t</span><span class="o">.</span><span class="n">is_alive</span><span class="p">():</span>
+        <span class="n">t</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="mi">60</span><span class="p">)</span>
+        <span class="n">ftp</span><span class="o">.</span><span class="n">voidcmd</span><span class="p">(</span><span class="s">"NOOP"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p><em>For those wondering, on a shoddy cafe WiFi, downloading refsnp-chr1.json.gz takes about 48 minutes, which was insigificantly less than the time it takes to download the file in Google Chrome (50 minutes). Make sure you aren’t on shoddy cafe WiFi, times 23…</em></p>
+
+<p>We now have the file <code class="highlighter-rouge">refsnp-chr1.json.gz</code> in our working directory, which holds a JSON object per RefSNP on each line. We want to extract a small subset of the ~200GB of data stored in this file, and insert it into a Relational Database. Let’s define our schema:</p>
+
+<h3 id="defining-our-relational-database-schema">Defining our Relational Database Schema</h3>
+
+<p>Rather than writing an unmaintanable mess of SQL DDL statements, I opt to use SQLAlchemy’s core library for defining our database schema (i.e. the tables). It’s a powerful, well-maintained library, producing code that is far more maintainable than free-form SQL text. Here are the models representing tables to insert our data into:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># coding: utf-8</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="p">(</span>
+     <span class="n">BigInteger</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">Text</span><span class="p">,</span> <span class="n">String</span><span class="p">,</span>
+     <span class="n">ForeignKey</span><span class="p">,</span> <span class="n">Column</span><span class="p">,</span> <span class="n">create_engine</span><span class="p">,</span>
+     <span class="n">ForeignKeyConstraint</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.dialects.postgresql</span> <span class="kn">import</span> <span class="n">ARRAY</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">declarative_base</span><span class="p">,</span> <span class="n">declared_attr</span>
+
+
+<span class="n">Base</span> <span class="o">=</span> <span class="n">declarative_base</span><span class="p">()</span>
+<span class="n">metadata</span> <span class="o">=</span> <span class="n">Base</span><span class="o">.</span><span class="n">metadata</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">"SNIP_DB_URL"</span><span class="p">])</span>
+<span class="n">metadata</span><span class="o">.</span><span class="n">bind</span> <span class="o">=</span> <span class="n">engine</span>
+
+
+<span class="k">class</span> <span class="nc">RefSnpAllele</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">'ref_snp_alleles'</span>
+
+    <span class="n">ins_seq</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Text</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">del_seq</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Text</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">position</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">BigInteger</span><span class="p">)</span>
+    <span class="n">chromosome</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
+    <span class="n">gene_locii</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">ARRAY</span><span class="p">(</span><span class="n">Text</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+    
+    <span class="n">ref_snp_allele_idx</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">ref_snp_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">RefSnpAlleleRelative</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">'ref_snp_allele_relative'</span>
+
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">ref_snp_allele_idx</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">ref_snp_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+    <span class="nd">@declared_attr</span>
+    <span class="k">def</span> <span class="nf">__table_args__</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">ForeignKeyConstraint</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">cls</span><span class="o">.</span><span class="n">ref_snp_id</span><span class="p">,</span> <span class="n">cls</span><span class="o">.</span><span class="n">ref_snp_allele_idx</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">RefSnpAllele</span><span class="o">.</span><span class="n">ref_snp_id</span><span class="p">,</span> <span class="n">RefSnpAllele</span><span class="o">.</span><span class="n">ref_snp_allele_idx</span><span class="p">]),</span> <span class="p">{})</span>
+
+
+<span class="k">class</span> <span class="nc">RefSnpAlleleFrequencyStudy</span><span class="p">(</span><span class="n">RefSnpAlleleRelative</span><span class="p">,</span> <span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">'ref_snp_allele_freq_studies'</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Text</span><span class="p">)</span>
+    <span class="n">allele_count</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">)</span>
+    <span class="n">total_count</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">RefSnpClinicalDisease</span><span class="p">(</span><span class="n">RefSnpAlleleRelative</span><span class="p">,</span> <span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">'ref_snp_allele_clin_diseases'</span>
+
+    <span class="n">disease_name_csv</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Text</span><span class="p">)</span>
+    <span class="n">clinical_significance_csv</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Text</span><span class="p">)</span>
+    <span class="n">citation_list</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">ARRAY</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+</code></pre></div></div>
+
+<blockquote>
+  <p><strong>Note</strong>: <em>We’re using Inheritance to DRY (<strong>don’t repeat yourself</strong>) out the <code class="highlighter-rouge">ref_snp_allele_clin_diseases</code> and <code class="highlighter-rouge">ref_snp_allele_freq_studies</code> model definitions. Avoiding small redundancies like these allow for more malleable code, and less opportunity for bugs down the road.</em></p>
+</blockquote>
+
+<p>To create these tables, I assume we’ve already created a local PostgreSQL database. Creating and configuring this database is outside the scope of this post, but if on a Mac, you can start by installing PostgreSQL with:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>brew install postgresql
+</code></pre></div></div>
+<p>…and then reading the <a href="https://www.postgresql.org/docs/10/static/tutorial-createdb.html" target="_blank">quick docs here</a>. There is plenty of documentation on configuring these easily.</p>
+
+<p>Next, to create our tables we leverage SQLAlchemy’s <code class="highlighter-rouge">create_all()</code> method, and some quick SQL statements in the following snippet:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">init_db</span><span class="p">(</span><span class="n">database_name</span><span class="p">):</span>
+    <span class="c"># Connect to 'postgres' admin DB, and drop the DB named 'database_name'</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="n">f</span><span class="s">"echo 'DROP DATABASE {database_name};"</span>
+          <span class="n">f</span><span class="s">"CREATE DATABASE {database_name};'"</span>
+          <span class="s">" | psql postgres"</span><span class="p">)</span>
+    <span class="n">metadata</span><span class="o">.</span><span class="n">create_all</span><span class="p">()</span>
+</code></pre></div></div>
+
+<p>You can now connect to the PostgreSQL database and view the schema:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">(</span>env<span class="o">)</span> SeanH@foo:~/snip_warehouse/snip_warehouse<span class="nv">$ </span>psql <span class="nt">-U</span> SeanH snip
+psql <span class="o">(</span>10.3<span class="o">)</span>
+Type <span class="s2">"help"</span> <span class="k">for </span>help.
+
+<span class="nv">snip</span><span class="o">=</span><span class="c"># \dt</span>
+                   List of relations
+ Schema |             Name             | Type  | Owner
+<span class="nt">--------</span>+------------------------------+-------+-------
+ public | ref_snp_allele_clin_diseases | table | SeanH
+ public | ref_snp_allele_freq_studies  | table | SeanH
+ public | ref_snp_alleles              | table | SeanH
+</code></pre></div></div>
+
+<h3 id="defining-dtos-data-transfer-objects">Defining DTOs (Data Transfer Objects)</h3>
+
+<p>Let’s take a quick tangent, and talk about DTOs, Python <code class="highlighter-rouge">dicts</code> and <code class="highlighter-rouge">namedtuples</code>.</p>
+
+<p>It’s very easy to use <code class="highlighter-rouge">Dicts</code> in Python. Consequently, it’s very easy to abuse them. When passing data between functions in a non-trivial application, PLEASE take the time to define an explicit type, like a <code class="highlighter-rouge">namedtuple</code>, rather than abusing a <code class="highlighter-rouge">dict</code>. You will thank yourself months down the road…</p>
+
+<p>Let’s define a series of <em>Data Transfer Object</em> <code class="highlighter-rouge">types</code>, using the <code class="highlighter-rouge">collections.namedtuple</code> datatype, to provide naming consistencies, strict(er) function interfaces, immutability and readability:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># DTO's</span>
+<span class="n">RefSnpCopyFromData</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s">"RefSnpCopyFromData"</span><span class="p">,</span> <span class="p">[</span>
+    <span class="s">"ref_snp_alleles"</span><span class="p">,</span>
+    <span class="s">"ref_snp_allele_freq_studies"</span><span class="p">,</span>
+    <span class="s">"ref_snp_allele_clin_diseases"</span><span class="p">])</span>
+
+<span class="n">RefSnpAllele</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s">"RefSnpAllele"</span><span class="p">,</span> <span class="p">[</span>
+    <span class="s">'ins_seq'</span><span class="p">,</span> <span class="s">'del_seq'</span><span class="p">,</span> <span class="s">'position'</span><span class="p">,</span> <span class="s">'chromosome'</span><span class="p">,</span>
+    <span class="s">'ref_snp_allele_idx'</span><span class="p">,</span> <span class="s">'ref_snp_id'</span><span class="p">,</span> <span class="s">'gene_locii'</span><span class="p">])</span>
+
+
+<span class="n">RefSnpAlleleFreqStudy</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s">"RefSnpAlleleFreqStudy"</span><span class="p">,</span> <span class="p">[</span>
+    <span class="s">'name'</span><span class="p">,</span> <span class="s">'allele_count'</span><span class="p">,</span> <span class="s">'total_count'</span><span class="p">,</span> <span class="s">'ref_snp_allele_idx'</span><span class="p">,</span>
+    <span class="s">'ref_snp_id'</span><span class="p">])</span>
+
+<span class="n">RefSnpAlleleClinDisease</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s">"RefSnpAlleleClinDisease"</span><span class="p">,</span> <span class="p">[</span>
+    <span class="s">'disease_name_csv'</span><span class="p">,</span> <span class="s">'clinical_significance_csv'</span><span class="p">,</span> <span class="s">'citation_list'</span><span class="p">,</span>
+    <span class="s">'ref_snp_allele_idx'</span><span class="p">,</span> <span class="s">'ref_snp_id'</span><span class="p">])</span>
+</code></pre></div></div>
+
+<p>We will use these types in part II of our series to keep ourselves sane.</p>
+
+<h3 id="parsing-the-json-data">Parsing the JSON Data</h3>
+
+<p>As previously mentioned, each line of our <code class="highlighter-rouge">refsnp-chr1.json.gz</code> file contains a JSON object, representing a RefSNP.</p>
+
+<p>Each RefSNP JSON object holds all of the Alleles of the RefSNP in question, usually a single-nucleotide variation (i.e. a <code class="highlighter-rouge">G</code> is replaced with a <code class="highlighter-rouge">C</code>). Our goal is to grab the frequency of each allele, and the clinically significant diseases that are influenced by the allele.</p>
+
+<p>Uncompressed, the 200GB file is too big to load into memory. We turn to <code class="highlighter-rouge">iterators</code> to help us decompress and stream the file contents through our parser.</p>
+
+<p><a href="warehousing-DbSNP-Part-II-parsing-RefSNP-JSON">Part II of our tutorial picks up here!</a></p>
+
+
+        </section>
+
+        <footer class="post-footer">
+
+            <!-- Everything inside the #author tags pulls data from the author -->
+            <!-- #author-->
+            
+
+            <!-- Add Disqus Comments -->
+            
+
+        </footer>
+
+    </article>
+
+</main>
+
+<aside class="read-next">
+
+    <!-- [[! next_post ]] -->
+    
+        <a class="read-next-story " style="background-image: url(/assets/images/southie_sunset_red.jpg)" href="/bioinformaticswarehousing-DbSNP-Part-II-parsing-RefSNP-JSON">
+            <section class="post">
+                <h2>Warehousing DbSNP, Part II: Streaming and Parsing SNP Data</h2>
+                <p>### Intro Part II of our adventure to warehouse a subset of DBbSNP's JSON data...</p>
+            </section>
+        </a>
+    
+    <!-- [[! /next_post ]] -->
+    <!-- [[! prev_post ]] -->
+    
+    <!-- [[! /prev_post ]] -->
+</aside>
+
+<!-- /post -->
+
+
+        <!-- The tiny footer at the very bottom -->
+        <footer class="site-footer clearfix">
+          <section class="copyright"><a href="/">The Laziest Programmer</a> &copy; 2018</section>
+          <section class="poweredby">Proudly published with <a href="https://jekyllrb.com/">Jekyll</a> using <a href="https://github.com/jekyller/jasper">Jasper</a></section>
+        </footer>
+    </div>
+    <!-- highlight.js -->
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.3.0/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+
+    <!-- jQuery needs to come before `` so that jQuery can be used in code injection -->
+    <script type="text/javascript" src="//code.jquery.com/jquery-1.12.0.min.js"></script>
+    <!-- Ghost outputs important scripts and data with this tag -->
+    <!--  -->
+    <!-- Add Google Analytics  -->
+        <!-- Google Analytics Tracking code -->
+     <script>
+	    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+	    ga('create', 'UA-80966627-1', 'auto');
+	    ga('send', 'pageview');
+
+     </script>
+    <!-- Fitvids makes video embeds responsive and awesome -->
+    <script type="text/javascript" src="/assets/js/jquery.fitvids.js"></script>
+    <!-- The main JavaScript file for Casper -->
+    <script type="text/javascript" src="/assets/js/index.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,825 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+   
+      <title>thelaziestprogrammer.com</title>
+   
+   <link>http://localhost:4000</link>
+   <description>Because someone else has already solved your problem.</description>
+   <language>en-uk</language>
+   <managingEditor> </managingEditor>
+   <atom:link href="rss" rel="self" type="application/rss+xml" />
+   
+	<item>
+	  <title>Warehousing DbSNP, Part III: Bulk Inserting SNP Data</title>
+	  <link>//bioinformatics/warehousing-DbSNP-Part-III-bulk-inserting-SNP-data</link>
+	  <author></author>
+	  <pubDate>2018-06-25T04:24:00-04:00</pubDate>
+	  <guid>//bioinformatics/warehousing-DbSNP-Part-III-bulk-inserting-SNP-data</guid>
+	  <description><![CDATA[
+	     <h3 id="intro">Intro</h3>
+
+<p>In <a href="warehousing-DbSNP-Part-II-parsing-RefSNP-JSON">Part II we parsed the JSON data</a> found in the DbSNP JSON download. In Part III, we will bulk-insert this data into our PostgreSQL database.</p>
+
+<h3 id="choosing-a-postgresql-python-driver">Choosing a PostgreSQL Python Driver</h3>
+
+<p>The list of options here is long, but I ended up choosing <a href="https://github.com/MagicStack/asyncpg">asyncpg</a> for a number of reasons:</p>
+
+<ol>
+  <li>Great support for PostgreSQL’s <code class="highlighter-rouge">COPY FROM ... STDIN</code> command.
+    <ul>
+      <li>Albeit this is supported in other drivers, but doesn’t have the python-object level of abstraction that I’d like.</li>
+      <li>I tried adding a higher-level-of-abstraction to <code class="highlighter-rouge">psycopg2</code>’s <code class="highlighter-rouge">copy_from()</code> method, <a href="https://github.com/psycopg/psycopg2/pull/461" target="_blank">but got nowhere fast with this Pull Request</a></li>
+    </ul>
+  </li>
+  <li>Great support for PostgreSQL’s <code class="highlighter-rouge">PREPARE</code> <a href="https://www.postgresql.org/docs/10/static/sql-prepare.html">statement</a></li>
+  <li>The entire library is asynchronous, and writing <strong>lots</strong> of data to a remote datastore is a <strong>good</strong> usecase for <code class="highlighter-rouge">async</code> Python.
+    <ul>
+      <li><em>…we are writing to localhost in this walkthrough, so we don’t actually leverage async concurrency</em>.</li>
+    </ul>
+  </li>
+</ol>
+
+<h3 id="writing-to-database">Writing to Database</h3>
+
+<p>In <a href="warehousing-DbSNP-Part-II-parsing-RefSNP-JSON#top-level-file-iteration">Part II we introduced</a> the <code class="highlighter-rouge">_load(self, parsed_data_iter)</code> method, agnostic of any implementation details. Let’s implement the method!</p>
+
+<p>Naively, we could insert one row at a time, as each is parsed, as follows:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">async</span> <span class="k">def</span> <span class="nf">_load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+               <span class="n">parsed_data_iter</span><span class="p">:</span> <span class="n">Iterator</span><span class="p">[</span><span class="n">RefSnpCopyFromData</span><span class="p">]):</span>
+    <span class="n">conn</span> <span class="o">=</span> <span class="n">await</span> <span class="n">asyncpg</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">database</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">database_name</span><span class="p">,</span>
+                                 <span class="n">user</span><span class="o">=</span><span class="s">"SeanH"</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">copy_from_data</span> <span class="ow">in</span> <span class="n">parsed_data_iter</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">table_name</span> <span class="ow">in</span> <span class="n">copy_from_data</span><span class="o">.</span><span class="n">_fields</span><span class="p">:</span>
+            <span class="n">rows</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">copy_from_data</span><span class="p">,</span> <span class="n">table_name</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+                <span class="n">await</span> <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                    <span class="n">f</span><span class="s">"INSERT INTO {table_name} "</span>
+                    <span class="s">"{row._fields} "</span>
+                    <span class="s">"VALUES ($1, $2)"</span><span class="p">,</span> <span class="o">*</span><span class="n">row</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>But we can do better than this!</p>
+
+<p>PostgreSQL has <strong>the best</strong> (<em>strong opinion loosely held</em>) BULK INSERT method available. I make this claim having written <a href="https://github.com/seanharr11/etlalchemy">ETLAlchemy</a>: a library facilitating full-database (schema and data) migrations between any database supported by SQLAlchemy Core.</p>
+
+<p>To properly bulk-insert, we need a buffer to continuously aggregate our data, and bulk-insert/dump buffer to the database intermittently when we hit our threshold.</p>
+
+<p>Let’s try this:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="n">async</span> <span class="k">def</span> <span class="nf">_load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parsed_data_iter</span><span class="p">):</span>
+        <span class="n">conn</span> <span class="o">=</span> <span class="n">await</span> <span class="n">asyncpg</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+            <span class="n">database</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">database_name</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="s">"SeanH"</span><span class="p">)</span>
+        <span class="n">await</span> <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+            <span class="s">"SET session_replication_role to 'replica'"</span><span class="p">)</span>
+            <span class="c"># This should stop FK checks...</span>
+        <span class="n">table_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">table_name</span>
+                       <span class="k">for</span> <span class="n">table_name</span> <span class="ow">in</span> <span class="n">RefSnpCopyFromData</span><span class="o">.</span><span class="n">_fields</span><span class="p">]</span>
+        <span class="n">row_buff_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">table_name</span><span class="p">:</span> <span class="p">[]</span>
+                         <span class="k">for</span> <span class="n">table_name</span> <span class="ow">in</span> <span class="n">table_names</span><span class="p">}</span>
+        <span class="n">buff_size</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">copy_from_data</span> <span class="ow">in</span> <span class="n">parsed_data_iter</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">table_name</span> <span class="ow">in</span> <span class="n">table_names</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">copy_from_row</span> <span class="ow">in</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">copy_from_data</span><span class="p">,</span>
+                                             <span class="n">table_name</span><span class="p">):</span>
+                    <span class="n">row_buff_dict</span><span class="p">[</span><span class="n">table_name</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">copy_from_row</span><span class="p">)</span>
+            <span class="n">buff_size</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">buff_size</span> <span class="o">%</span> <span class="mi">5000</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>  <span class="c"># Dump</span>
+                <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s">"Dumping (SNPs Processed: {buff_size})"</span><span class="p">)</span>
+                <span class="n">await</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dump_buffer</span><span class="p">(</span><span class="n">row_buff_dict</span><span class="p">,</span> <span class="n">conn</span><span class="p">)</span>
+                <span class="n">row_buff_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">table_name</span><span class="p">:</span> <span class="p">[]</span>
+                                 <span class="k">for</span> <span class="n">table_name</span> <span class="ow">in</span> <span class="n">table_names</span><span class="p">}</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">"Done."</span><span class="p">)</span>
+        <span class="n">await</span> <span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="n">async</span> <span class="k">def</span> <span class="nf">_dump_buffer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row_buff_dict</span><span class="p">,</span> <span class="n">conn</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">table_name</span> <span class="ow">in</span> <span class="n">row_buff_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">records</span> <span class="o">=</span> <span class="n">row_buff_dict</span><span class="p">[</span><span class="n">table_name</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">records</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">await</span> <span class="n">conn</span><span class="o">.</span><span class="n">copy_records_to_table</span><span class="p">(</span>
+                <span class="n">table_name</span><span class="p">,</span>
+                <span class="n">records</span><span class="o">=</span><span class="n">records</span><span class="p">,</span>
+                <span class="n">columns</span><span class="o">=</span><span class="n">records</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">_fields</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>As each <code class="highlighter-rouge">RefSnpCopyFromData</code> object becomes available, we add its contents to our buffer. We apply the KISS principle, implementing our buffer as a <code class="highlighter-rouge">dict</code>, mapping <code class="highlighter-rouge">table_name</code> -&gt; <code class="highlighter-rouge">List[namedtuple]</code>.</p>
+
+<blockquote>
+  <p><strong>Note:</strong> <em>For simplicity’s sake, rather than tracking the memory footprint of our buffer, we are just tracking the # of <code class="highlighter-rouge">RefSNPs</code> processed.</em></p>
+</blockquote>
+
+<p>When we hit our <code class="highlighter-rouge">buff_size</code>, in this case <code class="highlighter-rouge">5000</code>, we leverage <code class="highlighter-rouge">asyncpg</code>’s <code class="highlighter-rouge">copy_records_to_table()</code> method to write to the database, and free up memory by re-initializing our buffer.</p>
+
+<h3 id="the-top-level-method-revisited">The Top-level Method: Revisited</h3>
+
+<p>Remember our <code class="highlighter-rouge">load_ref_snps()</code> method? Recall that our <code class="highlighter-rouge">_load()</code> method is asynchronous, this means we will have to run it with a Python <code class="highlighter-rouge">asyncio</code> loop. We update our method as follows:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="k">def</span> <span class="nf">load_ref_snps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbsnp_filename</span><span class="p">,</span> <span class="n">chromosome</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chromosome</span> <span class="o">=</span> <span class="n">chromosome</span>
+        <span class="n">loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">get_event_loop</span><span class="p">()</span>
+        <span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="nb">open</span><span class="p">(</span><span class="n">dbsnp_filename</span><span class="p">)</span> <span class="k">as</span> <span class="n">gzip_fp</span><span class="p">:</span>
+            <span class="n">loop</span><span class="o">.</span><span class="n">run_until_complete</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_load</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">_generate_parsed_data</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+                            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">gzip_fp</span><span class="p">)))</span>
+</code></pre></div></div>
+
+<blockquote>
+  <p><strong>Note:</strong> <em>It’s worth noting that we get NOTHING from running the <code class="highlighter-rouge">_load()</code> method in an <code class="highlighter-rouge">asyncio</code> loop. We are only using asyncio because the <code class="highlighter-rouge">asyncpg</code> library requires us to do so, that’s the only reason!</em></p>
+</blockquote>
+
+<p><em>In the future, this also opens up the door to asynchronously download/stream each <code class="highlighter-rouge">refsnp-chr*.json.gz</code> file,  while we concurrently parse and insert the data into the database. This would be a <strong>great</strong> optimization, but is outside our scope!</em></p>
+
+<h3 id="the-top-level-method-multiprocessed">The Top-level Method: Multiprocessed</h3>
+
+<p>Our current implementation presents a great opportunity to leverage Python’s <code class="highlighter-rouge">multiprocessing</code> library, without any design changes. We just simply “hand-off” the streaming and parsing of our JSON to a pool of child processes, while our parent process accumulates our data buffer, eventually dumping to our database.</p>
+
+<p>On my 8-core 2016 Macbook Pro, making the change from non-parallelized code to parallelized code reduces the run time from <strong>1 hour and 3 minutes</strong> down to <strong>20 minutes</strong>: a <strong>300%</strong> performance increase. Not too shabby…</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="k">def</span> <span class="nf">load_ref_snps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbsnp_filename</span><span class="p">,</span> <span class="n">chromosome</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chromosome</span> <span class="o">=</span> <span class="n">chromosome</span>
+        <span class="n">num_processes</span> <span class="o">=</span> <span class="n">cpu_count</span><span class="p">()</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s">"Found '{num_processes}' CPUs"</span><span class="p">)</span>
+        <span class="n">loop</span> <span class="o">=</span> <span class="n">asyncio</span><span class="o">.</span><span class="n">get_event_loop</span><span class="p">()</span>
+        <span class="k">with</span> <span class="n">Pool</span><span class="p">(</span><span class="n">num_processes</span><span class="p">)</span> <span class="k">as</span> <span class="n">pool</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="nb">open</span><span class="p">(</span><span class="n">dbsnp_filename</span><span class="p">)</span> <span class="k">as</span> <span class="n">gzip_fp</span><span class="p">:</span>
+                <span class="n">copy_from_data_iter</span> <span class="o">=</span> <span class="n">pool</span><span class="o">.</span><span class="n">imap_unordered</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_generate_parsed_data</span><span class="p">,</span>
+                    <span class="n">gzip_fp</span><span class="p">,</span>
+                    <span class="mi">1024</span><span class="p">)</span>  <span class="c"># chunksize</span>
+                <span class="n">loop</span><span class="o">.</span><span class="n">run_until_complete</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_load</span><span class="p">(</span><span class="n">copy_from_data_iter</span><span class="p">))</span>
+</code></pre></div></div>
+
+<p>That’s it! Our <code class="highlighter-rouge">Pool</code> object manages each child process by handing off lines from <code class="highlighter-rouge">gzip_fp</code> to each process, returning an Iterator of <code class="highlighter-rouge">RefSnpCopyFromData</code> objects which is handed off to <code class="highlighter-rouge">load()</code>, satisfying the methods contract!</p>
+
+<blockquote>
+  <p><strong>Note:</strong> <em>It is not by coincidence that we were able to easily parallelize our application, nor was it by some perfect design. In my experience, it is a combination of</em>:</p>
+</blockquote>
+
+<ol>
+  <li>A desire to design and produce small, concise pieces of code, encapsulated in classes and methods with well-defined interfaces.</li>
+  <li>Many, many iterations. (<em>I went through 3 full refactors while putting this together</em>)</li>
+</ol>
+
+<p>Knowing that you want to parallelize something can obviously be factored into design, but is generally easier to do when you satisfy (1) above.</p>
+
+<h3 id="putting-it-all-together">Putting it All Together</h3>
+
+<p>We can now easily write a script to download, parse and bulk insert all 23 Chromosome’s DbSNP data into our local database:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">snip_warehouse</span> <span class="kn">import</span> <span class="n">SnipLoader</span>
+<span class="kn">from</span> <span class="nn">snip_warehouse.schema</span> <span class="kn">import</span> <span class="n">init_db</span>
+
+
+<span class="nb">input</span><span class="p">(</span><span class="s">"Are you sure you want to re-init DB?"</span>
+      <span class="s">"This takes 2-3 hrs per chromosome"</span><span class="p">)</span>
+<span class="n">init_db</span><span class="p">(</span><span class="n">DB_NAME</span><span class="p">)</span>
+<span class="n">snip_loader</span> <span class="o">=</span> <span class="n">SnipLoader</span><span class="p">(</span><span class="n">DB_NAME</span><span class="p">)</span>
+<span class="n">chr_suffixes</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">23</span><span class="p">)]</span>
+<span class="n">chr_suffixes</span> <span class="o">+=</span> <span class="p">[</span><span class="s">"X"</span><span class="p">,</span> <span class="s">"Y"</span><span class="p">,</span> <span class="s">"MT"</span><span class="p">]</span>
+<span class="k">for</span> <span class="n">chr_suffix</span> <span class="ow">in</span> <span class="n">chr_suffixes</span><span class="p">:</span>
+    <span class="n">snip_loader</span><span class="o">.</span><span class="n">download_dbsnp_file</span><span class="p">(</span>
+        <span class="n">f</span><span class="s">"refsnp-chr{chr_suffix}.json.gz"</span><span class="p">,</span>
+        <span class="n">chr_suffix</span><span class="p">)</span>
+    <span class="n">snip_loader</span><span class="o">.</span><span class="n">load_ref_snps</span><span class="p">(</span>
+        <span class="n">f</span><span class="s">"refsnp-chr{chr_suffix}.json.gz"</span><span class="p">,</span>
+        <span class="n">chr_suffix</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="n">f</span><span class="s">"rm refsnp-chr{chr_suffix}.json.gz"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>More good news, on my 2016, 8-core Macbook Pro (w/ SSD), the Wall Time of warehousing the data of all 23 Chromosomes is <strong>9 hours and 21 minutes.</strong> This satisfies the “overnight goal” - you can kick the above script off before bed, wake up, eat breakfast, and it should be done!</p>
+
+<h3 id="whats-next">What’s Next?</h3>
+
+<blockquote>
+  <p>You can find the full <a href="https://github.com/seanharr11/snip_warehouse">source code repo on github here</a></p>
+</blockquote>
+
+<p>By open-sourcing this project, it is my hope that folks can take snippets from the walkthrough to build their own hand-curated, DbSNP-related database. Whether you are a Bioinformatician, a hobbying dev, or a PhD without much time or money, don’t recreate the wheel. Take bits and pieces and build something better.</p>
+
+<p>I’ve already built one practical application of this database: The Snip API. This API allows a user to turn his/her <code class="highlighter-rouge">23&amp;Me</code> <a href="https://you.23andme.com/tools/data/download/">Raw SNP Export</a> into insights. It helped me discover that <a href="https://www.youtube.com/watch?v=bTAFl8P2DkE&amp;feature=youtu.be&amp;t=3115">the instigator of my father’s Gallstones and Gallbladder removal was likely genetic</a>.</p>
+
+<blockquote>
+  <p>You can find the Snip API client <a href="https://github.com/seanharr11/snip-api-client">on github here</a>.</p>
+</blockquote>
+
+<p>I encourage everyone to use the API, and explore the JSON output: you will likely find something of interest. Further, I would encourage folks to:</p>
+<ol>
+  <li>Build more APIs like it</li>
+  <li>Build a GUI for Snip</li>
+  <li>Find bugs/issues with Snip</li>
+  <li>Integrate this data with other datasets</li>
+  <li>Share all of this code/information with as many people as you can!</li>
+</ol>
+
+<p>It’s an exciting time for the intersection of Biology and Software Engineering. My hope is that we can all ride the wave.</p>
+
+	  ]]></description>
+	</item>
+
+	<item>
+	  <title>Warehousing DbSNP, Part II: Streaming and Parsing SNP Data</title>
+	  <link>//bioinformatics/warehousing-DbSNP-Part-II-parsing-RefSNP-JSON</link>
+	  <author></author>
+	  <pubDate>2018-06-25T04:24:00-04:00</pubDate>
+	  <guid>//bioinformatics/warehousing-DbSNP-Part-II-parsing-RefSNP-JSON</guid>
+	  <description><![CDATA[
+	     <h3 id="intro">Intro</h3>
+
+<p>Part II of our adventure to warehouse a subset of DBbSNP’s JSON data picks up <a href="warehousing-DbSNP-Part-I-download-and-create-db#parsing-the-json-data">where Part I left off</a>.</p>
+
+<p>Now that we have our database and chromosome 1 file readily available, let’s work to stream and parse each line of refsnp-chr1.json.gz, in preparation for database insertion.</p>
+
+<h3 id="obtaining-a-file-handle">Obtaining a File Handle</h3>
+
+<p>Typically in Python we would open our file as follows:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">dbsnp_filename</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+    <span class="c"># Do stuff with fp here</span>
+</code></pre></div></div>
+
+<p>However have a slight wrinkle here: we need to decompress our gzipped data. Conveniently, we can leverage the <code class="highlighter-rouge">gzip</code> package as follows:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="nb">open</span><span class="p">(</span><span class="n">dbsnp_filname</span><span class="p">)</span> <span class="k">as</span> <span class="n">gzip_fp</span><span class="p">:</span>
+    <span class="c"># Do stuff here</span>
+</code></pre></div></div>
+<p><em>Credit to <a href="https://twitter.com/__qualname__" target="_blank">Joe Jevnik</a> for pointing out the (now obvious) step of decompressing after loading from disk, rather than decompressing the entire file before iteration</em></p>
+
+<h3 id="sniploader-class">SnipLoader Class</h3>
+
+<p>Let’s start by creating a simple class called <code class="highlighter-rouge">SnipLoader</code> to place all of our methods and attributes under one roof:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">SnipLoader</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">database_name</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">database_name</span> <span class="o">=</span> <span class="n">database_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">file_blocksize</span> <span class="o">=</span> <span class="mi">1024</span> <span class="o">**</span><span class="mi">2</span>
+</code></pre></div></div>
+
+<h3 id="top-level-file-iteration">Top-level File Iteration</h3>
+
+<p>Let’s introduce 2 methods:</p>
+
+<ol>
+  <li><code class="highlighter-rouge">_generate_parsed_data(self, raw_line: str) -&gt; RefSnpCopyFromData:</code>
+    <ul>
+      <li><strong>args</strong>: Takes a <code class="highlighter-rouge">raw_line</code> the JSON text from our file.</li>
+      <li><strong>returns</strong>: An object of type <code class="highlighter-rouge">RefSnpCopyFromData</code>, holding parsed data we care about (<em>defined in Part I</em>)</li>
+    </ul>
+  </li>
+  <li><code class="highlighter-rouge">_load(self, parsed_data_iter: Iterator[RefSnpCopyFromData]) -&gt; None</code>
+    <ul>
+      <li><strong>args</strong>: Takes an <code class="highlighter-rouge">Iterator</code> that yields a <code class="highlighter-rouge">RefSnpCopyFromData</code> object at each iteration.</li>
+      <li><strong>side effects</strong>: Accumulates each iteration, and efficiently inserts the data into our database.</li>
+    </ul>
+  </li>
+</ol>
+
+<p>We tie these 2 ideas together to get our top-level, public API method <code class="highlighter-rouge">load_ref_snps()</code>:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">load_ref_snps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbsnp_filename</span><span class="p">,</span> <span class="n">chromosome</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">chromosome</span> <span class="o">=</span> <span class="n">chromosome</span>
+    <span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="nb">open</span><span class="p">(</span><span class="n">dbsnp_filename</span><span class="p">)</span> <span class="k">as</span> <span class="n">gzip_fp</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_load</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">_generate_parsed_data</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">gzip_fp</span><span class="p">))</span>
+</code></pre></div></div>
+
+<blockquote>
+  <p><strong>Note</strong>: <em>We create an iterator out of our <code class="highlighter-rouge">generate_parsed_data(raw_line)</code> method and our <code class="highlighter-rouge">gzip_fp</code> file handle using the <code class="highlighter-rouge">(func(item) for item in iter)</code> generator-comprehension syntax above, <a href="https://stackoverflow.com/questions/47789/generator-expressions-vs-list-comprehension">which produces a generator</a></em>.</p>
+</blockquote>
+
+<h3 id="dbsnps-json-schema">DbSNP’s JSON Schema</h3>
+
+<p>When implementing <code class="highlighter-rouge">generate_parsed_data(raw_line)</code>, we need to know the JSON schema of each object. There are some <a href="https://api.ncbi.nlm.nih.gov/variation/v0/var_service.yaml">schema details buried here in the Variation Services API</a>, but with JSON, I always find it easier to view the data directly.</p>
+
+<p>For brevity’s sake, here is the top-level of our JSON object (<em>that we care about</em>):</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span>
+    <span class="s2">"refsnp_id"</span><span class="p">:</span> <span class="s2">"242"</span><span class="p">,</span>
+    <span class="p">...,</span>
+    <span class="s2">"primary_snapshot_data"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"placements_with_allele"</span><span class="p">:</span> <span class="p">[</span>
+            <span class="p">{</span>
+                <span class="s2">"placement_annot"</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s2">"seq_id_traits_by_assembly"</span><span class="p">:</span> <span class="p">[</span>
+                        <span class="p">{</span>
+                            <span class="s2">"assembly_name"</span><span class="p">:</span> <span class="s2">"GRCh38.p7"</span><span class="p">,</span>
+                            <span class="p">...</span>
+                        <span class="p">}</span>
+                    <span class="p">],</span>
+                    <span class="p">...</span>
+                <span class="p">},</span>
+                <span class="s2">"alleles"</span><span class="p">:</span> <span class="p">[...],</span>
+                <span class="p">...</span>
+            <span class="p">},</span>
+            <span class="p">{</span> <span class="cm">/* More placements here*/</span> <span class="p">}</span>
+        <span class="p">],</span>
+        <span class="s2">"allele_annotations"</span><span class="p">:</span> <span class="p">[</span>
+            <span class="cm">/* One allele_annotation per allele above */</span>
+        <span class="p">]</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>In <code class="highlighter-rouge">generate_parsed_data(raw_line)</code>, our first line of code should parse the JSON string into a dict:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">rsnp_json</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">raw_line</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>We use this object moving forward to parse out data.</p>
+
+<h3 id="finding-alleles-from-a-specific-assembly-genome">Finding Alleles from a Specific Assembly Genome</h3>
+<p>We want to first find the <code class="highlighter-rouge">placement</code> that corresponds to our target <code class="highlighter-rouge">assembly_name</code>, which in my specific case is <code class="highlighter-rouge">GRCh38</code> (<em>this is what 23&amp;Me uses in their current pipeline</em>). The most recent build is <code class="highlighter-rouge">GRCh38.p12</code>.</p>
+
+<p>An <code class="highlighter-rouge">assembly</code> is short for an <code class="highlighter-rouge">assembly genome</code>, which is the best representation of the <em>typical human genome</em>, and we use this as a point of reference for detecting variations.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@staticmethod</span>
+<span class="k">def</span> <span class="nf">_find_alleles_from_assembly</span><span class="p">(</span><span class="n">rsnp_placements</span><span class="p">,</span>
+                                <span class="n">assembly_name</span><span class="o">=</span><span class="s">"GRCh38"</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">rsnp_placement</span> <span class="ow">in</span> <span class="n">rsnp_placements</span><span class="p">:</span>
+        <span class="n">annot</span> <span class="o">=</span> <span class="n">rsnp_placement</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'placement_annot'</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">annot</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">annot</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">'seq_id_traits_by_assembly'</span><span class="p">):</span>
+            <span class="k">return</span>
+        <span class="n">assembly_info_ls</span> <span class="o">=</span> <span class="n">annot</span><span class="p">[</span><span class="s">'seq_id_traits_by_assembly'</span><span class="p">]</span>
+        <span class="n">assembly_info</span> <span class="o">=</span> <span class="n">assembly_info_ls</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">this_assembly_name</span> <span class="o">=</span> <span class="n">assembly_info</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">"assembly_name"</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">assembly_name</span> <span class="ow">in</span> <span class="n">this_assembly_name</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">rsnp_placement</span><span class="p">[</span><span class="s">'alleles'</span><span class="p">]</span>
+
+<span class="n">rsnp_placements</span> <span class="o">=</span> <span class="n">rsnp_json</span><span class="p">[</span><span class="s">'primary_snapshot_data'</span><span class="p">]</span>
+    <span class="s">'placements_with_allele'</span><span class="p">]</span>
+<span class="n">alleles</span> <span class="o">=</span> <span class="n">_find_alleles_from_assembly</span><span class="p">(</span><span class="n">rsnp_placements</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>This gives us all alleles, or “gene variant”, at that specific RefSNP. Our goal is to find alleles which <em>differ from our assembly genome</em>.</p>
+
+<h3 id="find-variant-alleles-for-refsnp">Find Variant Alleles for RefSNP</h3>
+
+<p>To find our variant alleles, we need to look at one level deeper in our JSON schema to see how they are represented:</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="s2">"alleles"</span><span class="p">:</span> <span class="p">[</span>
+    <span class="p">{</span>
+        <span class="s2">"allele"</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">"spdi"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"seq_id"</span><span class="p">:</span> <span class="s2">"NC_000001.11"</span><span class="p">,</span>
+                <span class="s2">"position"</span><span class="p">:</span> <span class="mi">20542967</span><span class="p">,</span>
+                <span class="s2">"deleted_sequence"</span><span class="p">:</span> <span class="s2">"T"</span><span class="p">,</span>
+                <span class="s2">"inserted_sequence"</span><span class="p">:</span> <span class="s2">"T"</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="s2">"hgvs"</span><span class="p">:</span> <span class="s2">"NC_000001.11:g.20542968T="</span>
+    <span class="p">},</span>
+    <span class="p">{</span>
+        <span class="s2">"allele"</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">"spdi"</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">"seq_id"</span><span class="p">:</span> <span class="s2">"NC_000001.11"</span><span class="p">,</span>
+                <span class="s2">"position"</span><span class="p">:</span> <span class="mi">20542967</span><span class="p">,</span>
+                <span class="s2">"deleted_sequence"</span><span class="p">:</span> <span class="s2">"T"</span><span class="p">,</span>
+                <span class="s2">"inserted_sequence"</span><span class="p">:</span> <span class="s2">""</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="s2">"hgvs"</span><span class="p">:</span> <span class="s2">"NC_000001.11:g.20542968delT"</span>
+    <span class="p">}</span>
+<span class="p">]</span>
+</code></pre></div></div>
+
+<p>Above, we see two alleles of a gene, at a single position where a SNP occurs (<em>by definition, in more than 1% of the population</em>). The first allele is the non-variant. We know this because the <code class="highlighter-rouge">deleted_sequence</code> == <code class="highlighter-rouge">inserted_sequence</code>.</p>
+
+<p>The second is allele, is a variant. Specifically, it is a <strong>deletion</strong> SNP, where a base-pair is deleted from a gene.</p>
+
+<p>We only want to grab variants, like the second allele, and we do so with the following simple logic:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@staticmethod</span>
+<span class="k">def</span> <span class="nf">_get_variant_alleles</span><span class="p">(</span><span class="n">chromosome</span><span class="p">,</span> <span class="n">alleles</span><span class="p">,</span>
+                         <span class="n">ref_snp_id</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">RefSnpAllele</span><span class="p">]:</span>
+    <span class="n">variant_alleles</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">allele</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">alleles</span><span class="p">):</span>
+        <span class="n">spdi</span> <span class="o">=</span> <span class="n">allele</span><span class="p">[</span><span class="s">'allele'</span><span class="p">][</span><span class="s">'spdi'</span><span class="p">]</span>
+        <span class="n">ins</span><span class="p">,</span> <span class="n">delete</span> <span class="o">=</span> <span class="n">spdi</span><span class="p">[</span><span class="s">'inserted_sequence'</span><span class="p">],</span> <span class="n">spdi</span><span class="p">[</span><span class="s">'deleted_sequence'</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">ins</span> <span class="o">!=</span> <span class="n">delete</span><span class="p">:</span>
+            <span class="n">variant_alleles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">RefSnpAllele</span><span class="p">(</span>
+                <span class="n">ins_seq</span><span class="o">=</span><span class="n">ins</span><span class="p">,</span>
+                <span class="n">del_seq</span><span class="o">=</span><span class="n">delete</span><span class="p">,</span>
+                <span class="n">position</span><span class="o">=</span><span class="n">spdi</span><span class="p">[</span><span class="s">'position'</span><span class="p">],</span>
+                <span class="n">ref_snp_allele_idx</span><span class="o">=</span><span class="n">idx</span><span class="p">,</span>
+                <span class="n">chromosome</span><span class="o">=</span><span class="n">chromosome</span><span class="p">,</span>
+                <span class="n">ref_snp_id</span><span class="o">=</span><span class="n">ref_snp_id</span><span class="p">,</span>
+                <span class="n">gene_locii</span><span class="o">=</span><span class="bp">None</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">variant_alleles</span>
+</code></pre></div></div>
+
+<blockquote>
+  <p><strong>Note</strong>: <em>We are returning data from the method above using our <code class="highlighter-rouge">RefSnpAllele</code> Data Transfer Object, <a href="warehousing-DbSNP-Part-I-download-and-create-db#defining-dtos-data-transfer-objects">defined in Part I</a>, for readability, and error prevention! We continue to shuttle data following the same pattern, in methods below, leveraging our other</em> <code class="highlighter-rouge">DTOs</code>.</p>
+</blockquote>
+
+<h3 id="parse-frequency-studies-clinical-diseases-and-gene-locii">Parse Frequency Studies, Clinical Diseases, and Gene Locii</h3>
+
+<p>In our top-level JSON object we had a key named <code class="highlighter-rouge">allele_annotations</code>. This key maps to a list, with 1 element per <code class="highlighter-rouge">allele</code> found our previous section above.</p>
+
+<p>While not made obvious by documentation, the <code class="highlighter-rouge">allele_annotations</code> and <code class="highlighter-rouge">alleles</code> share a common index. Since we had 2 alleles above (1 variant, 1 non-variant), we’d expect 2 annotations in our JSON.</p>
+
+<p>Let’s take a look at the JSON fields (<em>that we care about</em>), only considering the variant allele, again, for brevity’s sake.</p>
+
+<div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span>
+    <span class="s2">"frequency"</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">"study_name"</span><span class="p">:</span> <span class="s2">"1000Genomes"</span><span class="p">,</span>
+            <span class="p">...</span>
+            <span class="s2">"allele_count"</span><span class="p">:</span> <span class="mi">257</span><span class="p">,</span>
+            <span class="s2">"total_count"</span><span class="p">:</span> <span class="mi">5008</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">],</span>
+    <span class="s2">"clinical"</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">"disease_names"</span><span class="p">:</span> <span class="p">[</span>
+                <span class="s2">"Alzheimer's"</span>
+            <span class="p">],</span>
+            <span class="p">...,</span>
+            <span class="s2">"clinical_significances"</span><span class="p">:</span> <span class="p">[</span>
+            <span class="cm">/* These are ClinVar Enumerated types */</span>
+                <span class="s2">"likely-benign"</span>
+            <span class="p">],</span>
+            <span class="s2">"citations"</span><span class="p">:</span> <span class="p">[</span><span class="mi">12345</span><span class="p">],</span> <span class="cm">/* These are Pubmed IDs */</span>
+        <span class="p">}</span>
+
+    <span class="p">],</span>
+    <span class="s2">"assembly_annotation"</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="p">...,</span>
+            <span class="s2">"genes"</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s2">"locus"</span><span class="p">:</span> <span class="s2">"ASH1L"</span><span class="p">,</span>
+                    <span class="s2">"orientation"</span><span class="p">:</span> <span class="s2">"minus"</span>
+                <span class="p">}</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
+    <span class="p">]</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>We can first parse out Frequency Study information as follows:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@staticmethod</span>
+<span class="k">def</span> <span class="nf">_parse_freq_studies</span><span class="p">(</span><span class="n">allele_annotation</span><span class="p">,</span>
+                        <span class="n">ref_snp_id</span><span class="p">,</span>
+                        <span class="n">allele_idx</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">RefSnpAlleleFreqStudy</span><span class="p">]:</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">RefSnpAlleleFreqStudy</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="n">freq</span><span class="p">[</span><span class="s">'study_name'</span><span class="p">],</span>
+        <span class="n">allele_count</span><span class="o">=</span><span class="n">freq</span><span class="p">[</span><span class="s">'allele_count'</span><span class="p">],</span>
+        <span class="n">total_count</span><span class="o">=</span><span class="n">freq</span><span class="p">[</span><span class="s">'total_count'</span><span class="p">],</span>
+        <span class="n">ref_snp_allele_idx</span><span class="o">=</span><span class="n">allele_idx</span><span class="p">,</span>
+        <span class="n">ref_snp_id</span><span class="o">=</span><span class="n">ref_snp_id</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">freq</span> <span class="ow">in</span> <span class="n">allele_annotation</span><span class="p">[</span><span class="s">'frequency'</span><span class="p">]</span> <span class="ow">or</span> <span class="p">[]]</span>
+</code></pre></div></div>
+
+<p>After these, we can grab the ClinVar (clincial disease) data. <a href="http://www.ncbi.nlm.nih.gov/clinvar/docs/help/">ClinVar data</a> includes PubMed Citation IDs, Disease Names, and <code class="highlighter-rouge">Clinical Signifiance</code>, which takes 1 of the following values:</p>
+
+<ul>
+  <li>not_provided</li>
+  <li>pathogenic</li>
+  <li>likely_pathogenic</li>
+  <li>benign</li>
+  <li>likely_benign</li>
+  <li>drug_response</li>
+  <li>confers_sensitivity</li>
+  <li>risk_factor</li>
+  <li>association</li>
+  <li>protective</li>
+  <li>conflicting_interpretations_of_pathogenicity</li>
+  <li>uncertain_significance</li>
+  <li>affects</li>
+  <li>association_not_found</li>
+  <li>other</li>
+</ul>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@staticmethod</span>
+<span class="k">def</span> <span class="nf">_parse_clin_diseases</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">allele_annotation</span><span class="p">,</span>
+                         <span class="n">ref_snp_id</span><span class="p">,</span>
+                         <span class="n">allele_idx</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span>
+                             <span class="n">RefSnpAlleleClinDisease</span><span class="p">]:</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">RefSnpAlleleClinDisease</span><span class="p">(</span>
+        <span class="n">citation_list</span><span class="o">=</span><span class="n">clin</span><span class="p">[</span><span class="s">'citations'</span><span class="p">],</span>
+        <span class="n">disease_name_csv</span><span class="o">=</span><span class="s">","</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">clin</span><span class="p">[</span><span class="s">'disease_names'</span><span class="p">]),</span>
+        <span class="n">clinical_significance_csv</span><span class="o">=</span><span class="s">","</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="n">clin</span><span class="p">[</span><span class="s">'clinical_significances'</span><span class="p">]),</span>
+        <span class="n">ref_snp_allele_idx</span><span class="o">=</span><span class="n">allele_idx</span><span class="p">,</span>
+        <span class="n">ref_snp_id</span><span class="o">=</span><span class="n">ref_snp_id</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">clin</span> <span class="ow">in</span> <span class="n">allele_annotation</span><span class="p">[</span><span class="s">'clinical'</span><span class="p">]]</span>
+</code></pre></div></div>
+
+<p>Finally, let’s grab the locii of all genes that this SNP has an effect on.</p>
+
+<blockquote>
+  <p><strong>Note:</strong> <em>I am still unsure why there are “multiple genes” per Allele Annotation. My current theory is that NCBI is including effects of this gene being altered on a gene downstream in some network/pathway. If anyone has any insight, <a href="mailto:seanharr11@gmail.com">please send me an email</a></em></p>
+</blockquote>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@staticmethod</span>
+<span class="k">def</span> <span class="nf">_parse_gene_locii</span><span class="p">(</span><span class="n">allele_annotation</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+    <span class="n">assembly_annotation</span> <span class="o">=</span> <span class="n">allele_annotation</span><span class="p">[</span>
+        <span class="s">'assembly_annotation'</span><span class="p">]</span>
+    <span class="k">return</span> <span class="nb">set</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">gene</span><span class="p">[</span><span class="s">'locus'</span><span class="p">]</span> <span class="k">for</span> <span class="n">gene</span> <span class="ow">in</span>
+            <span class="p">(</span><span class="n">assembly_annotation</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s">'genes'</span><span class="p">]</span>
+             <span class="k">if</span> <span class="n">assembly_annotation</span> <span class="k">else</span> <span class="p">[])])</span>
+</code></pre></div></div>
+
+<h3 id="gathering-data-for-insert">Gathering Data for Insert</h3>
+
+<p>We want to put this all together into a function which returns a <code class="highlighter-rouge">RefSnpCopyFromData</code> object. This houses all data pertaining to a single RefSNP that is to be inserted into our database:</p>
+
+<p>The last two functions look like this:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">_generate_parsed_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">raw_line</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RefSnpCopyFromData</span><span class="p">:</span>
+    <span class="n">rsnp_json</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">raw_line</span><span class="p">)</span>
+    <span class="n">ref_snp_id</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">rsnp_json</span><span class="p">[</span><span class="s">'refsnp_id'</span><span class="p">])</span>
+    <span class="n">rsnp_placements</span> <span class="o">=</span> <span class="n">rsnp_json</span><span class="p">[</span><span class="s">'primary_snapshot_data'</span><span class="p">][</span>
+                            <span class="s">'placements_with_allele'</span><span class="p">]</span>
+    <span class="n">copy_from_data</span> <span class="o">=</span> <span class="n">RefSnpCopyFromData</span><span class="p">(</span>
+        <span class="n">ref_snp_alleles</span><span class="o">=</span><span class="p">[],</span>
+        <span class="n">ref_snp_allele_freq_studies</span><span class="o">=</span><span class="p">[],</span>
+        <span class="n">ref_snp_allele_clin_diseases</span><span class="o">=</span><span class="p">[])</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">rsnp_placements</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">copy_from_data</span>
+    <span class="n">allele_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_find_alleles_from_assembly</span><span class="p">(</span><span class="n">rsnp_placements</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">allele_data</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">copy_from_data</span>
+    <span class="n">variant_ref_snp_alleles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_variant_alleles</span><span class="p">(</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chromosome</span><span class="p">,</span>
+        <span class="n">allele_data</span><span class="p">,</span>
+        <span class="n">ref_snp_id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">variant_ref_snp_alleles</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">copy_from_data</span>
+    <span class="k">for</span> <span class="n">allele</span> <span class="ow">in</span> <span class="n">variant_ref_snp_alleles</span><span class="p">:</span>
+        <span class="n">allele_idx</span> <span class="o">=</span> <span class="n">allele</span><span class="o">.</span><span class="n">ref_snp_allele_idx</span>
+        <span class="n">allele_annotation</span> <span class="o">=</span> <span class="n">rsnp_json</span><span class="p">[</span><span class="s">'primary_snapshot_data'</span><span class="p">][</span>
+            <span class="s">'allele_annotations'</span><span class="p">][</span><span class="n">allele_idx</span><span class="p">]</span>
+        <span class="n">gene_locii</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_gene_locii</span><span class="p">(</span><span class="n">allele_annotation</span><span class="p">)</span>
+        <span class="n">freq_studies</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_freq_studies</span><span class="p">(</span><span class="n">allele_annotation</span><span class="p">,</span>
+                                                <span class="n">ref_snp_id</span><span class="p">,</span>
+                                                <span class="n">allele_idx</span><span class="p">)</span>
+        <span class="n">clin_diseases</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_clin_diseases</span><span class="p">(</span><span class="n">allele_annotation</span><span class="p">,</span>
+                                                  <span class="n">ref_snp_id</span><span class="p">,</span>
+                                                  <span class="n">allele_idx</span><span class="p">)</span>
+        <span class="n">copy_from_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_copy_from_data</span><span class="p">(</span>
+           <span class="n">copy_from_data</span><span class="p">,</span> <span class="n">allele</span><span class="p">,</span> <span class="n">freq_studies</span><span class="p">,</span>
+           <span class="n">clin_diseases</span><span class="p">,</span> <span class="n">gene_locii</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">copy_from_data</span>
+
+<span class="nd">@staticmethod</span>
+<span class="k">def</span> <span class="nf">_update_copy_from_data</span><span class="p">(</span><span class="n">copy_from_data</span><span class="p">:</span> <span class="n">RefSnpCopyFromData</span><span class="p">,</span>
+                           <span class="n">allele</span><span class="p">:</span> <span class="n">RefSnpAllele</span><span class="p">,</span>
+                           <span class="n">freq_studies</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span>
+                               <span class="n">RefSnpAlleleFreqStudy</span><span class="p">],</span>
+                           <span class="n">clin_diseases</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span>
+                               <span class="n">RefSnpAlleleClinDisease</span><span class="p">],</span>
+                           <span class="n">gene_locii</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]):</span>
+    <span class="n">copy_from_data</span><span class="o">.</span><span class="n">ref_snp_alleles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+        <span class="n">RefSnpAllele</span><span class="p">(</span>
+            <span class="n">del_seq</span><span class="o">=</span><span class="n">allele</span><span class="o">.</span><span class="n">del_seq</span><span class="p">,</span>
+            <span class="n">ins_seq</span><span class="o">=</span><span class="n">allele</span><span class="o">.</span><span class="n">ins_seq</span><span class="p">,</span>
+            <span class="n">position</span><span class="o">=</span><span class="n">allele</span><span class="o">.</span><span class="n">position</span><span class="p">,</span>
+            <span class="n">ref_snp_allele_idx</span><span class="o">=</span><span class="n">allele</span><span class="o">.</span><span class="n">ref_snp_allele_idx</span><span class="p">,</span>
+            <span class="n">chromosome</span><span class="o">=</span><span class="n">allele</span><span class="o">.</span><span class="n">chromosome</span><span class="p">,</span>
+            <span class="n">ref_snp_id</span><span class="o">=</span><span class="n">allele</span><span class="o">.</span><span class="n">ref_snp_id</span><span class="p">,</span>
+            <span class="n">gene_locii</span><span class="o">=</span><span class="n">gene_locii</span><span class="p">))</span>
+    <span class="n">copy_from_data</span><span class="o">.</span><span class="n">ref_snp_allele_freq_studies</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+        <span class="n">freq_studies</span><span class="p">)</span>
+    <span class="n">copy_from_data</span><span class="o">.</span><span class="n">ref_snp_allele_clin_diseases</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span>
+        <span class="n">clin_diseases</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">copy_from_data</span>
+</code></pre></div></div>
+
+<blockquote>
+  <p><strong>Note</strong>: <em>We leverage <code class="highlighter-rouge">@staticmethod</code> decorators in almost all of the methods above. Static methods do NOT have access to the object’s internal state (hence why the <code class="highlighter-rouge">self</code> parameter is gone), and therefore have no side-effects. Since these are now explicitly <a href="https://en.wikipedia.org/wiki/Pure_function">pure functions</a>, they are extremely easy to test, and read.</em></p>
+</blockquote>
+
+<p>Woah. That’s a good chunk of code for 1 post. Let’s get to our final destination: <a href="http://localhost:4000/warehousing-DbSNP-Part-III-bulk-inserting-SNP-data">Inserting our DbSNP data efficiently into PostgreSQL</a>.</p>
+
+
+	  ]]></description>
+	</item>
+
+	<item>
+	  <title>Warehousing DbSNP, Part I: Downloading Chromosome 1 & Creating our Database</title>
+	  <link>//bioinformatics/warehousing-DbSNP-Part-I-download-and-create-db</link>
+	  <author></author>
+	  <pubDate>2018-06-20T06:18:00-04:00</pubDate>
+	  <guid>//bioinformatics/warehousing-DbSNP-Part-I-download-and-create-db</guid>
+	  <description><![CDATA[
+	     <h3 id="intro">Intro</h3>
+<p>This series of posts cover how to migrate <a href="https://www.ncbi.nlm.nih.gov/projects/SNP" target="_blank">DbSNP</a>’s <a href="https://ncbiinsights.ncbi.nlm.nih.gov/2017/07/07/dbsnp-redesign-supports-future-data-expansion/" target="_blank">newly downloadable JSON files</a> into a slimmed-down, relational database, containing population frequency data, associated pubmed IDs, and clinvar data for each SNP in the database.</p>
+
+<blockquote>
+  <p><a href="https://www.youtube.com/watch?v=bTAFl8P2DkE&amp;feature=youtu.be&amp;t=3115">I gave a lightning talk at PyCon2018</a> about a live, deployed application of this database: <a href="https://github.com/seanharr11/snip-api-client">The Snip API</a>. You can easily turn your 23&amp;Me Raw Data into insights from DbSNP using this (<em>free</em>) API; <a href="https://github.com/seanharr11    /snip-api-client">the client is found here on github</a>.</p>
+</blockquote>
+
+<p>Moving forward, NCBI plans to store 1 JSON file per chromosome, and these files can be found <a href="ftp://ftp.ncbi.nlm.nih.gov/snp/.redesign/latest_release/JSON" target="_blank">here</a>. The total size of this JSON payload is a whopping <strong>104GB</strong> of gzipped data.</p>
+
+<p>The <strong>uncompressed</strong> size of chromosome 1’s file is <strong>162GB</strong>, with the <strong>compressed</strong> size being <strong>8GB</strong>. Using this compression ratio (<strong>1:20</strong>) as a rule-of-thumb, the uncompressed size of the entire dataset is <strong>2.1TB</strong>…that’s a lot of data to process and warehouse. Let’s begin with step 1: downloading <code class="highlighter-rouge">refsnp_chr1.json.gz</code> as our case study.</p>
+
+<h3 id="downloading-the-file">Downloading the file</h3>
+<p>In a perfect, simpler world, the following few LOC would download our 1st file:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">ftplib</span>
+
+<span class="n">dbnsp_filename</span> <span class="o">=</span> <span class="s">"refsnp-chr1.json.gz"</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">dbsnp_filename</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">".gz"</span><span class="p">,</span> <span class="s">""</span><span class="p">),</span> <span class="s">"wb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+    <span class="n">ftp</span> <span class="o">=</span> <span class="n">ftplib</span><span class="o">.</span><span class="n">FTP</span><span class="p">(</span><span class="s">"ftp.ncbi.nlm.nih.gov"</span><span class="p">)</span>
+    <span class="n">ftp</span><span class="o">.</span><span class="n">login</span><span class="p">()</span>
+    <span class="n">ftp</span><span class="o">.</span><span class="n">cwd</span><span class="p">(</span><span class="s">"snp/.redesign/latest_release/JSON"</span><span class="p">)</span>
+    <span class="n">ftp</span><span class="o">.</span><span class="n">retrbinary</span><span class="p">(</span><span class="s">"RETR "</span> <span class="o">+</span> <span class="n">dbsnp_filename</span><span class="p">,</span> <span class="n">fp</span><span class="o">.</span><span class="n">write</span><span class="p">,</span> <span class="mi">1024</span><span class="p">)</span>
+    <span class="n">ftp</span><span class="o">.</span><span class="n">quit</span><span class="p">()</span>
+</code></pre></div></div>
+
+<p>Unfortunately, the combination of the <code class="highlighter-rouge">FTP</code> protocal, large file download size and network latency create a perfect storm for server side &amp; client side timeouts. Running the above code will lead to server side (or client side) timeout, and eventually the download will come to a halt.</p>
+
+<p>Kudos to <a href="https://stackoverflow.com/a/19693709/3923962" target="_blank">this excellent stackoverflow answer</a> for a graceful solution to avoid FTP downloads timing out. We just send simple “NOOP” commands, equivalent to a ‘PING’, from a separate thread, to keep our connection alive:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">ftplib</span>
+
+<span class="n">dbsnp_filename</span> <span class="o">=</span> <span class="s">"refsnp-chr1.json.gz"</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">dbsnp_filename</span><span class="p">,</span> <span class="s">"wb"</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
+    <span class="n">ftp</span> <span class="o">=</span> <span class="n">ftplib</span><span class="o">.</span><span class="n">FTP</span><span class="p">(</span><span class="s">"ftp.ncbi.nlm.nih.gov"</span><span class="p">)</span>
+    <span class="n">ftp</span><span class="o">.</span><span class="n">login</span><span class="p">()</span>
+    <span class="n">ftp</span><span class="o">.</span><span class="n">cwd</span><span class="p">(</span><span class="s">"snp/.redesign/latest_release/JSON"</span><span class="p">)</span>
+    <span class="n">size_gb</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">ftp</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">dbsnp_filename</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1024</span><span class="o">**</span><span class="mi">3</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s">"Filesize: {size_gb} GB"</span><span class="p">)</span>
+    <span class="n">sock</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">while</span> <span class="ow">not</span> <span class="n">sock</span><span class="p">:</span>  <span class="c"># Try to open the socket conn w/ server</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">"Trying to establish FTP conn"</span><span class="p">)</span>
+        <span class="n">sock</span> <span class="o">=</span> <span class="n">ftp</span><span class="o">.</span><span class="n">transfercmd</span><span class="p">(</span><span class="n">f</span><span class="s">"RETR {dbsnp_filename}"</span><span class="p">)</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">download</span><span class="p">():</span>
+        <span class="n">transferred</span><span class="p">,</span> <span class="n">blocks</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+            <span class="n">byte_chunk</span> <span class="o">=</span> <span class="n">sock</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">1024</span><span class="o">*</span><span class="mi">1024</span><span class="o">*</span><span class="mi">8</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">byte_chunk</span><span class="p">:</span>
+                <span class="k">break</span>
+            <span class="n">blocks</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">transferred</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">byte_chunk</span><span class="p">)</span>
+            <span class="n">transferred_mb</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">transferred</span> <span class="o">/</span> <span class="mi">1024</span> <span class="o">/</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">blocks</span> <span class="o">%</span> <span class="mi">1000</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="n">f</span><span class="s">"Transferred {transferred_mb}MB / "</span>
+                      <span class="n">f</span><span class="s">"{size_gb * 1024}MB"</span><span class="p">)</span>
+            <span class="n">fp</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">byte_chunk</span><span class="p">)</span>
+        <span class="n">sock</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">fp</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">download</span><span class="p">)</span>
+    <span class="n">t</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+    <span class="k">while</span> <span class="n">t</span><span class="o">.</span><span class="n">is_alive</span><span class="p">():</span>
+        <span class="n">t</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="mi">60</span><span class="p">)</span>
+        <span class="n">ftp</span><span class="o">.</span><span class="n">voidcmd</span><span class="p">(</span><span class="s">"NOOP"</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p><em>For those wondering, on a shoddy cafe WiFi, downloading refsnp-chr1.json.gz takes about 48 minutes, which was insigificantly less than the time it takes to download the file in Google Chrome (50 minutes). Make sure you aren’t on shoddy cafe WiFi, times 23…</em></p>
+
+<p>We now have the file <code class="highlighter-rouge">refsnp-chr1.json.gz</code> in our working directory, which holds a JSON object per RefSNP on each line. We want to extract a small subset of the ~200GB of data stored in this file, and insert it into a Relational Database. Let’s define our schema:</p>
+
+<h3 id="defining-our-relational-database-schema">Defining our Relational Database Schema</h3>
+
+<p>Rather than writing an unmaintanable mess of SQL DDL statements, I opt to use SQLAlchemy’s core library for defining our database schema (i.e. the tables). It’s a powerful, well-maintained library, producing code that is far more maintainable than free-form SQL text. Here are the models representing tables to insert our data into:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># coding: utf-8</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="p">(</span>
+     <span class="n">BigInteger</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">Text</span><span class="p">,</span> <span class="n">String</span><span class="p">,</span>
+     <span class="n">ForeignKey</span><span class="p">,</span> <span class="n">Column</span><span class="p">,</span> <span class="n">create_engine</span><span class="p">,</span>
+     <span class="n">ForeignKeyConstraint</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.dialects.postgresql</span> <span class="kn">import</span> <span class="n">ARRAY</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">declarative_base</span><span class="p">,</span> <span class="n">declared_attr</span>
+
+
+<span class="n">Base</span> <span class="o">=</span> <span class="n">declarative_base</span><span class="p">()</span>
+<span class="n">metadata</span> <span class="o">=</span> <span class="n">Base</span><span class="o">.</span><span class="n">metadata</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s">"SNIP_DB_URL"</span><span class="p">])</span>
+<span class="n">metadata</span><span class="o">.</span><span class="n">bind</span> <span class="o">=</span> <span class="n">engine</span>
+
+
+<span class="k">class</span> <span class="nc">RefSnpAllele</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">'ref_snp_alleles'</span>
+
+    <span class="n">ins_seq</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Text</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">del_seq</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Text</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">position</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">BigInteger</span><span class="p">)</span>
+    <span class="n">chromosome</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
+    <span class="n">gene_locii</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">ARRAY</span><span class="p">(</span><span class="n">Text</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+    
+    <span class="n">ref_snp_allele_idx</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">ref_snp_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">RefSnpAlleleRelative</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">'ref_snp_allele_relative'</span>
+
+    <span class="nb">id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">ref_snp_allele_idx</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">ref_snp_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+    <span class="nd">@declared_attr</span>
+    <span class="k">def</span> <span class="nf">__table_args__</span><span class="p">(</span><span class="n">cls</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">ForeignKeyConstraint</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">cls</span><span class="o">.</span><span class="n">ref_snp_id</span><span class="p">,</span> <span class="n">cls</span><span class="o">.</span><span class="n">ref_snp_allele_idx</span><span class="p">],</span>
+            <span class="p">[</span><span class="n">RefSnpAllele</span><span class="o">.</span><span class="n">ref_snp_id</span><span class="p">,</span> <span class="n">RefSnpAllele</span><span class="o">.</span><span class="n">ref_snp_allele_idx</span><span class="p">]),</span> <span class="p">{})</span>
+
+
+<span class="k">class</span> <span class="nc">RefSnpAlleleFrequencyStudy</span><span class="p">(</span><span class="n">RefSnpAlleleRelative</span><span class="p">,</span> <span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">'ref_snp_allele_freq_studies'</span>
+
+    <span class="n">name</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Text</span><span class="p">)</span>
+    <span class="n">allele_count</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">)</span>
+    <span class="n">total_count</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">RefSnpClinicalDisease</span><span class="p">(</span><span class="n">RefSnpAlleleRelative</span><span class="p">,</span> <span class="n">Base</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">'ref_snp_allele_clin_diseases'</span>
+
+    <span class="n">disease_name_csv</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Text</span><span class="p">)</span>
+    <span class="n">clinical_significance_csv</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Text</span><span class="p">)</span>
+    <span class="n">citation_list</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">ARRAY</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+</code></pre></div></div>
+
+<blockquote>
+  <p><strong>Note</strong>: <em>We’re using Inheritance to DRY (<strong>don’t repeat yourself</strong>) out the <code class="highlighter-rouge">ref_snp_allele_clin_diseases</code> and <code class="highlighter-rouge">ref_snp_allele_freq_studies</code> model definitions. Avoiding small redundancies like these allow for more malleable code, and less opportunity for bugs down the road.</em></p>
+</blockquote>
+
+<p>To create these tables, I assume we’ve already created a local PostgreSQL database. Creating and configuring this database is outside the scope of this post, but if on a Mac, you can start by installing PostgreSQL with:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>brew install postgresql
+</code></pre></div></div>
+<p>…and then reading the <a href="https://www.postgresql.org/docs/10/static/tutorial-createdb.html" target="_blank">quick docs here</a>. There is plenty of documentation on configuring these easily.</p>
+
+<p>Next, to create our tables we leverage SQLAlchemy’s <code class="highlighter-rouge">create_all()</code> method, and some quick SQL statements in the following snippet:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">init_db</span><span class="p">(</span><span class="n">database_name</span><span class="p">):</span>
+    <span class="c"># Connect to 'postgres' admin DB, and drop the DB named 'database_name'</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="n">f</span><span class="s">"echo 'DROP DATABASE {database_name};"</span>
+          <span class="n">f</span><span class="s">"CREATE DATABASE {database_name};'"</span>
+          <span class="s">" | psql postgres"</span><span class="p">)</span>
+    <span class="n">metadata</span><span class="o">.</span><span class="n">create_all</span><span class="p">()</span>
+</code></pre></div></div>
+
+<p>You can now connect to the PostgreSQL database and view the schema:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">(</span>env<span class="o">)</span> SeanH@foo:~/snip_warehouse/snip_warehouse<span class="nv">$ </span>psql <span class="nt">-U</span> SeanH snip
+psql <span class="o">(</span>10.3<span class="o">)</span>
+Type <span class="s2">"help"</span> <span class="k">for </span>help.
+
+<span class="nv">snip</span><span class="o">=</span><span class="c"># \dt</span>
+                   List of relations
+ Schema |             Name             | Type  | Owner
+<span class="nt">--------</span>+------------------------------+-------+-------
+ public | ref_snp_allele_clin_diseases | table | SeanH
+ public | ref_snp_allele_freq_studies  | table | SeanH
+ public | ref_snp_alleles              | table | SeanH
+</code></pre></div></div>
+
+<h3 id="defining-dtos-data-transfer-objects">Defining DTOs (Data Transfer Objects)</h3>
+
+<p>Let’s take a quick tangent, and talk about DTOs, Python <code class="highlighter-rouge">dicts</code> and <code class="highlighter-rouge">namedtuples</code>.</p>
+
+<p>It’s very easy to use <code class="highlighter-rouge">Dicts</code> in Python. Consequently, it’s very easy to abuse them. When passing data between functions in a non-trivial application, PLEASE take the time to define an explicit type, like a <code class="highlighter-rouge">namedtuple</code>, rather than abusing a <code class="highlighter-rouge">dict</code>. You will thank yourself months down the road…</p>
+
+<p>Let’s define a series of <em>Data Transfer Object</em> <code class="highlighter-rouge">types</code>, using the <code class="highlighter-rouge">collections.namedtuple</code> datatype, to provide naming consistencies, strict(er) function interfaces, immutability and readability:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># DTO's</span>
+<span class="n">RefSnpCopyFromData</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s">"RefSnpCopyFromData"</span><span class="p">,</span> <span class="p">[</span>
+    <span class="s">"ref_snp_alleles"</span><span class="p">,</span>
+    <span class="s">"ref_snp_allele_freq_studies"</span><span class="p">,</span>
+    <span class="s">"ref_snp_allele_clin_diseases"</span><span class="p">])</span>
+
+<span class="n">RefSnpAllele</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s">"RefSnpAllele"</span><span class="p">,</span> <span class="p">[</span>
+    <span class="s">'ins_seq'</span><span class="p">,</span> <span class="s">'del_seq'</span><span class="p">,</span> <span class="s">'position'</span><span class="p">,</span> <span class="s">'chromosome'</span><span class="p">,</span>
+    <span class="s">'ref_snp_allele_idx'</span><span class="p">,</span> <span class="s">'ref_snp_id'</span><span class="p">,</span> <span class="s">'gene_locii'</span><span class="p">])</span>
+
+
+<span class="n">RefSnpAlleleFreqStudy</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s">"RefSnpAlleleFreqStudy"</span><span class="p">,</span> <span class="p">[</span>
+    <span class="s">'name'</span><span class="p">,</span> <span class="s">'allele_count'</span><span class="p">,</span> <span class="s">'total_count'</span><span class="p">,</span> <span class="s">'ref_snp_allele_idx'</span><span class="p">,</span>
+    <span class="s">'ref_snp_id'</span><span class="p">])</span>
+
+<span class="n">RefSnpAlleleClinDisease</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s">"RefSnpAlleleClinDisease"</span><span class="p">,</span> <span class="p">[</span>
+    <span class="s">'disease_name_csv'</span><span class="p">,</span> <span class="s">'clinical_significance_csv'</span><span class="p">,</span> <span class="s">'citation_list'</span><span class="p">,</span>
+    <span class="s">'ref_snp_allele_idx'</span><span class="p">,</span> <span class="s">'ref_snp_id'</span><span class="p">])</span>
+</code></pre></div></div>
+
+<p>We will use these types in part II of our series to keep ourselves sane.</p>
+
+<h3 id="parsing-the-json-data">Parsing the JSON Data</h3>
+
+<p>As previously mentioned, each line of our <code class="highlighter-rouge">refsnp-chr1.json.gz</code> file contains a JSON object, representing a RefSNP.</p>
+
+<p>Each RefSNP JSON object holds all of the Alleles of the RefSNP in question, usually a single-nucleotide variation (i.e. a <code class="highlighter-rouge">G</code> is replaced with a <code class="highlighter-rouge">C</code>). Our goal is to grab the frequency of each allele, and the clinically significant diseases that are influenced by the allele.</p>
+
+<p>Uncompressed, the 200GB file is too big to load into memory. We turn to <code class="highlighter-rouge">iterators</code> to help us decompress and stream the file contents through our parser.</p>
+
+<p><a href="warehousing-DbSNP-Part-II-parsing-RefSNP-JSON">Part II of our tutorial picks up here!</a></p>
+
+	  ]]></description>
+	</item>
+
+
+</channel>
+</rss>
