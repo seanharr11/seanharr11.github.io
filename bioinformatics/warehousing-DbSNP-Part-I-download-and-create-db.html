@@ -143,7 +143,7 @@
 <p>This series of posts cover how to migrate <a href="https://www.ncbi.nlm.nih.gov/projects/SNP" target="_blank">DbSNP</a>’s <a href="https://ncbiinsights.ncbi.nlm.nih.gov/2017/07/07/dbsnp-redesign-supports-future-data-expansion/" target="_blank">newly downloadable JSON files</a> into a slimmed-down, relational database, containing population frequency data, associated pubmed IDs, and clinvar data for each SNP in the database.</p>
 
 <blockquote>
-  <p><a href="https://www.youtube.com/watch?v=bTAFl8P2DkE&amp;feature=youtu.be&amp;t=3115">I gave a lightning talk at PyCon2018</a> about a live, deployed application of this database: <a href="https://github.com/seanharr11/snip-api-client">The Snip API</a>. You can easily turn your 23&amp;Me Raw Data into insights from DbSNP using this (<em>free</em>) API; <a href="https://github.com/seanharr11    /snip-api-client">the client is found here on github</a>.</p>
+  <p><a href="https://www.youtube.com/watch?v=bTAFl8P2DkE&amp;feature=youtu.be&amp;t=3115">I gave a lightning talk at PyCon2018</a> about a live, deployed application of this database: <a href="https://github.com/seanharr11/snip-api-client">The Snip API</a>. You can easily turn your 23&amp;Me Raw Data into insights from DbSNP using this (<em>free</em>) API; <a href="https://github.com/seanharr11/snip-api-client">the client is found here on github</a>.</p>
 </blockquote>
 
 <p>Moving forward, NCBI plans to store 1 JSON file per chromosome, and these files can be found <a href="ftp://ftp.ncbi.nlm.nih.gov/snp/.redesign/latest_release/JSON" target="_blank">here</a>. The total size of this JSON payload is a whopping <strong>104GB</strong> of gzipped data.</p>
@@ -345,7 +345,7 @@ Type <span class="s2">"help"</span> <span class="k">for </span>help.
 
 <p>Uncompressed, the 200GB file is too big to load into memory. We turn to <code class="highlighter-rouge">iterators</code> to help us decompress and stream the file contents through our parser.</p>
 
-<p><a href="warehousing-DbSNP-Part-II-parsing-RefSNP-JSON">Part II of our tutorial picks up here!</a></p>
+<p><a href="warehousing-DbSNP-Part-II-parsing-RefSNP-JSON.html">Part II of our tutorial picks up here!</a></p>
 
 
         </section>
