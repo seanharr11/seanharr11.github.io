@@ -69,6 +69,7 @@
 
 <p>Let’s try this:</p>
 
+<p><a href="https://github.com/seanharr11/snip_warehouse/blob/68da728ccf45e156074ccf82a503cd2bdc2c7246/snip_warehouse/snip_loader.py#L73">Github Link</a></p>
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="n">async</span> <span class="k">def</span> <span class="nf">_load</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parsed_data_iter</span><span class="p">):</span>
         <span class="n">conn</span> <span class="o">=</span> <span class="n">await</span> <span class="n">asyncpg</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
             <span class="n">database</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">database_name</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="s">"SeanH"</span><span class="p">)</span>
@@ -138,6 +139,7 @@
 
 <p>On my 8-core 2016 Macbook Pro, making the change from non-parallelized code to parallelized code reduces the run time from <strong>1 hour and 3 minutes</strong> down to <strong>20 minutes</strong>: a <strong>300%</strong> performance increase. Not too shabby…</p>
 
+<p><a href="https://github.com/seanharr11/snip_warehouse/blob/68da728ccf45e156074ccf82a503cd2bdc2c7246/snip_warehouse/snip_loader.py#L59">Github Link</a></p>
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code>    <span class="k">def</span> <span class="nf">load_ref_snps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbsnp_filename</span><span class="p">,</span> <span class="n">chromosome</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">chromosome</span> <span class="o">=</span> <span class="n">chromosome</span>
         <span class="n">num_processes</span> <span class="o">=</span> <span class="n">cpu_count</span><span class="p">()</span>
@@ -170,6 +172,7 @@
 
 <p>We can now easily write a script to download, parse and bulk insert all 23 Chromosome’s DbSNP data into our local database:</p>
 
+<p><a href="https://github.com/seanharr11/snip_warehouse/blob/master/run.py">Github Link</a></p>
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">from</span> <span class="nn">snip_warehouse</span> <span class="kn">import</span> <span class="n">SnipLoader</span>
 <span class="kn">from</span> <span class="nn">snip_warehouse.schema</span> <span class="kn">import</span> <span class="n">init_db</span>
@@ -297,6 +300,8 @@
 
 <p>For brevity’s sake, here is the top-level of our JSON object (<em>that we care about</em>):</p>
 
+<p><a href="https://github.com/seanharr11/snip_warehouse/blob/master/data/head.json">Github Link to Sample RefSNP JSON</a></p>
+
 <div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span>
     <span class="s2">"refsnp_id"</span><span class="p">:</span> <span class="s2">"242"</span><span class="p">,</span>
     <span class="p">...,</span>
@@ -336,6 +341,7 @@
 
 <p>An <code class="highlighter-rouge">assembly</code> is short for an <code class="highlighter-rouge">assembly genome</code>, which is the best representation of the <em>typical human genome</em>, and we use this as a point of reference for detecting variations.</p>
 
+<p><a href="https://github.com/seanharr11/snip_warehouse/blob/68da728ccf45e156074ccf82a503cd2bdc2c7246/snip_warehouse/snip_loader.py#L134">Github Link</a></p>
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@staticmethod</span>
 <span class="k">def</span> <span class="nf">_find_alleles_from_assembly</span><span class="p">(</span><span class="n">rsnp_placements</span><span class="p">,</span>
                                 <span class="n">assembly_name</span><span class="o">=</span><span class="s">"GRCh38"</span><span class="p">):</span>
@@ -392,6 +398,7 @@
 
 <p>We only want to grab variants, like the second allele, and we do so with the following simple logic:</p>
 
+<p><a href="https://github.com/seanharr11/snip_warehouse/blob/68da728ccf45e156074ccf82a503cd2bdc2c7246/snip_warehouse/snip_loader.py#L147">Github Link</a></p>
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@staticmethod</span>
 <span class="k">def</span> <span class="nf">_get_variant_alleles</span><span class="p">(</span><span class="n">chromosome</span><span class="p">,</span> <span class="n">alleles</span><span class="p">,</span>
                          <span class="n">ref_snp_id</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">RefSnpAllele</span><span class="p">]:</span>
@@ -462,6 +469,7 @@
 
 <p>We can first parse out Frequency Study information as follows:</p>
 
+<p><a href="https://github.com/seanharr11/snip_warehouse/blob/68da728ccf45e156074ccf82a503cd2bdc2c7246/snip_warehouse/snip_loader.py#L184">Github Link</a></p>
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@staticmethod</span>
 <span class="k">def</span> <span class="nf">_parse_freq_studies</span><span class="p">(</span><span class="n">allele_annotation</span><span class="p">,</span>
                         <span class="n">ref_snp_id</span><span class="p">,</span>
@@ -495,6 +503,7 @@
   <li>other</li>
 </ul>
 
+<p><a href="https://github.com/seanharr11/snip_warehouse/blob/68da728ccf45e156074ccf82a503cd2bdc2c7246/snip_warehouse/snip_loader.py#L194">Github Link</a></p>
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@staticmethod</span>
 <span class="k">def</span> <span class="nf">_parse_clin_diseases</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">allele_annotation</span><span class="p">,</span>
                          <span class="n">ref_snp_id</span><span class="p">,</span>
@@ -516,6 +525,7 @@
   <p><strong>Note:</strong> <em>I am still unsure why there are “multiple genes” per Allele Annotation. My current theory is that NCBI is including effects of this gene being altered on a gene downstream in some network/pathway. If anyone has any insight, <a href="mailto:seanharr11@gmail.com">please send me an email</a></em></p>
 </blockquote>
 
+<p><a href="https://github.com/seanharr11/snip_warehouse/blob/68da728ccf45e156074ccf82a503cd2bdc2c7246/snip_warehouse/snip_loader.py#L204">Github Link</a></p>
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@staticmethod</span>
 <span class="k">def</span> <span class="nf">_parse_gene_locii</span><span class="p">(</span><span class="n">allele_annotation</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
     <span class="n">assembly_annotation</span> <span class="o">=</span> <span class="n">allele_annotation</span><span class="p">[</span>
@@ -532,6 +542,7 @@
 
 <p>The last two functions look like this:</p>
 
+<p><a href="https://github.com/seanharr11/snip_warehouse/blob/68da728ccf45e156074ccf82a503cd2bdc2c7246/snip_warehouse/snip_loader.py#L101">Github Link</a></p>
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">_generate_parsed_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">raw_line</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RefSnpCopyFromData</span><span class="p">:</span>
     <span class="n">rsnp_json</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">raw_line</span><span class="p">)</span>
     <span class="n">ref_snp_id</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">rsnp_json</span><span class="p">[</span><span class="s">'refsnp_id'</span><span class="p">])</span>
@@ -567,8 +578,12 @@
            <span class="n">copy_from_data</span><span class="p">,</span> <span class="n">allele</span><span class="p">,</span> <span class="n">freq_studies</span><span class="p">,</span>
            <span class="n">clin_diseases</span><span class="p">,</span> <span class="n">gene_locii</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">copy_from_data</span>
+</code></pre></div></div>
 
-<span class="nd">@staticmethod</span>
+<p>And…</p>
+
+<p><a href="https://github.com/seanharr11/snip_warehouse/blob/68da728ccf45e156074ccf82a503cd2bdc2c7246/snip_warehouse/snip_loader.py#L165">Github Link</a></p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@staticmethod</span>
 <span class="k">def</span> <span class="nf">_update_copy_from_data</span><span class="p">(</span><span class="n">copy_from_data</span><span class="p">:</span> <span class="n">RefSnpCopyFromData</span><span class="p">,</span>
                            <span class="n">allele</span><span class="p">:</span> <span class="n">RefSnpAllele</span><span class="p">,</span>
                            <span class="n">freq_studies</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span>
@@ -613,12 +628,16 @@
 <p>This series of posts cover how to migrate <a href="https://www.ncbi.nlm.nih.gov/projects/SNP" target="_blank">DbSNP</a>’s <a href="https://ncbiinsights.ncbi.nlm.nih.gov/2017/07/07/dbsnp-redesign-supports-future-data-expansion/" target="_blank">newly downloadable JSON files</a> into a slimmed-down, relational database, containing population frequency data, associated pubmed IDs, and clinvar data for each SNP in the database.</p>
 
 <blockquote>
-  <p><a href="https://www.youtube.com/watch?v=bTAFl8P2DkE&amp;feature=youtu.be&amp;t=3115">I gave a lightning talk at PyCon2018</a> about a live, deployed application of this database: <a href="https://github.com/seanharr11/snip-api-client">The Snip API</a>. You can easily turn your 23&amp;Me Raw Data into insights from DbSNP using this (<em>free</em>) API; <a href="https://github.com/seanharr11/snip-api-client">the client is found here on github</a>.</p>
+  <p>The entire codebase of this walkthrough is <a href="https://github.com/seanharr11/snip_warehouse">available here on github</a>. I’ve also sprinkled in <code class="highlighter-rouge">Github Links</code> above all code snippets, to navigate to each corresponding line &amp; file.</p>
 </blockquote>
 
 <p>Moving forward, NCBI plans to store 1 JSON file per chromosome, and these files can be found <a href="ftp://ftp.ncbi.nlm.nih.gov/snp/.redesign/latest_release/JSON" target="_blank">here</a>. The total size of this JSON payload is a whopping <strong>104GB</strong> of gzipped data.</p>
 
 <p>The <strong>uncompressed</strong> size of chromosome 1’s file is <strong>162GB</strong>, with the <strong>compressed</strong> size being <strong>8GB</strong>. Using this compression ratio (<strong>1:20</strong>) as a rule-of-thumb, the uncompressed size of the entire dataset is <strong>2.1TB</strong>…that’s a lot of data to process and warehouse. Let’s begin with step 1: downloading <code class="highlighter-rouge">refsnp_chr1.json.gz</code> as our case study.</p>
+
+<blockquote>
+  <p><a href="https://www.youtube.com/watch?v=bTAFl8P2DkE&amp;feature=youtu.be&amp;t=3115">I gave a lightning talk at PyCon2018</a> about a live, deployed application of this database: <a href="https://github.com/seanharr11/snip-api-client">The Snip API</a>. You can easily turn your 23&amp;Me Raw Data into insights from DbSNP using this (<em>free</em>) API; <a href="https://github.com/seanharr11/snip-api-client">the client is found here on github</a>.</p>
+</blockquote>
 
 <h3 id="downloading-the-file">Downloading the file</h3>
 <p>In a perfect, simpler world, the following few LOC would download our 1st file:</p>
@@ -638,6 +657,7 @@
 
 <p>Kudos to <a href="https://stackoverflow.com/a/19693709/3923962" target="_blank">this excellent stackoverflow answer</a> for a graceful solution to avoid FTP downloads timing out. We just send simple “NOOP” commands, equivalent to a ‘PING’, from a separate thread, to keep our connection alive:</p>
 
+<p><a href="https://github.com/seanharr11/snip_warehouse/blob/68da728ccf45e156074ccf82a503cd2bdc2c7246/snip_warehouse/snip_loader.py#L23" target="_blank">Github Link</a></p>
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">ftplib</span>
 
 <span class="n">dbsnp_filename</span> <span class="o">=</span> <span class="s">"refsnp-chr1.json.gz"</span>
@@ -683,6 +703,7 @@
 
 <p>Rather than writing an unmaintanable mess of SQL DDL statements, I opt to use SQLAlchemy’s core library for defining our database schema (i.e. the tables). It’s a powerful, well-maintained library, producing code that is far more maintainable than free-form SQL text. Here are the models representing tables to insert our data into:</p>
 
+<p><a href="https://github.com/seanharr11/snip_warehouse/blob/master/snip_warehouse/schema.py">Github Link</a></p>
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># coding: utf-8</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="p">(</span>
@@ -754,6 +775,7 @@
 
 <p>Next, to create our tables we leverage SQLAlchemy’s <code class="highlighter-rouge">create_all()</code> method, and some quick SQL statements in the following snippet:</p>
 
+<p><a href="https://github.com/seanharr11/snip_warehouse/blob/68da728ccf45e156074ccf82a503cd2bdc2c7246/snip_warehouse/schema.py#L94">Github Link</a></p>
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">init_db</span><span class="p">(</span><span class="n">database_name</span><span class="p">):</span>
     <span class="c"># Connect to 'postgres' admin DB, and drop the DB named 'database_name'</span>
     <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="n">f</span><span class="s">"echo 'DROP DATABASE {database_name};"</span>
@@ -785,6 +807,7 @@ Type <span class="s2">"help"</span> <span class="k">for </span>help.
 
 <p>Let’s define a series of <em>Data Transfer Object</em> <code class="highlighter-rouge">types</code>, using the <code class="highlighter-rouge">collections.namedtuple</code> datatype, to provide naming consistencies, strict(er) function interfaces, immutability and readability:</p>
 
+<p><a href="https://github.com/seanharr11/snip_warehouse/blob/master/snip_warehouse/types.py">Github Link</a></p>
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># DTO's</span>
 <span class="n">RefSnpCopyFromData</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s">"RefSnpCopyFromData"</span><span class="p">,</span> <span class="p">[</span>
     <span class="s">"ref_snp_alleles"</span><span class="p">,</span>

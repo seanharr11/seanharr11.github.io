@@ -208,6 +208,8 @@
 
 <p>For brevity’s sake, here is the top-level of our JSON object (<em>that we care about</em>):</p>
 
+<p><a href="https://github.com/seanharr11/snip_warehouse/blob/master/data/head.json">Github Link to Sample RefSNP JSON</a></p>
+
 <div class="language-javascript highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span>
     <span class="s2">"refsnp_id"</span><span class="p">:</span> <span class="s2">"242"</span><span class="p">,</span>
     <span class="p">...,</span>
@@ -247,6 +249,7 @@
 
 <p>An <code class="highlighter-rouge">assembly</code> is short for an <code class="highlighter-rouge">assembly genome</code>, which is the best representation of the <em>typical human genome</em>, and we use this as a point of reference for detecting variations.</p>
 
+<p><a href="https://github.com/seanharr11/snip_warehouse/blob/68da728ccf45e156074ccf82a503cd2bdc2c7246/snip_warehouse/snip_loader.py#L134">Github Link</a></p>
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@staticmethod</span>
 <span class="k">def</span> <span class="nf">_find_alleles_from_assembly</span><span class="p">(</span><span class="n">rsnp_placements</span><span class="p">,</span>
                                 <span class="n">assembly_name</span><span class="o">=</span><span class="s">"GRCh38"</span><span class="p">):</span>
@@ -303,6 +306,7 @@
 
 <p>We only want to grab variants, like the second allele, and we do so with the following simple logic:</p>
 
+<p><a href="https://github.com/seanharr11/snip_warehouse/blob/68da728ccf45e156074ccf82a503cd2bdc2c7246/snip_warehouse/snip_loader.py#L147">Github Link</a></p>
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@staticmethod</span>
 <span class="k">def</span> <span class="nf">_get_variant_alleles</span><span class="p">(</span><span class="n">chromosome</span><span class="p">,</span> <span class="n">alleles</span><span class="p">,</span>
                          <span class="n">ref_snp_id</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">RefSnpAllele</span><span class="p">]:</span>
@@ -373,6 +377,7 @@
 
 <p>We can first parse out Frequency Study information as follows:</p>
 
+<p><a href="https://github.com/seanharr11/snip_warehouse/blob/68da728ccf45e156074ccf82a503cd2bdc2c7246/snip_warehouse/snip_loader.py#L184">Github Link</a></p>
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@staticmethod</span>
 <span class="k">def</span> <span class="nf">_parse_freq_studies</span><span class="p">(</span><span class="n">allele_annotation</span><span class="p">,</span>
                         <span class="n">ref_snp_id</span><span class="p">,</span>
@@ -406,6 +411,7 @@
   <li>other</li>
 </ul>
 
+<p><a href="https://github.com/seanharr11/snip_warehouse/blob/68da728ccf45e156074ccf82a503cd2bdc2c7246/snip_warehouse/snip_loader.py#L194">Github Link</a></p>
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@staticmethod</span>
 <span class="k">def</span> <span class="nf">_parse_clin_diseases</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">allele_annotation</span><span class="p">,</span>
                          <span class="n">ref_snp_id</span><span class="p">,</span>
@@ -427,6 +433,7 @@
   <p><strong>Note:</strong> <em>I am still unsure why there are “multiple genes” per Allele Annotation. My current theory is that NCBI is including effects of this gene being altered on a gene downstream in some network/pathway. If anyone has any insight, <a href="mailto:seanharr11@gmail.com">please send me an email</a></em></p>
 </blockquote>
 
+<p><a href="https://github.com/seanharr11/snip_warehouse/blob/68da728ccf45e156074ccf82a503cd2bdc2c7246/snip_warehouse/snip_loader.py#L204">Github Link</a></p>
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@staticmethod</span>
 <span class="k">def</span> <span class="nf">_parse_gene_locii</span><span class="p">(</span><span class="n">allele_annotation</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
     <span class="n">assembly_annotation</span> <span class="o">=</span> <span class="n">allele_annotation</span><span class="p">[</span>
@@ -443,6 +450,7 @@
 
 <p>The last two functions look like this:</p>
 
+<p><a href="https://github.com/seanharr11/snip_warehouse/blob/68da728ccf45e156074ccf82a503cd2bdc2c7246/snip_warehouse/snip_loader.py#L101">Github Link</a></p>
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">_generate_parsed_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">raw_line</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RefSnpCopyFromData</span><span class="p">:</span>
     <span class="n">rsnp_json</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">raw_line</span><span class="p">)</span>
     <span class="n">ref_snp_id</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">rsnp_json</span><span class="p">[</span><span class="s">'refsnp_id'</span><span class="p">])</span>
@@ -478,8 +486,12 @@
            <span class="n">copy_from_data</span><span class="p">,</span> <span class="n">allele</span><span class="p">,</span> <span class="n">freq_studies</span><span class="p">,</span>
            <span class="n">clin_diseases</span><span class="p">,</span> <span class="n">gene_locii</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">copy_from_data</span>
+</code></pre></div></div>
 
-<span class="nd">@staticmethod</span>
+<p>And…</p>
+
+<p><a href="https://github.com/seanharr11/snip_warehouse/blob/68da728ccf45e156074ccf82a503cd2bdc2c7246/snip_warehouse/snip_loader.py#L165">Github Link</a></p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@staticmethod</span>
 <span class="k">def</span> <span class="nf">_update_copy_from_data</span><span class="p">(</span><span class="n">copy_from_data</span><span class="p">:</span> <span class="n">RefSnpCopyFromData</span><span class="p">,</span>
                            <span class="n">allele</span><span class="p">:</span> <span class="n">RefSnpAllele</span><span class="p">,</span>
                            <span class="n">freq_studies</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span>
