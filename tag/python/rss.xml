@@ -1,0 +1,534 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+   
+      <title>thelaziestprogrammer.com</title>
+   
+   <link>thelaziestprogrammer.com</link>
+   <description>Because someone else has already solved your problem.</description>
+   <language>en-uk</language>
+   <managingEditor> </managingEditor>
+   <atom:link href="rss" rel="self" type="application/rss+xml" />
+   
+	<item>
+	  <title>Multiprocessing.Pool() - A Global Solution</title>
+	  <link>//python/multiprocessing-pool-a-global-solution</link>
+	  <author></author>
+	  <pubDate>2018-06-19T06:18:00-04:00</pubDate>
+	  <guid>//python/multiprocessing-pool-a-global-solution</guid>
+	  <description><![CDATA[
+	     <h3 id="intro">Intro</h3>
+<p>In this post, we talk about how to copy data from a parent process, to several worker processes in a <code class="highlighter-rouge">multiprocessing.Pool</code> using global variables. Specifically, we will use <strong>class attributes</strong>, as I find this solution to be <em>slightly</em> more appealing then using global variables defined at the top of a file.</p>
+
+<p>For those of you just joining this series, the problem we are trying to solve is follows…</p>
+
+<p>Given the following class:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">IntToBitarrayConverter</span><span class="p">():</span>
+    
+    <span class="k">def</span> <span class="nf">set_bitstring_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bitstring_cache</span><span class="p">:</span> <span class="n">Dict</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bitstring_cache</span> <span class="o">=</span> <span class="n">bitstring_cache</span>
+
+    <span class="k">def</span> <span class="nf">convert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">integer</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="n">bitstring</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bitstring_cache</span><span class="p">[</span><span class="n">integer</span><span class="p">]</span>
+        <span class="c"># cache the step of bitstring = format(integer, 'b')</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bitstring_to_ndarray</span><span class="p">(</span><span class="n">bitstring</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_bitstring_to_ndarray</span><span class="p">(</span><span class="n">bitstring</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="n">arr</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span><span class="n">bitstring</span><span class="p">,</span> <span class="s">'u1'</span><span class="p">)</span> <span class="o">-</span> <span class="mi">48</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">arr</span>
+</code></pre></div></div>
+
+<p>And given the following parallelization of our <code class="highlighter-rouge">convert()</code> method using <code class="highlighter-rouge">Pool</code>:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">CACHE_SIZE</span> <span class="o">=</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span>  <span class="c"># 1 MB</span>
+<span class="n">ITER_SIZE</span> <span class="o">=</span> <span class="mi">1000000</span>  <span class="c"># 1 million</span>
+
+<span class="n">int_to_bitarr_converter</span> <span class="o">=</span> <span class="n">IntToBitarrayConverter</span><span class="p">()</span>
+<span class="n">int_to_bitarr_converter</span><span class="o">.</span><span class="n">set_bitstring_cache</span><span class="p">(</span>
+    <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="s">'b'</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">CACHE_SIZE</span><span class="p">)})</span>
+<span class="k">with</span> <span class="n">Pool</span><span class="p">()</span> <span class="k">as</span> <span class="n">pool</span><span class="p">:</span>
+    <span class="n">ndarray_bitarr_ls</span> <span class="o">=</span> <span class="n">pool</span><span class="o">.</span><span class="nb">map</span><span class="p">(</span>
+        <span class="n">int_to_bitarr_converter</span><span class="o">.</span><span class="n">convert</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">CACHE_SIZE</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+         <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ITER_SIZE</span><span class="p">))))</span>
+</code></pre></div></div>
+
+<p>We learned that when you have an <strong>instance method</strong> with a <em>large object bound</em> to it,  passing this method to <code class="highlighter-rouge">Pool.map(...)</code> results in a <strong>huge</strong> performance loss due to repeated serializing/deserializing of the <em>large object</em> between processes.</p>
+
+<p>This is what happened with our <code class="highlighter-rouge">convert()</code> method above. In this post, we explore a solution that shows us “<em>how to pass data to Pool of workers, and only do it <strong>once</strong></em>.”</p>
+
+<h3 id="a-classy-solution">A Classy Solution</h3>
+
+<p>The unfortunate answer to our question above is that, given the current implementation of <code class="highlighter-rouge">Pool</code>, we need to use <strong>global</strong> variables to pass data to our <code class="highlighter-rouge">workers</code>. Most of the interweb resources will show you this same example.</p>
+
+<p>By taking a different approach, we can <em>class this up a bit</em> by using <strong>class attributes</strong> and a <code class="highlighter-rouge">@classmethod</code>, with the hope that we can delicately preserve some semblance of encapsulation in our code.</p>
+
+<p>Enter the <code class="highlighter-rouge">ClassMethodBitarrayConverter</code>:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">ClassMethodBitarrayConverter</span><span class="p">(</span><span class="n">IntToBitarrayConverter</span><span class="p">):</span>
+    <span class="n">bitstring_cache</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">set_bitstring_cache</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">bitstring_cache</span><span class="p">:</span> <span class="n">Dict</span><span class="p">):</span>
+        <span class="n">cls</span><span class="o">.</span><span class="n">bitstring_cache</span> <span class="o">=</span> <span class="n">bitstring_cache</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">convert</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">integer</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">init_return</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="n">bitstring</span> <span class="o">=</span> <span class="n">cls</span><span class="o">.</span><span class="n">bitstring_cache</span><span class="p">[</span><span class="n">integer</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">cls</span><span class="o">.</span><span class="n">_bitstring_to_ndarray</span><span class="p">(</span><span class="n">bitstring</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>We <em>inherit</em> from <code class="highlighter-rouge">IntToBitarrayConverter</code>, and make three changes:</p>
+
+<ol>
+  <li><code class="highlighter-rouge">bitstring_cache</code> becomes a <strong>class attribute</strong></li>
+  <li><code class="highlighter-rouge">convert()</code> becomes an <code class="highlighter-rouge">@classmethod</code></li>
+  <li><code class="highlighter-rouge">set_bitstring_cache()</code> becomes an <code class="highlighter-rouge">@classmethod</code></li>
+</ol>
+
+<blockquote>
+  <p><strong>Note:</strong> What we’ve done here is essentially bundle 2 global functions, with 1 global variable, and co-locate them within the same <code class="highlighter-rouge">class</code>. This is quietly approaching the <strong>singleton</strong> anti-pattern, but I prefer the encapsulation here over <strong>globals</strong>, despite it being a dangerous facade…</p>
+</blockquote>
+
+<p>Now, when we run the parallelized code above, because <code class="highlighter-rouge">ClassMethodBitarrayConverter.convert()</code> and <code class="highlighter-rouge">ClassMethodBitarrayConverter.bitstring_cache</code> are glorified globals, <code class="highlighter-rouge">convert()</code> has access to <code class="highlighter-rouge">bitstring_cache</code>, <strong>without any serializing/deserializing required</strong>, within each <code class="highlighter-rouge">worker</code> Process.</p>
+
+<p>Compared to the <strong>32.5s</strong> in our previous implementation, our classy global solution runs in just <strong>5s</strong>!</p>
+
+<blockquote>
+  <p><strong>Note:</strong> If you’ve <a href="/python/a-multiprocessing-pool-pickle#a-more-complex-case-inttobitarrayconverter">been following along</a>, you’ll notice that this is the same performance as our sequential, non-parallelized code. This is because the <code class="highlighter-rouge">convert()</code> method is not CPU intensive. This is a topic for another post!</p>
+</blockquote>
+
+<p>We see <a href="/python/a-multiprocessing-pool-pickle#serial-performance-killers">drastic improvements</a> in our profiled calls to <code class="highlighter-rouge">loads()</code> and <code class="highlighter-rouge">dumps()</code>:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: center">Process</th>
+      <th style="text-align: center">dumps() calls</th>
+      <th style="text-align: center">dumps()  time(s)</th>
+      <th style="text-align: center">avg</th>
+      <th style="text-align: center">loads() calls</th>
+      <th style="text-align: center">loads() time(s)</th>
+      <th style="text-align: center">avg</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: center">Parent</td>
+      <td style="text-align: center">42</td>
+      <td style="text-align: center"><strong>4.09s</strong></td>
+      <td style="text-align: center">.09s</td>
+      <td style="text-align: center">33</td>
+      <td style="text-align: center">7.36s</td>
+      <td style="text-align: center">.13s</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">1</td>
+      <td style="text-align: center">4</td>
+      <td style="text-align: center">10.34s</td>
+      <td style="text-align: center">2.57s</td>
+      <td style="text-align: center">5</td>
+      <td style="text-align: center">.04s</td>
+      <td style="text-align: center">.008s</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">2</td>
+      <td style="text-align: center">4</td>
+      <td style="text-align: center">10.31s</td>
+      <td style="text-align: center">2.57s</td>
+      <td style="text-align: center">5</td>
+      <td style="text-align: center">.04s</td>
+      <td style="text-align: center">.008s</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">3</td>
+      <td style="text-align: center">4</td>
+      <td style="text-align: center">10.31s</td>
+      <td style="text-align: center">2.57s</td>
+      <td style="text-align: center">5</td>
+      <td style="text-align: center">.04s</td>
+      <td style="text-align: center">.008s</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">4</td>
+      <td style="text-align: center">4</td>
+      <td style="text-align: center">10.36s</td>
+      <td style="text-align: center">2.58s</td>
+      <td style="text-align: center">5</td>
+      <td style="text-align: center">.04s</td>
+      <td style="text-align: center">.008s</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">5</td>
+      <td style="text-align: center">4</td>
+      <td style="text-align: center">10.23s</td>
+      <td style="text-align: center">2.55s</td>
+      <td style="text-align: center">5</td>
+      <td style="text-align: center">.04s</td>
+      <td style="text-align: center">.008s</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">6</td>
+      <td style="text-align: center">4</td>
+      <td style="text-align: center">10.19s</td>
+      <td style="text-align: center">2.54s</td>
+      <td style="text-align: center">5</td>
+      <td style="text-align: center">.04s</td>
+      <td style="text-align: center">.008s</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">7</td>
+      <td style="text-align: center">4</td>
+      <td style="text-align: center">10.04s</td>
+      <td style="text-align: center">2.52s</td>
+      <td style="text-align: center">5</td>
+      <td style="text-align: center">.04s</td>
+      <td style="text-align: center">.008s</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">8</td>
+      <td style="text-align: center">4</td>
+      <td style="text-align: center">9.88s</td>
+      <td style="text-align: center">2.47s</td>
+      <td style="text-align: center">5</td>
+      <td style="text-align: center">.04s</td>
+      <td style="text-align: center">.008s</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="global-problems">Global Problems</h3>
+
+<p>Our new implementation above is encapsulated within a class. This is more readable due to its modularity. However, to cut through the BS, at its core <code class="highlighter-rouge">ClassMethodBitarrayConverter</code> is nothing but a <strong>global</strong>.</p>
+
+<p>This means we expose ourselves to the following:</p>
+
+<ol>
+  <li><strong>Singleton Pattern:</strong> We can’t <em>really</em> have more than one unique instance of our class - we only have one attribute, and it is a class attribute. Two instances of our class would be equal, and would share the same exact state. <strong>Our class is really a singleton</strong></li>
+  <li><strong>Testability Problems:</strong> Testing our class is extremely error prone: if one test changes the state of the <code class="highlighter-rouge">bitstring_cache</code> during a test, that test must undo the global state on teardown so it does not persist to the next test!</li>
+  <li><strong>Code Maintainability:</strong> To understand a small module of the codebase, you need to first digest every part of the codebase that alters your global state, rather than just the public interface of your module.</li>
+</ol>
+
+<h3 id="the-real-problem">The Real Problem</h3>
+
+<p>The real problem is not that we are using globals - the question of “<em>whether globals are bad</em>” is an opinion, <a href="https://stackoverflow.com/questions/484635/are-global-variables-bad">see this SO post</a>.</p>
+
+<p>The problem is that we are forced to use globals becaue of the <code class="highlighter-rouge">multiprocessing.Pool()</code> implementation, and <strong>not because we want to share our globals across our app!</strong></p>
+
+<p><a href="https://github.com/seanharr11/cpython">I’ve begun work here</a> on augmenting the current <code class="highlighter-rouge">initializer</code> kwarg to <code class="highlighter-rouge">Pool(...)</code>, which will allow for more flexibility when initializing worker processes. Specifically, the feature will allow you to <em>pass non-picklable objects, or very large objects to each worker process, by returning a value from the <code class="highlighter-rouge">initializer</code> function, and passing the return value to whatever function you are applying in <code class="highlighter-rouge">map()</code>.</em></p>
+
+	  ]]></description>
+	</item>
+
+	<item>
+	  <title>Multiprocessing.Pool() - Stuck in Pickle</title>
+	  <link>//python/a-multiprocessing-pool-pickle</link>
+	  <author></author>
+	  <pubDate>2018-06-16T16:18:00-04:00</pubDate>
+	  <guid>//python/a-multiprocessing-pool-pickle</guid>
+	  <description><![CDATA[
+	     <h3 id="intro">Intro</h3>
+<p>Generally speaking, concurrent programming is hard. Luckily for us, Python’s <code class="highlighter-rouge">multiprocessing.Pool</code> abstraction makes the parallelization of certain problems extremely approachable.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="kn">import</span> <span class="n">Pool</span>
+
+<span class="k">def</span> <span class="nf">sqrt</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">x</span><span class="o">**.</span><span class="mi">5</span>
+
+<span class="n">numbers</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1000000</span><span class="p">)]</span>
+<span class="k">with</span> <span class="n">Pool</span><span class="p">()</span> <span class="k">as</span> <span class="n">pool</span><span class="p">:</span>
+    <span class="n">sqrt_ls</span> <span class="o">=</span> <span class="n">pool</span><span class="o">.</span><span class="nb">map</span><span class="p">(</span><span class="n">sqrt</span><span class="p">,</span> <span class="n">numbers</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>The basic idea is that given any iterable of type <code class="highlighter-rouge">Iterable[T]</code>, and any function <code class="highlighter-rouge">f(x: T) -&gt; Any</code>, we can parallelize the higher-order function <code class="highlighter-rouge">map(f, iterable)</code> with 1 line of code. The above iterates over 1 million integers, and in parallel, calculates the <code class="highlighter-rouge">sqrt</code> of each integer, utilizing all CPUs on our machine.</p>
+
+<p>That said, this post is about getting into trouble, not about the simple case above…</p>
+
+<h3 id="a-more-complex-case-inttobitarrayconverter">A More Complex Case: IntToBitarrayConverter</h3>
+
+<p>Our toy class will do just what it says it does: <strong>convert</strong> <code class="highlighter-rouge">ints</code> to their binary representation of <strong>0</strong>s and <strong>1</strong>s. Specifically, our implementation will return a bitarray as a <code class="highlighter-rouge">numpy.ndarray</code>. Our class also stores a cache of <code class="highlighter-rouge">int</code> -&gt; <code class="highlighter-rouge">str</code>, implemented as a simple <code class="highlighter-rouge">dict</code>, which quickly converts <code class="highlighter-rouge">int</code> keys to <code class="highlighter-rouge">str</code> values (<em>bitstrings</em>).</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">IntToBitarrayConverter</span><span class="p">():</span>
+    
+    <span class="k">def</span> <span class="nf">set_bitstring_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bitstring_cache</span><span class="p">:</span> <span class="n">Dict</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bitstring_cache</span> <span class="o">=</span> <span class="n">bitstring_cache</span>
+
+    <span class="k">def</span> <span class="nf">convert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">integer</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="n">bitstring</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bitstring_cache</span><span class="p">[</span><span class="n">integer</span><span class="p">]</span>
+        <span class="c"># cache the step of bitstring = format(integer, 'b')</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bitstring_to_ndarray</span><span class="p">(</span><span class="n">bitstring</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_bitstring_to_ndarray</span><span class="p">(</span><span class="n">bitstring</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="n">arr</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span><span class="n">bitstring</span><span class="p">,</span> <span class="s">'u1'</span><span class="p">)</span> <span class="o">-</span> <span class="mi">48</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">arr</span>
+</code></pre></div></div>
+<blockquote>
+  <p><strong>Note:</strong> that <code class="highlighter-rouge">np.fromstring(bitstring, 'u1') - 48</code> parses the str as the 8-bit integer ASCII values of the ‘0’ and ‘1’ chars (48 and 49 respectively), and subtracts 48 to yield binary data.</p>
+</blockquote>
+
+<p>We can convert 1000000 <code class="highlighter-rouge">ints</code> to their <code class="highlighter-rouge">np.ndarray</code> bitarray representations with the code below:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">CACHE_SIZE</span> <span class="o">=</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span>  <span class="c"># 40 MB</span>
+<span class="n">ITER_SIZE</span> <span class="o">=</span> <span class="mi">1000000</span>  <span class="c"># 1 million</span>
+
+<span class="n">int_to_bitarr_converter</span> <span class="o">=</span> <span class="n">IntToBitarrayConverter</span><span class="p">()</span>
+<span class="n">int_to_bitarr_converter</span><span class="o">.</span><span class="n">set_bitstring_cache</span><span class="p">(</span>
+    <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="s">'b'</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">CACHE_SIZE</span><span class="p">)})</span>
+<span class="n">ndarray_bitarr_ls</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+    <span class="nb">map</span><span class="p">(</span><span class="n">int_to_bitarr_converter</span><span class="o">.</span><span class="n">convert</span><span class="p">,</span> 
+        <span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">CACHE_SIZE</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+         <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ITER_SIZE</span><span class="p">))))</span>
+</code></pre></div></div>
+
+<p>Running the above on my 2017 Macbook Pro, I see a <strong>wall time of 4.94s</strong>. Five seconds is not an extraordinarily long span of time, but I am greedy, and I want to run this concurrently and speed things up. Fortunately, this is easy with our <code class="highlighter-rouge">Pool</code> abstraction:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="kn">import</span> <span class="n">Pool</span>
+
+<span class="n">CACHE_SIZE</span> <span class="o">=</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span>  <span class="c"># 40 MB</span>
+<span class="n">ITER_SIZE</span> <span class="o">=</span> <span class="mi">1000000</span>  <span class="c"># 1 million</span>
+
+<span class="n">int_to_bitarr_converter</span> <span class="o">=</span> <span class="n">IntToBitarrayConverter</span><span class="p">()</span>
+<span class="n">int_to_bitarr_converter</span><span class="o">.</span><span class="n">set_bitstring_cache</span><span class="p">(</span>
+    <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="s">'b'</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">CACHE_SIZE</span><span class="p">)})</span>
+<span class="k">with</span> <span class="n">Pool</span><span class="p">()</span> <span class="k">as</span> <span class="n">pool</span><span class="p">:</span>
+    <span class="n">ndarray_bitarr_ls</span> <span class="o">=</span> <span class="n">pool</span><span class="o">.</span><span class="nb">map</span><span class="p">(</span>
+        <span class="n">int_to_bitarr_converter</span><span class="o">.</span><span class="n">convert</span><span class="p">,</span> 
+        <span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">CACHE_SIZE</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+         <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ITER_SIZE</span><span class="p">))))</span>
+</code></pre></div></div>
+
+<p>Running the above on the same machine, this takes <strong>32.5s</strong>. This a 600% <strong>slow-down</strong>! What is going on?</p>
+
+<h3 id="stuck-in-a-pickle">Stuck in a Pickle</h3>
+
+<p>Under the hood, our call to <code class="highlighter-rouge">pool.map(...)</code> does the following:</p>
+<ol>
+  <li>Initializes 3 <code class="highlighter-rouge">Queues</code>:
+    <ol>
+      <li>The <code class="highlighter-rouge">taskqueue</code> which holds <code class="highlighter-rouge">tuple</code> of <code class="highlighter-rouge">tasks</code>: <code class="highlighter-rouge">(result_job, func, (x,), {}</code>).
+        <ol>
+          <li>We only care about <code class="highlighter-rouge">(x,)</code> above. This holds our function <code class="highlighter-rouge">convert()</code>, and a <strong>chunk</strong> of elements from our <code class="highlighter-rouge">iterable</code>.</li>
+        </ol>
+      </li>
+      <li>The <code class="highlighter-rouge">inqueue</code>, which holds serialized (<em>pickled</em>) <code class="highlighter-rouge">tasks</code>.</li>
+      <li>The <code class="highlighter-rouge">outque</code>, which will holds serialized (<em>pickled</em>) return values of each <code class="highlighter-rouge">task</code>.</li>
+    </ol>
+  </li>
+  <li>Creates a pool of “worker” <code class="highlighter-rouge">Processes</code>, which are responsible for:
+    <ol>
+      <li>Removing tasks from the <code class="highlighter-rouge">inqueue</code>, which are deserialized, and executing the <code class="highlighter-rouge">task</code>.</li>
+      <li>Executing each <code class="highlighter-rouge">task</code>, and sending the results to the <code class="highlighter-rouge">outqueue</code>, where it is serialized and stored.</li>
+    </ol>
+  </li>
+  <li>Creates 3 <code class="highlighter-rouge">Threads</code> which manage the above 3 <code class="highlighter-rouge">Queues</code>:
+    <ol>
+      <li>The <code class="highlighter-rouge">_task_handler</code> which populates the <code class="highlighter-rouge">inqueue</code> with pickled <code class="highlighter-rouge">task</code> objects, from the <code class="highlighter-rouge">taskqueue</code></li>
+      <li>The <code class="highlighter-rouge">_worker_handler</code> which “reuses” workers by re-creating them once their work is done.</li>
+      <li>The <code class="highlighter-rouge">_result_handler</code> which “removes” elements off of the <code class="highlighter-rouge">outqueue</code>, which are deserialized, and returned to your parent process call to <code class="highlighter-rouge">Pool.map()</code>.</li>
+    </ol>
+  </li>
+</ol>
+
+<p>Re-read the above again and note everywhere you read <code class="highlighter-rouge">serialize</code>, <code class="highlighter-rouge">deserialize</code> or <code class="highlighter-rouge">pickle</code>. Objects must be <code class="highlighter-rouge">serialized</code> to a <code class="highlighter-rouge">str</code> before being shuttled to each process, and then that process must <code class="highlighter-rouge">deserialize</code> that <code class="highlighter-rouge">str</code> to re-create the object. This needs to happen on the return journey of the data also. That’s <strong>2 calls to pickle.dumps()* and **2 calls to pickle.loads()</strong> per task!</p>
+
+<blockquote>
+  <p><strong>Note:</strong> Time spent serializing &amp; deserializing is the overhead that we pay in exchange for multiprocessed concurrency. <strong>If this takes longer than the execution of the</strong> <code class="highlighter-rouge">convert()</code> <strong>function, we are wasting out time!</strong> <a href="https://www.youtube.com/watch?v=9zinZmE3Ogk">Raymond Hettinger explains this well in his talk here</a>, and <a href="http://thelaziestprogrammer.com">I build on our toy example in this post</a> to investigate further.</p>
+</blockquote>
+
+<h3 id="a-tricky-task">A Tricky Task</h3>
+
+<p>When all fails, drop in a debugger. Let’s find where <code class="highlighter-rouge">_task_handler</code> Thread appends a <code class="highlighter-rouge">task</code> onto the <code class="highlighter-rouge">inqueue</code>, and investigate the size and composition of this <code class="highlighter-rouge">task</code>. (<a href="https://github.com/python/cpython/blob/88bfd0bce05043f658e50addd21366f317995e35/Lib/multiprocessing/pool.py#L419">github link</a>)</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@staticmethod</span>
+<span class="k">def</span> <span class="nf">_handle_tasks</span><span class="p">(</span><span class="n">taskqueue</span><span class="p">,</span> <span class="n">put</span><span class="p">,</span> <span class="n">outqueue</span><span class="p">,</span> <span class="n">pool</span><span class="p">,</span> <span class="n">cache</span><span class="p">):</span>
+    <span class="n">thread</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">current_thread</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">taskseq</span><span class="p">,</span> <span class="n">set_length</span> <span class="ow">in</span> <span class="nb">iter</span><span class="p">(</span><span class="n">taskqueue</span><span class="o">.</span><span class="n">get</span><span class="p">,</span> <span class="bp">None</span><span class="p">):</span>
+        <span class="n">task</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c"># iterating taskseq cannot fail</span>
+            <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="n">taskseq</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">thread</span><span class="o">.</span><span class="n">_state</span><span class="p">:</span>
+                    <span class="n">util</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">'task handler found thread._state != RUN'</span><span class="p">)</span>                        <span class="k">break</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="kn">import</span> <span class="nn">ipdb</span><span class="p">;</span> <span class="n">ipdb</span><span class="o">.</span><span class="n">set_trace</span><span class="p">()</span>
+                    <span class="n">put</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>Let’s print the 3rd element of our <code class="highlighter-rouge">task</code>, the single-element <code class="highlighter-rouge">tuple</code> mentioned above as <code class="highlighter-rouge">(x,)</code>:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ipdb</span><span class="o">&gt;</span> <span class="n">args_tuple</span> <span class="o">=</span> <span class="n">task</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+<span class="n">ipdb</span><span class="o">&gt;</span> <span class="n">elem</span> <span class="o">=</span> <span class="n">args_tuple</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">ipdb</span><span class="o">&gt;</span> <span class="n">func</span> <span class="o">=</span> <span class="n">elem</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">ipdb</span><span class="o">&gt;</span> <span class="n">func_args</span> <span class="o">=</span> <span class="n">elem</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="n">ipdb</span><span class="o">&gt;</span> <span class="n">func</span>
+<span class="o">&lt;</span><span class="n">bound</span> <span class="n">method</span> <span class="n">IntToBitarrayConverter</span><span class="o">.</span><span class="n">convert</span> <span class="n">of</span> <span class="o">&lt;</span><span class="n">caches</span><span class="o">.</span><span class="n">IntToBitarrayConverter</span> <span class="nb">object</span> <span class="n">at</span> <span class="mh">0x1122d60f0</span><span class="o">&gt;&gt;</span>
+<span class="n">ipdb</span><span class="o">&gt;</span> <span class="n">func_args</span>
+<span class="p">(</span><span class="mi">612</span><span class="p">,</span> <span class="mi">640</span><span class="p">,</span> <span class="mi">176</span><span class="p">,</span> <span class="mi">806</span><span class="p">,</span> <span class="mi">372</span><span class="p">,</span> <span class="mi">895</span><span class="p">,</span> <span class="mi">345</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">173</span><span class="p">,</span> <span class="o">...</span> <span class="mi">449</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>In the call to <code class="highlighter-rouge">put(task</code>) above, our <code class="highlighter-rouge">func_args</code> and <code class="highlighter-rouge">func</code> will be serialized. The serialization of <code class="highlighter-rouge">func_args</code> is trivial: these are <code class="highlighter-rouge">ints</code>.</p>
+
+<p>However, on further inspection, our <code class="highlighter-rouge">&lt;bound method...of object...&gt;</code> should raise concern! This is an instance method, meaning it holds the entire <code class="highlighter-rouge">IntToBitarrayConverter</code> object:</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ipdb</span><span class="o">&gt;</span> <span class="n">func</span><span class="o">.</span><span class="n">__self__</span>
+<span class="o">&lt;</span><span class="n">caches</span><span class="o">.</span><span class="n">IntToBitarrayConverter</span> <span class="nb">object</span> <span class="n">at</span> <span class="mh">0x1122d60f0</span><span class="o">&gt;</span>
+</code></pre></div></div>
+
+<p>Further, there is a <strong>40 MB</strong> <code class="highlighter-rouge">dict</code> on this object accessed via the <code class="highlighter-rouge">bitstring_cache</code> attribute:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ipdb</span><span class="o">&gt;</span> <span class="n">func</span><span class="o">.</span><span class="n">__self__</span><span class="o">.</span><span class="n">bitstring_cache</span>
+<span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="s">'0'</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="s">'1'</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="s">'10'</span><span class="p">,</span> <span class="mi">3</span><span class="p">:</span> <span class="s">'11'</span><span class="p">,</span> <span class="mi">4</span><span class="p">:</span> <span class="s">'100'</span><span class="p">,</span> <span class="mi">5</span><span class="p">:</span> <span class="s">'101'</span><span class="o">...</span><span class="mi">1048576</span><span class="p">:</span> <span class="s">'100000000000000000000'</span><span class="p">}</span>
+<span class="n">ipdb</span><span class="o">&gt;</span> <span class="kn">import</span> <span class="nn">sys</span>
+<span class="n">ipdb</span><span class="o">&gt;</span> <span class="n">sys</span><span class="o">.</span><span class="n">getsizeof</span><span class="p">(</span><span class="n">func</span><span class="o">.</span><span class="n">__self__</span><span class="o">.</span><span class="n">bitstring_cache</span><span class="p">)</span> <span class="o">/</span> <span class="mi">1024</span> <span class="o">/</span> <span class="mi">1024</span>
+<span class="mi">40</span>
+</code></pre></div></div>
+
+<p>This explains our 600% slowdown. We are pickling/unpickling a <strong>40 MB</strong> <code class="highlighter-rouge">dict</code> 4 times per <code class="highlighter-rouge">task</code>!</p>
+
+<h3 id="serial-performance-killers">Serial (Performance) Killers</h3>
+
+<p>Here is the actual profiled breakdown, produced with blood, sweat and several debug statements in a <em>non-optimized</em> local copy of the <code class="highlighter-rouge">multiprocessing</code> package.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: center">Process</th>
+      <th style="text-align: center">dumps() calls</th>
+      <th style="text-align: center">dumps()  time(s)</th>
+      <th style="text-align: center">avg</th>
+      <th style="text-align: center">loads() calls</th>
+      <th style="text-align: center">loads() time(s)</th>
+      <th style="text-align: center">avg</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: center">Parent</td>
+      <td style="text-align: center">42</td>
+      <td style="text-align: center"><strong>3m36s</strong></td>
+      <td style="text-align: center">5.14s</td>
+      <td style="text-align: center">33</td>
+      <td style="text-align: center">4.34s</td>
+      <td style="text-align: center">.13s</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">1</td>
+      <td style="text-align: center">4</td>
+      <td style="text-align: center">5.37s</td>
+      <td style="text-align: center">1.34s</td>
+      <td style="text-align: center">5</td>
+      <td style="text-align: center">2.98s</td>
+      <td style="text-align: center">.59s</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">2</td>
+      <td style="text-align: center">4</td>
+      <td style="text-align: center">5.12s</td>
+      <td style="text-align: center">1.28s</td>
+      <td style="text-align: center">5</td>
+      <td style="text-align: center">3.01s</td>
+      <td style="text-align: center">.60s</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">3</td>
+      <td style="text-align: center">4</td>
+      <td style="text-align: center">5.18s</td>
+      <td style="text-align: center">1.29s</td>
+      <td style="text-align: center">5</td>
+      <td style="text-align: center">3.75s</td>
+      <td style="text-align: center">.75s</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">4</td>
+      <td style="text-align: center">4</td>
+      <td style="text-align: center">5.74s</td>
+      <td style="text-align: center">1.43s</td>
+      <td style="text-align: center">5</td>
+      <td style="text-align: center">2.95s</td>
+      <td style="text-align: center">.59s</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">5</td>
+      <td style="text-align: center">4</td>
+      <td style="text-align: center">5.09s</td>
+      <td style="text-align: center">1.27s</td>
+      <td style="text-align: center">5</td>
+      <td style="text-align: center">3.01s</td>
+      <td style="text-align: center">.60s</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">6</td>
+      <td style="text-align: center">4</td>
+      <td style="text-align: center">5.14s</td>
+      <td style="text-align: center">1.28s</td>
+      <td style="text-align: center">5</td>
+      <td style="text-align: center">2.96s</td>
+      <td style="text-align: center">.59s</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">7</td>
+      <td style="text-align: center">4</td>
+      <td style="text-align: center">5.79s</td>
+      <td style="text-align: center">1.44s</td>
+      <td style="text-align: center">4</td>
+      <td style="text-align: center">2.96s</td>
+      <td style="text-align: center">.74s</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">8</td>
+      <td style="text-align: center">4</td>
+      <td style="text-align: center">5.13s</td>
+      <td style="text-align: center">1.28s</td>
+      <td style="text-align: center">5</td>
+      <td style="text-align: center">3.52s</td>
+      <td style="text-align: center">.70s</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>How exactly did this happen?</p>
+
+<h3 id="oop-object-oriented-programming-problems">OOP: Object-oriented <del>Programming</del> Problems</h3>
+
+<p>An <strong>instance method</strong> is a method which is called on an object, and has the object available within the scope of the method. In <strong>C++</strong> and <strong>Javascript</strong>, we access the <code class="highlighter-rouge">bound object</code> via the variable <code class="highlighter-rouge">this</code>. In Python, we use <code class="highlighter-rouge">self</code>.</p>
+
+<p>Recall the method <code class="highlighter-rouge">convert(...)</code>, on our toy class, found below:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">convert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">integer</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="n">bitstring</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bitstring_cache</span><span class="p">[</span><span class="n">integer</span><span class="p">]</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bitstring_to_ndarray</span><span class="p">(</span><span class="n">bitstring</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>Once our object <code class="highlighter-rouge">IntToBitarrayConverter</code> is created, the object is bound to the method <code class="highlighter-rouge">convert(...)</code>. This means when we pass our method to <code class="highlighter-rouge">Pool.map(...)</code>, we are implicitly passing <em>a reference</em> to the object as well.</p>
+
+<p>Passing an <strong>instance method</strong> to <code class="highlighter-rouge">Pool.map(...)</code> is <strong>OK</strong>, so long as the <strong>instance</strong> is not large. That said, a rule-of-thumb is to use <code class="highlighter-rouge">@staticmethods</code> or regular unbound functions when using <code class="highlighter-rouge">Pool</code>, to explicitly avoid this scenario. Otherwise you are at the mercy of the size of data that consumers add to your object.</p>
+
+<p>The big takeaway here is that we spend <strong>3m 35s</strong> in the <em>parent process</em> continuously pickling our <code class="highlighter-rouge">bitstring_cache</code> so it can be sent to our children.</p>
+
+<h3 id="a-global-solution">A Global Solution</h3>
+
+<p>The proposed solution of using unbound methods may not be appealing. Often times we need additional state to apply our mapped function <code class="highlighter-rouge">f(x)</code> across our <code class="highlighter-rouge">iterable</code>. Each worker process may need to do things like:</p>
+
+<ol>
+  <li>Acquire a database connection to fetch or update data.</li>
+  <li>Access an in-memory cache, like our <code class="highlighter-rouge">dict</code> cache example above.</li>
+</ol>
+
+<p>Fortunately, the general concept of <strong>initializaing</strong> each Pool <code class="highlighter-rouge">worker</code> process so that it has access to an <em>unpickable</em> object like a <strong>database engine</strong>, or a <em>large object</em> like our <strong>bitstring_cache</strong> is supported, with limitations…</p>
+
+<p><a href="/python/multiprocessing-pool-a-global-solution">We continue our example here for a solution to our problem using global variables</a>.</p>
+
+<h3 id="a-global-correct-solution">A <del>Global</del> Correct Solution</h3>
+
+<p>Unfortunately, <strong>global variables</strong> shatter encapsulation, and in my opinion, are not a satisfying solution. I’ve begun work on a Pull Request augmenting the current <code class="highlighter-rouge">initializer</code> kwarg used to initialize Pool workers, while maintaining encapsulation. Please <a href="https://github.com/seanharr11/cpython">check out my work so far</a>, and leave feedback. New test coverage is in progress. I will update when complete once a PR has been opened. No existing tests/interfaces have been broken.</p>
+
+	  ]]></description>
+	</item>
+
+
+</channel>
+</rss>

@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- Document Settings -->
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+    <!-- Page Meta -->
+    <title>Multiprocessing.Pool() - A Global Solution</title>
+    <meta name="description" content="Because someone else has already solved your problem." />
+
+    <!-- Mobile Meta -->
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Brand icon -->
+    <link rel="shortcut icon" href="/assets/images/favicon.ico" >
+
+    <!-- Styles'n'Scripts -->
+    <link rel="stylesheet" type="text/css" href="/assets/css/screen.css" />
+    <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Merriweather:300,700,700italic,300italic|Open+Sans:700,400" />
+    <link rel="stylesheet" type="text/css" href="/assets/css/syntax.css" />
+
+    <!-- highlight.js -->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.3.0/styles/default.min.css">
+    <style>.hljs { background: none; }</style>
+
+    <!-- Ghost outputs important style and meta data with this tag -->
+    <link rel="canonical" href="http://thelaziestprogrammer.com/python/multiprocessing-pool-a-global-solution" />
+    <meta name="referrer" content="origin" />
+    <link rel="next" href="/page2/" />
+
+    <meta property="og:site_name" content="The Laziest Programmer" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Multiprocessing.Pool() - A Global Solution" />
+    <meta property="og:description" content="Because someone else has already solved your problem." />
+    <meta property="og:url" content="http://thelaziestprogrammer.com/python/multiprocessing-pool-a-global-solution" />
+    <meta property="og:image" content="http://thelaziestprogrammer.com/assets/images/tlp_logo_og.png" />
+
+    <meta name="twitter:card" content="http://thelaziestprogrammer.com/assets/images/tlp_logo_og.png" />
+    <meta name="twitter:title" content="Multiprocessing.Pool() - A Global Solution" />
+    <meta name="twitter:description" content="Because someone else has already solved your problem." />
+    <meta name="twitter:url" content="http://thelaziestprogrammer.com/python/multiprocessing-pool-a-global-solution" />
+    <meta name="twitter:image:src" content="http://thelaziestprogrammer.com/assets/images/tlp_logo_og.png" />
+
+    <script type="application/ld+json">
+{
+    "@context": "http://schema.org",
+    "@type": "Website",
+    "publisher": "The Laziest Programmer",
+    "name": "Multiprocessing.Pool() - A Global Solution",
+    "url": "http://localhost:4000//python/multiprocessing-pool-a-global-solution",
+    "image": "/assets/images/tahoe_wildflowers.jpg",
+    "description": "Because someone else has already solved your problem."
+}
+    </script>
+
+    <meta name="generator" content="Jekyll 3.0.0" />
+    <link rel="alternate" type="application/rss+xml" title="The Laziest Programmer" href="/feed.xml" />
+
+
+</head>
+<body class="home-template nav-closed">
+
+    <!-- The blog navigation links -->
+    
+<div class="nav">
+    <h3 class="nav-title">Menu</h3>
+    <a href="#" class="nav-close">
+        <span class="hidden">Close</span>
+    </a>
+    <ul>
+        <li class="nav-home  nav-current" role="presentation"><a href="/">Home</a></li>
+        <li class="nav-home" role="presentation"><a href="#">Topics</a>
+           <ul style="padding-top:9px;padding-bottom:0px"> 
+             <li class="nav-fiction " role="presentation"><a href="/tag/databases">Databases</a></li>
+           </ul>     
+           <ul style="padding-top:0px; padding-bottom: 0px"> 
+             <li class="nav-fiction " role="presentation"><a href="/tag/web-development">Web Development</a></li>
+           </ul>     
+           <ul style="padding-top:0px; padding-bottom: 0px"> 
+             <li class="nav-fiction " role="presentation"><a href="/tag/math-of-machine-learning">The Math of ML</a></li>
+           </ul>     
+           <ul style="padding-top:0px; padding-bottom: 0px"> 
+             <li class="nav-fiction " role="presentation"><a href="/tag/bioinformatics">Bioinformatics</a></li>
+           </ul>     
+           <ul style="padding-top:0px;"> 
+             <li class="nav-fiction " role="presentation"><a href="/tag/python">Python</a></li>
+           </ul>     
+        </li>
+        <li class="nav-about " role="presentation"><a href="/about">About This Site</a></li>
+        <li class="nav-author " role="presentation"><a href="/author/sharrington">The Author</a></li>
+    </ul>
+    <a class="subscribe-button" href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=DH544PY7RFSLA">Donate</a>
+    <a class="subscribe-button icon-feed" href="/feed.xml">Subscribe</a>
+</div>
+<span class="nav-cover"></span>
+
+
+    <div class="site-wrapper">
+
+        <!-- All the main content gets inserted here, index.hbs, post.hbs, etc -->
+        <!-- default -->
+
+<!-- The comment above "< default" means - insert everything in this file into -->
+    <!-- the [body] of the default.hbs template, which contains our header/footer. -->
+
+<!-- Everything inside the #post tags pulls data from the post -->
+<!-- #post -->
+
+<header class="main-header post-head " style="background-image: url(/assets/images/tahoe_wildflowers.jpg) ">
+    <nav class="main-nav  overlay  clearfix">
+        <a class="blog-logo" href="/"><img src="/assets/images/tlp_logo.png" alt="Blog Logo" /></a>
+        
+            <a class="menu-button icon-menu" href="#"><span class="word">Menu</span></a>
+        
+    </nav>
+</header>
+
+<main class="content" role="main">
+
+    <article class="post tag-test tag-content">
+
+        <header class="post-header">
+            <h1 class="post-title">Multiprocessing.Pool() - A Global Solution</h1>
+            <section class="post-meta">
+            <!-- <a href='/'></a> -->
+
+            
+            <time class="post-date" datetime="2018-06-19">19 Jun 2018</time>
+                <!-- [[tags prefix=" on "]] -->
+                
+                on
+                
+                    
+                       <a href='/tag/python'>Python</a>
+                    
+                
+                
+            </section>
+        </header>
+
+        <section class="post-content">
+
+            <h3 id="intro">Intro</h3>
+<p>In this post, we talk about how to copy data from a parent process, to several worker processes in a <code class="highlighter-rouge">multiprocessing.Pool</code> using global variables. Specifically, we will use <strong>class attributes</strong>, as I find this solution to be <em>slightly</em> more appealing then using global variables defined at the top of a file.</p>
+
+<p>For those of you just joining this series, the problem we are trying to solve is follows…</p>
+
+<p>Given the following class:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">IntToBitarrayConverter</span><span class="p">():</span>
+    
+    <span class="k">def</span> <span class="nf">set_bitstring_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bitstring_cache</span><span class="p">:</span> <span class="n">Dict</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bitstring_cache</span> <span class="o">=</span> <span class="n">bitstring_cache</span>
+
+    <span class="k">def</span> <span class="nf">convert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">integer</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="n">bitstring</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bitstring_cache</span><span class="p">[</span><span class="n">integer</span><span class="p">]</span>
+        <span class="c"># cache the step of bitstring = format(integer, 'b')</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bitstring_to_ndarray</span><span class="p">(</span><span class="n">bitstring</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_bitstring_to_ndarray</span><span class="p">(</span><span class="n">bitstring</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="n">arr</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span><span class="n">bitstring</span><span class="p">,</span> <span class="s">'u1'</span><span class="p">)</span> <span class="o">-</span> <span class="mi">48</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">arr</span>
+</code></pre></div></div>
+
+<p>And given the following parallelization of our <code class="highlighter-rouge">convert()</code> method using <code class="highlighter-rouge">Pool</code>:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">CACHE_SIZE</span> <span class="o">=</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span>  <span class="c"># 1 MB</span>
+<span class="n">ITER_SIZE</span> <span class="o">=</span> <span class="mi">1000000</span>  <span class="c"># 1 million</span>
+
+<span class="n">int_to_bitarr_converter</span> <span class="o">=</span> <span class="n">IntToBitarrayConverter</span><span class="p">()</span>
+<span class="n">int_to_bitarr_converter</span><span class="o">.</span><span class="n">set_bitstring_cache</span><span class="p">(</span>
+    <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="s">'b'</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">CACHE_SIZE</span><span class="p">)})</span>
+<span class="k">with</span> <span class="n">Pool</span><span class="p">()</span> <span class="k">as</span> <span class="n">pool</span><span class="p">:</span>
+    <span class="n">ndarray_bitarr_ls</span> <span class="o">=</span> <span class="n">pool</span><span class="o">.</span><span class="nb">map</span><span class="p">(</span>
+        <span class="n">int_to_bitarr_converter</span><span class="o">.</span><span class="n">convert</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">CACHE_SIZE</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+         <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ITER_SIZE</span><span class="p">))))</span>
+</code></pre></div></div>
+
+<p>We learned that when you have an <strong>instance method</strong> with a <em>large object bound</em> to it,  passing this method to <code class="highlighter-rouge">Pool.map(...)</code> results in a <strong>huge</strong> performance loss due to repeated serializing/deserializing of the <em>large object</em> between processes.</p>
+
+<p>This is what happened with our <code class="highlighter-rouge">convert()</code> method above. In this post, we explore a solution that shows us “<em>how to pass data to Pool of workers, and only do it <strong>once</strong></em>.”</p>
+
+<h3 id="a-classy-solution">A Classy Solution</h3>
+
+<p>The unfortunate answer to our question above is that, given the current implementation of <code class="highlighter-rouge">Pool</code>, we need to use <strong>global</strong> variables to pass data to our <code class="highlighter-rouge">workers</code>. Most of the interweb resources will show you this same example.</p>
+
+<p>By taking a different approach, we can <em>class this up a bit</em> by using <strong>class attributes</strong> and a <code class="highlighter-rouge">@classmethod</code>, with the hope that we can delicately preserve some semblance of encapsulation in our code.</p>
+
+<p>Enter the <code class="highlighter-rouge">ClassMethodBitarrayConverter</code>:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">ClassMethodBitarrayConverter</span><span class="p">(</span><span class="n">IntToBitarrayConverter</span><span class="p">):</span>
+    <span class="n">bitstring_cache</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">set_bitstring_cache</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">bitstring_cache</span><span class="p">:</span> <span class="n">Dict</span><span class="p">):</span>
+        <span class="n">cls</span><span class="o">.</span><span class="n">bitstring_cache</span> <span class="o">=</span> <span class="n">bitstring_cache</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">convert</span><span class="p">(</span><span class="n">cls</span><span class="p">,</span> <span class="n">integer</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">init_return</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="n">bitstring</span> <span class="o">=</span> <span class="n">cls</span><span class="o">.</span><span class="n">bitstring_cache</span><span class="p">[</span><span class="n">integer</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">cls</span><span class="o">.</span><span class="n">_bitstring_to_ndarray</span><span class="p">(</span><span class="n">bitstring</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>We <em>inherit</em> from <code class="highlighter-rouge">IntToBitarrayConverter</code>, and make three changes:</p>
+
+<ol>
+  <li><code class="highlighter-rouge">bitstring_cache</code> becomes a <strong>class attribute</strong></li>
+  <li><code class="highlighter-rouge">convert()</code> becomes an <code class="highlighter-rouge">@classmethod</code></li>
+  <li><code class="highlighter-rouge">set_bitstring_cache()</code> becomes an <code class="highlighter-rouge">@classmethod</code></li>
+</ol>
+
+<blockquote>
+  <p><strong>Note:</strong> What we’ve done here is essentially bundle 2 global functions, with 1 global variable, and co-locate them within the same <code class="highlighter-rouge">class</code>. This is quietly approaching the <strong>singleton</strong> anti-pattern, but I prefer the encapsulation here over <strong>globals</strong>, despite it being a dangerous facade…</p>
+</blockquote>
+
+<p>Now, when we run the parallelized code above, because <code class="highlighter-rouge">ClassMethodBitarrayConverter.convert()</code> and <code class="highlighter-rouge">ClassMethodBitarrayConverter.bitstring_cache</code> are glorified globals, <code class="highlighter-rouge">convert()</code> has access to <code class="highlighter-rouge">bitstring_cache</code>, <strong>without any serializing/deserializing required</strong>, within each <code class="highlighter-rouge">worker</code> Process.</p>
+
+<p>Compared to the <strong>32.5s</strong> in our previous implementation, our classy global solution runs in just <strong>5s</strong>!</p>
+
+<blockquote>
+  <p><strong>Note:</strong> If you’ve <a href="/python/a-multiprocessing-pool-pickle#a-more-complex-case-inttobitarrayconverter">been following along</a>, you’ll notice that this is the same performance as our sequential, non-parallelized code. This is because the <code class="highlighter-rouge">convert()</code> method is not CPU intensive. This is a topic for another post!</p>
+</blockquote>
+
+<p>We see <a href="/python/a-multiprocessing-pool-pickle#serial-performance-killers">drastic improvements</a> in our profiled calls to <code class="highlighter-rouge">loads()</code> and <code class="highlighter-rouge">dumps()</code>:</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: center">Process</th>
+      <th style="text-align: center">dumps() calls</th>
+      <th style="text-align: center">dumps()  time(s)</th>
+      <th style="text-align: center">avg</th>
+      <th style="text-align: center">loads() calls</th>
+      <th style="text-align: center">loads() time(s)</th>
+      <th style="text-align: center">avg</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: center">Parent</td>
+      <td style="text-align: center">42</td>
+      <td style="text-align: center"><strong>4.09s</strong></td>
+      <td style="text-align: center">.09s</td>
+      <td style="text-align: center">33</td>
+      <td style="text-align: center">7.36s</td>
+      <td style="text-align: center">.13s</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">1</td>
+      <td style="text-align: center">4</td>
+      <td style="text-align: center">10.34s</td>
+      <td style="text-align: center">2.57s</td>
+      <td style="text-align: center">5</td>
+      <td style="text-align: center">.04s</td>
+      <td style="text-align: center">.008s</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">2</td>
+      <td style="text-align: center">4</td>
+      <td style="text-align: center">10.31s</td>
+      <td style="text-align: center">2.57s</td>
+      <td style="text-align: center">5</td>
+      <td style="text-align: center">.04s</td>
+      <td style="text-align: center">.008s</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">3</td>
+      <td style="text-align: center">4</td>
+      <td style="text-align: center">10.31s</td>
+      <td style="text-align: center">2.57s</td>
+      <td style="text-align: center">5</td>
+      <td style="text-align: center">.04s</td>
+      <td style="text-align: center">.008s</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">4</td>
+      <td style="text-align: center">4</td>
+      <td style="text-align: center">10.36s</td>
+      <td style="text-align: center">2.58s</td>
+      <td style="text-align: center">5</td>
+      <td style="text-align: center">.04s</td>
+      <td style="text-align: center">.008s</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">5</td>
+      <td style="text-align: center">4</td>
+      <td style="text-align: center">10.23s</td>
+      <td style="text-align: center">2.55s</td>
+      <td style="text-align: center">5</td>
+      <td style="text-align: center">.04s</td>
+      <td style="text-align: center">.008s</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">6</td>
+      <td style="text-align: center">4</td>
+      <td style="text-align: center">10.19s</td>
+      <td style="text-align: center">2.54s</td>
+      <td style="text-align: center">5</td>
+      <td style="text-align: center">.04s</td>
+      <td style="text-align: center">.008s</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">7</td>
+      <td style="text-align: center">4</td>
+      <td style="text-align: center">10.04s</td>
+      <td style="text-align: center">2.52s</td>
+      <td style="text-align: center">5</td>
+      <td style="text-align: center">.04s</td>
+      <td style="text-align: center">.008s</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">8</td>
+      <td style="text-align: center">4</td>
+      <td style="text-align: center">9.88s</td>
+      <td style="text-align: center">2.47s</td>
+      <td style="text-align: center">5</td>
+      <td style="text-align: center">.04s</td>
+      <td style="text-align: center">.008s</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3 id="global-problems">Global Problems</h3>
+
+<p>Our new implementation above is encapsulated within a class. This is more readable due to its modularity. However, to cut through the BS, at its core <code class="highlighter-rouge">ClassMethodBitarrayConverter</code> is nothing but a <strong>global</strong>.</p>
+
+<p>This means we expose ourselves to the following:</p>
+
+<ol>
+  <li><strong>Singleton Pattern:</strong> We can’t <em>really</em> have more than one unique instance of our class - we only have one attribute, and it is a class attribute. Two instances of our class would be equal, and would share the same exact state. <strong>Our class is really a singleton</strong></li>
+  <li><strong>Testability Problems:</strong> Testing our class is extremely error prone: if one test changes the state of the <code class="highlighter-rouge">bitstring_cache</code> during a test, that test must undo the global state on teardown so it does not persist to the next test!</li>
+  <li><strong>Code Maintainability:</strong> To understand a small module of the codebase, you need to first digest every part of the codebase that alters your global state, rather than just the public interface of your module.</li>
+</ol>
+
+<h3 id="the-real-problem">The Real Problem</h3>
+
+<p>The real problem is not that we are using globals - the question of “<em>whether globals are bad</em>” is an opinion, <a href="https://stackoverflow.com/questions/484635/are-global-variables-bad">see this SO post</a>.</p>
+
+<p>The problem is that we are forced to use globals becaue of the <code class="highlighter-rouge">multiprocessing.Pool()</code> implementation, and <strong>not because we want to share our globals across our app!</strong></p>
+
+<p><a href="https://github.com/seanharr11/cpython">I’ve begun work here</a> on augmenting the current <code class="highlighter-rouge">initializer</code> kwarg to <code class="highlighter-rouge">Pool(...)</code>, which will allow for more flexibility when initializing worker processes. Specifically, the feature will allow you to <em>pass non-picklable objects, or very large objects to each worker process, by returning a value from the <code class="highlighter-rouge">initializer</code> function, and passing the return value to whatever function you are applying in <code class="highlighter-rouge">map()</code>.</em></p>
+
+
+        </section>
+
+        <footer class="post-footer">
+
+            <!-- Everything inside the #author tags pulls data from the author -->
+            <!-- #author-->
+            
+
+            <!-- Add Disqus Comments -->
+            
+
+        </footer>
+
+    </article>
+
+</main>
+
+<aside class="read-next">
+
+    <!-- [[! next_post ]] -->
+    
+        <a class="read-next-story " style="background-image: url(/assets/images/southie_sunset.jpg)" href="/bioinformatics/warehousing-DbSNP-Part-I-download-and-create-db">
+            <section class="post">
+                <h2>Warehousing DbSNP, Part I: Downloading Chromosome 1 & Creating our Database</h2>
+                <p>### Intro This series of posts cover how to migrate [DbSNP](https://www.ncbi.nlm.nih.gov/projects/SNP){:target="_blank"}'s [newly downloadable JSON files](https://ncbiinsights.ncbi.nlm.nih.gov/2017/07/07/dbsnp-redesign-supports-future-data-expansion/){:target="_blank"}...</p>
+            </section>
+        </a>
+    
+    <!-- [[! /next_post ]] -->
+    <!-- [[! prev_post ]] -->
+    
+        <a class="read-next-story prev " style="background-image: url(/assets/images/mayflower_beach_sunset_2018.jpg)" href="/python/a-multiprocessing-pool-pickle">
+            <section class="post">
+                <h2>Multiprocessing.Pool() - Stuck in Pickle</h2>
+                <p>Intro Generally speaking, concurrent programming is hard. Luckily for us, Python’s multiprocessing.Pool abstraction makes the...</p>
+            </section>
+        </a>
+    
+    <!-- [[! /prev_post ]] -->
+</aside>
+
+<!-- /post -->
+
+
+        <!-- The tiny footer at the very bottom -->
+        <footer class="site-footer clearfix">
+          <section class="copyright"><a href="/">The Laziest Programmer</a> &copy; 2018</section>
+          <section class="poweredby">Proudly published with <a href="https://jekyllrb.com/">Jekyll</a> using <a href="https://github.com/jekyller/jasper">Jasper</a></section>
+        </footer>
+    </div>
+    <!-- highlight.js -->
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.3.0/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+
+    <!-- jQuery needs to come before `` so that jQuery can be used in code injection -->
+    <script type="text/javascript" src="//code.jquery.com/jquery-1.12.0.min.js"></script>
+    <!-- Ghost outputs important scripts and data with this tag -->
+    <!--  -->
+    <!-- Add Google Analytics  -->
+        <!-- Google Analytics Tracking code -->
+     <script>
+	    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+	    ga('create', 'UA-80966627-1', 'auto');
+	    ga('send', 'pageview');
+
+     </script>
+    <!-- Fitvids makes video embeds responsive and awesome -->
+    <script type="text/javascript" src="/assets/js/jquery.fitvids.js"></script>
+    <!-- The main JavaScript file for Casper -->
+    <script type="text/javascript" src="/assets/js/index.js"></script>
+
+</body>
+</html>

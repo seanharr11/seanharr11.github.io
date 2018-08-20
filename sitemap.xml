@@ -1,15 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-    
+
+<url>
+    <loc>http://thelaziestprogrammer.com/python/a-multiprocessing-pool-pickle</loc>
+<lastmod>2018-08-16T10:18:00-04:00</lastmod>
+</url>
+
+<url>
+    <loc>http://thelaziestprogrammer.com/python/multiprocessing-pool-a-global-solution</loc>
+<lastmod>2018-08-14T10:18:00-04:00</lastmod>
+</url>
+
 <url>
     <loc>http://thelaziestprogrammer.com/bioinformatics/warehousing-DbSNP-Part-I-download-and-create-db</loc>
-<lastmod>2017-06-20T10:18:00-04:00</lastmod>
+<lastmod>2018-06-20T10:18:00-04:00</lastmod>
 </url>
 
 
 <url>
     <loc>http://thelaziestprogrammer.com/bioinformatics/warehousing-DbSNP-Part-II-parsing-RefSNP-JSON</loc>
-<lastmod>2017-06-25T08:24:00-04:00</lastmod>
+<lastmod>2018-06-25T08:24:00-04:00</lastmod>
 </url>
 
 <url>

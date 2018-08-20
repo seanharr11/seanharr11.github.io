@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- Document Settings -->
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+    <!-- Page Meta -->
+    <title>Multiprocessing.Pool() - Stuck in a Pickle</title>
+    <meta name="description" content="Because someone else has already solved your problem." />
+
+    <!-- Mobile Meta -->
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Brand icon -->
+    <link rel="shortcut icon" href="/assets/images/favicon.ico" >
+
+    <!-- Styles'n'Scripts -->
+    <link rel="stylesheet" type="text/css" href="/assets/css/screen.css" />
+    <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Merriweather:300,700,700italic,300italic|Open+Sans:700,400" />
+    <link rel="stylesheet" type="text/css" href="/assets/css/syntax.css" />
+
+    <!-- highlight.js -->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.3.0/styles/default.min.css">
+    <style>.hljs { background: none; }</style>
+
+    <!-- Ghost outputs important style and meta data with this tag -->
+    <link rel="canonical" href="http://thelaziestprogrammer.com/python/a-multiprocessing-pool-pickle" />
+    <meta name="referrer" content="origin" />
+    <link rel="next" href="/page2/" />
+
+    <meta property="og:site_name" content="The Laziest Programmer" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Multiprocessing.Pool() - Stuck in a Pickle" />
+    <meta property="og:description" content="Because someone else has already solved your problem." />
+    <meta property="og:url" content="http://thelaziestprogrammer.com/python/a-multiprocessing-pool-pickle" />
+    <meta property="og:image" content="http://thelaziestprogrammer.com/assets/images/tlp_logo_og.png" />
+
+    <meta name="twitter:card" content="http://thelaziestprogrammer.com/assets/images/tlp_logo_og.png" />
+    <meta name="twitter:title" content="Multiprocessing.Pool() - Stuck in a Pickle" />
+    <meta name="twitter:description" content="Because someone else has already solved your problem." />
+    <meta name="twitter:url" content="http://thelaziestprogrammer.com/python/a-multiprocessing-pool-pickle" />
+    <meta name="twitter:image:src" content="http://thelaziestprogrammer.com/assets/images/tlp_logo_og.png" />
+
+    <script type="application/ld+json">
+{
+    "@context": "http://schema.org",
+    "@type": "Website",
+    "publisher": "The Laziest Programmer",
+    "name": "Multiprocessing.Pool() - Stuck in a Pickle",
+    "url": "http://localhost:4000//python/a-multiprocessing-pool-pickle",
+    "image": "/assets/images/mayflower_beach_sunset_2018.jpg",
+    "description": "Because someone else has already solved your problem."
+}
+    </script>
+
+    <meta name="generator" content="Jekyll 3.0.0" />
+    <link rel="alternate" type="application/rss+xml" title="The Laziest Programmer" href="/feed.xml" />
+
+
+</head>
+<body class="home-template nav-closed">
+
+    <!-- The blog navigation links -->
+    
+<div class="nav">
+    <h3 class="nav-title">Menu</h3>
+    <a href="#" class="nav-close">
+        <span class="hidden">Close</span>
+    </a>
+    <ul>
+        <li class="nav-home  nav-current" role="presentation"><a href="/">Home</a></li>
+        <li class="nav-home" role="presentation"><a href="#">Topics</a>
+           <ul style="padding-top:9px;padding-bottom:0px"> 
+             <li class="nav-fiction " role="presentation"><a href="/tag/databases">Databases</a></li>
+           </ul>     
+           <ul style="padding-top:0px; padding-bottom: 0px"> 
+             <li class="nav-fiction " role="presentation"><a href="/tag/web-development">Web Development</a></li>
+           </ul>     
+           <ul style="padding-top:0px; padding-bottom: 0px"> 
+             <li class="nav-fiction " role="presentation"><a href="/tag/math-of-machine-learning">The Math of ML</a></li>
+           </ul>     
+           <ul style="padding-top:0px; padding-bottom: 0px"> 
+             <li class="nav-fiction " role="presentation"><a href="/tag/bioinformatics">Bioinformatics</a></li>
+           </ul>     
+           <ul style="padding-top:0px;"> 
+             <li class="nav-fiction " role="presentation"><a href="/tag/python">Python</a></li>
+           </ul>     
+        </li>
+        <li class="nav-about " role="presentation"><a href="/about">About This Site</a></li>
+        <li class="nav-author " role="presentation"><a href="/author/sharrington">The Author</a></li>
+    </ul>
+    <a class="subscribe-button" href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=DH544PY7RFSLA">Donate</a>
+    <a class="subscribe-button icon-feed" href="/feed.xml">Subscribe</a>
+</div>
+<span class="nav-cover"></span>
+
+
+    <div class="site-wrapper">
+
+        <!-- All the main content gets inserted here, index.hbs, post.hbs, etc -->
+        <!-- default -->
+
+<!-- The comment above "< default" means - insert everything in this file into -->
+    <!-- the [body] of the default.hbs template, which contains our header/footer. -->
+
+<!-- Everything inside the #post tags pulls data from the post -->
+<!-- #post -->
+
+<header class="main-header post-head " style="background-image: url(/assets/images/mayflower_beach_sunset_2018.jpg) ">
+    <nav class="main-nav  overlay  clearfix">
+        <a class="blog-logo" href="/"><img src="/assets/images/tlp_logo.png" alt="Blog Logo" /></a>
+        
+            <a class="menu-button icon-menu" href="#"><span class="word">Menu</span></a>
+        
+    </nav>
+</header>
+
+<main class="content" role="main">
+
+    <article class="post tag-test tag-content">
+
+        <header class="post-header">
+            <h1 class="post-title">Multiprocessing.Pool() - Stuck in a Pickle</h1>
+            <section class="post-meta">
+            <!-- <a href='/'></a> -->
+
+            
+            <time class="post-date" datetime="2018-06-16">16 Jun 2018</time>
+                <!-- [[tags prefix=" on "]] -->
+                
+                on
+                
+                    
+                       <a href='/tag/python'>Python</a>
+                    
+                
+                
+            </section>
+        </header>
+
+        <section class="post-content">
+
+            <h3 id="intro">Intro</h3>
+<p>Generally speaking, concurrent programming is hard. Luckily for us, Python’s <code class="highlighter-rouge">multiprocessing.Pool</code> abstraction makes the parallelization of certain problems extremely approachable.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="kn">import</span> <span class="n">Pool</span>
+
+<span class="k">def</span> <span class="nf">sqrt</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">x</span><span class="o">**.</span><span class="mi">5</span>
+
+<span class="n">numbers</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1000000</span><span class="p">)]</span>
+<span class="k">with</span> <span class="n">Pool</span><span class="p">()</span> <span class="k">as</span> <span class="n">pool</span><span class="p">:</span>
+    <span class="n">sqrt_ls</span> <span class="o">=</span> <span class="n">pool</span><span class="o">.</span><span class="nb">map</span><span class="p">(</span><span class="n">sqrt</span><span class="p">,</span> <span class="n">numbers</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>The basic idea is that given any iterable of type <code class="highlighter-rouge">Iterable[T]</code>, and any function <code class="highlighter-rouge">f(x: T) -&gt; Any</code>, we can parallelize the higher-order function <code class="highlighter-rouge">map(f, iterable)</code> with 1 line of code. The above iterates over 1 million integers, and in parallel, calculates the <code class="highlighter-rouge">sqrt</code> of each integer, utilizing all CPUs on our machine.</p>
+
+<p>That said, this post is about getting into trouble, not about the simple case above…</p>
+
+<h3 id="a-more-complex-case-inttobitarrayconverter">A More Complex Case: IntToBitarrayConverter</h3>
+
+<p>Our toy class will do just what it says it does: <strong>convert</strong> <code class="highlighter-rouge">ints</code> to their binary representation of <strong>0</strong>s and <strong>1</strong>s. Specifically, our implementation will return a bitarray as a <code class="highlighter-rouge">numpy.ndarray</code>. Our class also stores a cache of <code class="highlighter-rouge">int</code> -&gt; <code class="highlighter-rouge">str</code>, implemented as a simple <code class="highlighter-rouge">dict</code>, which quickly converts <code class="highlighter-rouge">int</code> keys to <code class="highlighter-rouge">str</code> values (<em>bitstrings</em>).</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">IntToBitarrayConverter</span><span class="p">():</span>
+    
+    <span class="k">def</span> <span class="nf">set_bitstring_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bitstring_cache</span><span class="p">:</span> <span class="n">Dict</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bitstring_cache</span> <span class="o">=</span> <span class="n">bitstring_cache</span>
+
+    <span class="k">def</span> <span class="nf">convert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">integer</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="n">bitstring</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bitstring_cache</span><span class="p">[</span><span class="n">integer</span><span class="p">]</span>
+        <span class="c"># cache the step of bitstring = format(integer, 'b')</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bitstring_to_ndarray</span><span class="p">(</span><span class="n">bitstring</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_bitstring_to_ndarray</span><span class="p">(</span><span class="n">bitstring</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="n">arr</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span><span class="n">bitstring</span><span class="p">,</span> <span class="s">'u1'</span><span class="p">)</span> <span class="o">-</span> <span class="mi">48</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">arr</span>
+</code></pre></div></div>
+<blockquote>
+  <p><strong>Note:</strong> that <code class="highlighter-rouge">np.fromstring(bitstring, 'u1') - 48</code> parses the str as the 8-bit integer ASCII values of the ‘0’ and ‘1’ chars (48 and 49 respectively), and subtracts 48 to yield binary data.</p>
+</blockquote>
+
+<p>We can convert 1000000 <code class="highlighter-rouge">ints</code> to their <code class="highlighter-rouge">np.ndarray</code> bitarray representations with the code below:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">CACHE_SIZE</span> <span class="o">=</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span>  <span class="c"># 40 MB</span>
+<span class="n">ITER_SIZE</span> <span class="o">=</span> <span class="mi">1000000</span>  <span class="c"># 1 million</span>
+
+<span class="n">int_to_bitarr_converter</span> <span class="o">=</span> <span class="n">IntToBitarrayConverter</span><span class="p">()</span>
+<span class="n">int_to_bitarr_converter</span><span class="o">.</span><span class="n">set_bitstring_cache</span><span class="p">(</span>
+    <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="s">'b'</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">CACHE_SIZE</span><span class="p">)})</span>
+<span class="n">ndarray_bitarr_ls</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+    <span class="nb">map</span><span class="p">(</span><span class="n">int_to_bitarr_converter</span><span class="o">.</span><span class="n">convert</span><span class="p">,</span> 
+        <span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">CACHE_SIZE</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+         <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ITER_SIZE</span><span class="p">))))</span>
+</code></pre></div></div>
+
+<p>Running the above on my 2017 Macbook Pro, I see a <strong>wall time of 4.94s</strong>. Five seconds is not an extraordinarily long span of time, but I am greedy, and I want to run this concurrently and speed things up. Fortunately, this is easy with our <code class="highlighter-rouge">Pool</code> abstraction:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="kn">import</span> <span class="n">Pool</span>
+
+<span class="n">CACHE_SIZE</span> <span class="o">=</span> <span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span>  <span class="c"># 40 MB</span>
+<span class="n">ITER_SIZE</span> <span class="o">=</span> <span class="mi">1000000</span>  <span class="c"># 1 million</span>
+
+<span class="n">int_to_bitarr_converter</span> <span class="o">=</span> <span class="n">IntToBitarrayConverter</span><span class="p">()</span>
+<span class="n">int_to_bitarr_converter</span><span class="o">.</span><span class="n">set_bitstring_cache</span><span class="p">(</span>
+    <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="s">'b'</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">CACHE_SIZE</span><span class="p">)})</span>
+<span class="k">with</span> <span class="n">Pool</span><span class="p">()</span> <span class="k">as</span> <span class="n">pool</span><span class="p">:</span>
+    <span class="n">ndarray_bitarr_ls</span> <span class="o">=</span> <span class="n">pool</span><span class="o">.</span><span class="nb">map</span><span class="p">(</span>
+        <span class="n">int_to_bitarr_converter</span><span class="o">.</span><span class="n">convert</span><span class="p">,</span> 
+        <span class="p">(</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">CACHE_SIZE</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+         <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ITER_SIZE</span><span class="p">))))</span>
+</code></pre></div></div>
+
+<p>Running the above on the same machine, this takes <strong>32.5s</strong>. This a 600% <strong>slow-down</strong>! What is going on?</p>
+
+<h3 id="stuck-in-a-pickle">Stuck in a Pickle</h3>
+
+<p>Under the hood, our call to <code class="highlighter-rouge">pool.map(...)</code> does the following:</p>
+<ol>
+  <li>Initializes 3 <code class="highlighter-rouge">Queues</code>:
+    <ol>
+      <li>The <code class="highlighter-rouge">taskqueue</code> which holds <code class="highlighter-rouge">tuple</code> of <code class="highlighter-rouge">tasks</code>: <code class="highlighter-rouge">(result_job, func, (x,), {}</code>).
+        <ol>
+          <li>We only care about <code class="highlighter-rouge">(x,)</code> above. This holds our function <code class="highlighter-rouge">convert()</code>, and a <strong>chunk</strong> of elements from our <code class="highlighter-rouge">iterable</code>.</li>
+        </ol>
+      </li>
+      <li>The <code class="highlighter-rouge">inqueue</code>, which holds serialized (<em>pickled</em>) <code class="highlighter-rouge">tasks</code>.</li>
+      <li>The <code class="highlighter-rouge">outque</code>, which will holds serialized (<em>pickled</em>) return values of each <code class="highlighter-rouge">task</code>.</li>
+    </ol>
+  </li>
+  <li>Creates a pool of “worker” <code class="highlighter-rouge">Processes</code>, which are responsible for:
+    <ol>
+      <li>Removing tasks from the <code class="highlighter-rouge">inqueue</code>, which are deserialized, and executing the <code class="highlighter-rouge">task</code>.</li>
+      <li>Executing each <code class="highlighter-rouge">task</code>, and sending the results to the <code class="highlighter-rouge">outqueue</code>, where it is serialized and stored.</li>
+    </ol>
+  </li>
+  <li>Creates 3 <code class="highlighter-rouge">Threads</code> which manage the above 3 <code class="highlighter-rouge">Queues</code>:
+    <ol>
+      <li>The <code class="highlighter-rouge">_task_handler</code> which populates the <code class="highlighter-rouge">inqueue</code> with pickled <code class="highlighter-rouge">task</code> objects, from the <code class="highlighter-rouge">taskqueue</code></li>
+      <li>The <code class="highlighter-rouge">_worker_handler</code> which “reuses” workers by re-creating them once their work is done.</li>
+      <li>The <code class="highlighter-rouge">_result_handler</code> which “removes” elements off of the <code class="highlighter-rouge">outqueue</code>, which are deserialized, and returned to your parent process call to <code class="highlighter-rouge">Pool.map()</code>.</li>
+    </ol>
+  </li>
+</ol>
+
+<p>Re-read the above again and note everywhere you read <code class="highlighter-rouge">serialize</code>, <code class="highlighter-rouge">deserialize</code> or <code class="highlighter-rouge">pickle</code>. Objects must be <code class="highlighter-rouge">serialized</code> to a <code class="highlighter-rouge">str</code> before being shuttled to each process, and then that process must <code class="highlighter-rouge">deserialize</code> that <code class="highlighter-rouge">str</code> to re-create the object. This needs to happen on the return journey of the data also. That’s <strong>2 calls to pickle.dumps()* and **2 calls to pickle.loads()</strong> per task!</p>
+
+<blockquote>
+  <p><strong>Note:</strong> Time spent serializing &amp; deserializing is the overhead that we pay in exchange for multiprocessed concurrency. <strong>If this takes longer than the execution of the</strong> <code class="highlighter-rouge">convert()</code> <strong>function, we are wasting out time!</strong> <a href="https://www.youtube.com/watch?v=9zinZmE3Ogk">Raymond Hettinger explains this well in his talk here</a>, and <a href="http://thelaziestprogrammer.com">I build on our toy example in this post</a> to investigate further.</p>
+</blockquote>
+
+<h3 id="a-tricky-task">A Tricky Task</h3>
+
+<p>When all fails, drop in a debugger. Let’s find where <code class="highlighter-rouge">_task_handler</code> Thread appends a <code class="highlighter-rouge">task</code> onto the <code class="highlighter-rouge">inqueue</code>, and investigate the size and composition of this <code class="highlighter-rouge">task</code>. (<a href="https://github.com/python/cpython/blob/88bfd0bce05043f658e50addd21366f317995e35/Lib/multiprocessing/pool.py#L419">github link</a>)</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@staticmethod</span>
+<span class="k">def</span> <span class="nf">_handle_tasks</span><span class="p">(</span><span class="n">taskqueue</span><span class="p">,</span> <span class="n">put</span><span class="p">,</span> <span class="n">outqueue</span><span class="p">,</span> <span class="n">pool</span><span class="p">,</span> <span class="n">cache</span><span class="p">):</span>
+    <span class="n">thread</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">current_thread</span><span class="p">()</span>
+
+    <span class="k">for</span> <span class="n">taskseq</span><span class="p">,</span> <span class="n">set_length</span> <span class="ow">in</span> <span class="nb">iter</span><span class="p">(</span><span class="n">taskqueue</span><span class="o">.</span><span class="n">get</span><span class="p">,</span> <span class="bp">None</span><span class="p">):</span>
+        <span class="n">task</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c"># iterating taskseq cannot fail</span>
+            <span class="k">for</span> <span class="n">task</span> <span class="ow">in</span> <span class="n">taskseq</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">thread</span><span class="o">.</span><span class="n">_state</span><span class="p">:</span>
+                    <span class="n">util</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">'task handler found thread._state != RUN'</span><span class="p">)</span>                        <span class="k">break</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="kn">import</span> <span class="nn">ipdb</span><span class="p">;</span> <span class="n">ipdb</span><span class="o">.</span><span class="n">set_trace</span><span class="p">()</span>
+                    <span class="n">put</span><span class="p">(</span><span class="n">task</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>Let’s print the 3rd element of our <code class="highlighter-rouge">task</code>, the single-element <code class="highlighter-rouge">tuple</code> mentioned above as <code class="highlighter-rouge">(x,)</code>:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ipdb</span><span class="o">&gt;</span> <span class="n">args_tuple</span> <span class="o">=</span> <span class="n">task</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+<span class="n">ipdb</span><span class="o">&gt;</span> <span class="n">elem</span> <span class="o">=</span> <span class="n">args_tuple</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">ipdb</span><span class="o">&gt;</span> <span class="n">func</span> <span class="o">=</span> <span class="n">elem</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">ipdb</span><span class="o">&gt;</span> <span class="n">func_args</span> <span class="o">=</span> <span class="n">elem</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="n">ipdb</span><span class="o">&gt;</span> <span class="n">func</span>
+<span class="o">&lt;</span><span class="n">bound</span> <span class="n">method</span> <span class="n">IntToBitarrayConverter</span><span class="o">.</span><span class="n">convert</span> <span class="n">of</span> <span class="o">&lt;</span><span class="n">caches</span><span class="o">.</span><span class="n">IntToBitarrayConverter</span> <span class="nb">object</span> <span class="n">at</span> <span class="mh">0x1122d60f0</span><span class="o">&gt;&gt;</span>
+<span class="n">ipdb</span><span class="o">&gt;</span> <span class="n">func_args</span>
+<span class="p">(</span><span class="mi">612</span><span class="p">,</span> <span class="mi">640</span><span class="p">,</span> <span class="mi">176</span><span class="p">,</span> <span class="mi">806</span><span class="p">,</span> <span class="mi">372</span><span class="p">,</span> <span class="mi">895</span><span class="p">,</span> <span class="mi">345</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">173</span><span class="p">,</span> <span class="o">...</span> <span class="mi">449</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>In the call to <code class="highlighter-rouge">put(task</code>) above, our <code class="highlighter-rouge">func_args</code> and <code class="highlighter-rouge">func</code> will be serialized. The serialization of <code class="highlighter-rouge">func_args</code> is trivial: these are <code class="highlighter-rouge">ints</code>.</p>
+
+<p>However, on further inspection, our <code class="highlighter-rouge">&lt;bound method...of object...&gt;</code> should raise concern! This is an instance method, meaning it holds the entire <code class="highlighter-rouge">IntToBitarrayConverter</code> object:</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ipdb</span><span class="o">&gt;</span> <span class="n">func</span><span class="o">.</span><span class="n">__self__</span>
+<span class="o">&lt;</span><span class="n">caches</span><span class="o">.</span><span class="n">IntToBitarrayConverter</span> <span class="nb">object</span> <span class="n">at</span> <span class="mh">0x1122d60f0</span><span class="o">&gt;</span>
+</code></pre></div></div>
+
+<p>Further, there is a <strong>40 MB</strong> <code class="highlighter-rouge">dict</code> on this object accessed via the <code class="highlighter-rouge">bitstring_cache</code> attribute:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">ipdb</span><span class="o">&gt;</span> <span class="n">func</span><span class="o">.</span><span class="n">__self__</span><span class="o">.</span><span class="n">bitstring_cache</span>
+<span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="s">'0'</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="s">'1'</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="s">'10'</span><span class="p">,</span> <span class="mi">3</span><span class="p">:</span> <span class="s">'11'</span><span class="p">,</span> <span class="mi">4</span><span class="p">:</span> <span class="s">'100'</span><span class="p">,</span> <span class="mi">5</span><span class="p">:</span> <span class="s">'101'</span><span class="o">...</span><span class="mi">1048576</span><span class="p">:</span> <span class="s">'100000000000000000000'</span><span class="p">}</span>
+<span class="n">ipdb</span><span class="o">&gt;</span> <span class="kn">import</span> <span class="nn">sys</span>
+<span class="n">ipdb</span><span class="o">&gt;</span> <span class="n">sys</span><span class="o">.</span><span class="n">getsizeof</span><span class="p">(</span><span class="n">func</span><span class="o">.</span><span class="n">__self__</span><span class="o">.</span><span class="n">bitstring_cache</span><span class="p">)</span> <span class="o">/</span> <span class="mi">1024</span> <span class="o">/</span> <span class="mi">1024</span>
+<span class="mi">40</span>
+</code></pre></div></div>
+
+<p>This explains our 600% slowdown. We are pickling/unpickling a <strong>40 MB</strong> <code class="highlighter-rouge">dict</code> 4 times per <code class="highlighter-rouge">task</code>!</p>
+
+<h3 id="serial-performance-killers">Serial (Performance) Killers</h3>
+
+<p>Here is the actual profiled breakdown, produced with blood, sweat and several debug statements in a <em>non-optimized</em> local copy of the <code class="highlighter-rouge">multiprocessing</code> package.</p>
+
+<table>
+  <thead>
+    <tr>
+      <th style="text-align: center">Process</th>
+      <th style="text-align: center">dumps() calls</th>
+      <th style="text-align: center">dumps()  time(s)</th>
+      <th style="text-align: center">avg</th>
+      <th style="text-align: center">loads() calls</th>
+      <th style="text-align: center">loads() time(s)</th>
+      <th style="text-align: center">avg</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="text-align: center">Parent</td>
+      <td style="text-align: center">42</td>
+      <td style="text-align: center"><strong>3m36s</strong></td>
+      <td style="text-align: center">5.14s</td>
+      <td style="text-align: center">33</td>
+      <td style="text-align: center">4.34s</td>
+      <td style="text-align: center">.13s</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">1</td>
+      <td style="text-align: center">4</td>
+      <td style="text-align: center">5.37s</td>
+      <td style="text-align: center">1.34s</td>
+      <td style="text-align: center">5</td>
+      <td style="text-align: center">2.98s</td>
+      <td style="text-align: center">.59s</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">2</td>
+      <td style="text-align: center">4</td>
+      <td style="text-align: center">5.12s</td>
+      <td style="text-align: center">1.28s</td>
+      <td style="text-align: center">5</td>
+      <td style="text-align: center">3.01s</td>
+      <td style="text-align: center">.60s</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">3</td>
+      <td style="text-align: center">4</td>
+      <td style="text-align: center">5.18s</td>
+      <td style="text-align: center">1.29s</td>
+      <td style="text-align: center">5</td>
+      <td style="text-align: center">3.75s</td>
+      <td style="text-align: center">.75s</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">4</td>
+      <td style="text-align: center">4</td>
+      <td style="text-align: center">5.74s</td>
+      <td style="text-align: center">1.43s</td>
+      <td style="text-align: center">5</td>
+      <td style="text-align: center">2.95s</td>
+      <td style="text-align: center">.59s</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">5</td>
+      <td style="text-align: center">4</td>
+      <td style="text-align: center">5.09s</td>
+      <td style="text-align: center">1.27s</td>
+      <td style="text-align: center">5</td>
+      <td style="text-align: center">3.01s</td>
+      <td style="text-align: center">.60s</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">6</td>
+      <td style="text-align: center">4</td>
+      <td style="text-align: center">5.14s</td>
+      <td style="text-align: center">1.28s</td>
+      <td style="text-align: center">5</td>
+      <td style="text-align: center">2.96s</td>
+      <td style="text-align: center">.59s</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">7</td>
+      <td style="text-align: center">4</td>
+      <td style="text-align: center">5.79s</td>
+      <td style="text-align: center">1.44s</td>
+      <td style="text-align: center">4</td>
+      <td style="text-align: center">2.96s</td>
+      <td style="text-align: center">.74s</td>
+    </tr>
+    <tr>
+      <td style="text-align: center">8</td>
+      <td style="text-align: center">4</td>
+      <td style="text-align: center">5.13s</td>
+      <td style="text-align: center">1.28s</td>
+      <td style="text-align: center">5</td>
+      <td style="text-align: center">3.52s</td>
+      <td style="text-align: center">.70s</td>
+    </tr>
+  </tbody>
+</table>
+
+<p>How exactly did this happen?</p>
+
+<h3 id="oop-object-oriented-programming-problems">OOP: Object-oriented <del>Programming</del> Problems</h3>
+
+<p>An <strong>instance method</strong> is a method which is called on an object, and has the object available within the scope of the method. In <strong>C++</strong> and <strong>Javascript</strong>, we access the <code class="highlighter-rouge">bound object</code> via the variable <code class="highlighter-rouge">this</code>. In Python, we use <code class="highlighter-rouge">self</code>.</p>
+
+<p>Recall the method <code class="highlighter-rouge">convert(...)</code>, on our toy class, found below:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">convert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">integer</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="n">bitstring</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bitstring_cache</span><span class="p">[</span><span class="n">integer</span><span class="p">]</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bitstring_to_ndarray</span><span class="p">(</span><span class="n">bitstring</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>Once our object <code class="highlighter-rouge">IntToBitarrayConverter</code> is created, the object is bound to the method <code class="highlighter-rouge">convert(...)</code>. This means when we pass our method to <code class="highlighter-rouge">Pool.map(...)</code>, we are implicitly passing <em>a reference</em> to the object as well.</p>
+
+<p>Passing an <strong>instance method</strong> to <code class="highlighter-rouge">Pool.map(...)</code> is <strong>OK</strong>, so long as the <strong>instance</strong> is not large. That said, a rule-of-thumb is to use <code class="highlighter-rouge">@staticmethods</code> or regular unbound functions when using <code class="highlighter-rouge">Pool</code>, to explicitly avoid this scenario. Otherwise you are at the mercy of the size of data that consumers add to your object.</p>
+
+<p>The big takeaway here is that we spend <strong>3m 35s</strong> in the <em>parent process</em> continuously pickling our <code class="highlighter-rouge">bitstring_cache</code> so it can be sent to our children.</p>
+
+<h3 id="a-global-solution">A Global Solution</h3>
+
+<p>The proposed solution of using unbound methods may not be appealing. Often times we need additional state to apply our mapped function <code class="highlighter-rouge">f(x)</code> across our <code class="highlighter-rouge">iterable</code>. Each worker process may need to do things like:</p>
+
+<ol>
+  <li>Acquire a database connection to fetch or update data.</li>
+  <li>Access an in-memory cache, like our <code class="highlighter-rouge">dict</code> cache example above.</li>
+</ol>
+
+<p>Fortunately, the general concept of <strong>initializaing</strong> each Pool <code class="highlighter-rouge">worker</code> process so that it has access to an <em>unpickable</em> object like a <strong>database engine</strong>, or a <em>large object</em> like our <strong>bitstring_cache</strong> is supported, with limitations…</p>
+
+<p><a href="/python/multiprocessing-pool-a-global-solution">We continue our example here for a solution to our problem using global variables</a>.</p>
+
+<h3 id="a-global-correct-solution">A <del>Global</del> Correct Solution</h3>
+
+<p>Unfortunately, <strong>global variables</strong> shatter encapsulation, and in my opinion, are not a satisfying solution. I’ve begun work on a Pull Request augmenting the current <code class="highlighter-rouge">initializer</code> kwarg used to initialize Pool workers, while maintaining encapsulation. Please <a href="https://github.com/seanharr11/cpython">check out my work so far</a>, and leave feedback. New test coverage is in progress. I will update when complete once a PR has been opened. No existing tests/interfaces have been broken.</p>
+
+
+        </section>
+
+        <footer class="post-footer">
+
+            <!-- Everything inside the #author tags pulls data from the author -->
+            <!-- #author-->
+            
+
+            <!-- Add Disqus Comments -->
+            
+
+        </footer>
+
+    </article>
+
+</main>
+
+<aside class="read-next">
+
+    <!-- [[! next_post ]] -->
+    
+        <a class="read-next-story " style="background-image: url(/assets/images/tahoe_wildflowers.jpg)" href="/python/multiprocessing-pool-a-global-solution">
+            <section class="post">
+                <h2>Multiprocessing.Pool() - A Global Solution</h2>
+                <p>### Intro In this post, we talk about how to copy data from a parent...</p>
+            </section>
+        </a>
+    
+    <!-- [[! /next_post ]] -->
+    <!-- [[! prev_post ]] -->
+    
+    <!-- [[! /prev_post ]] -->
+</aside>
+
+<!-- /post -->
+
+
+        <!-- The tiny footer at the very bottom -->
+        <footer class="site-footer clearfix">
+          <section class="copyright"><a href="/">The Laziest Programmer</a> &copy; 2018</section>
+          <section class="poweredby">Proudly published with <a href="https://jekyllrb.com/">Jekyll</a> using <a href="https://github.com/jekyller/jasper">Jasper</a></section>
+        </footer>
+    </div>
+    <!-- highlight.js -->
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.3.0/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+
+    <!-- jQuery needs to come before `` so that jQuery can be used in code injection -->
+    <script type="text/javascript" src="//code.jquery.com/jquery-1.12.0.min.js"></script>
+    <!-- Ghost outputs important scripts and data with this tag -->
+    <!--  -->
+    <!-- Add Google Analytics  -->
+        <!-- Google Analytics Tracking code -->
+     <script>
+	    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+	    ga('create', 'UA-80966627-1', 'auto');
+	    ga('send', 'pageview');
+
+     </script>
+    <!-- Fitvids makes video embeds responsive and awesome -->
+    <script type="text/javascript" src="/assets/js/jquery.fitvids.js"></script>
+    <!-- The main JavaScript file for Casper -->
+    <script type="text/javascript" src="/assets/js/index.js"></script>
+
+</body>
+</html>
