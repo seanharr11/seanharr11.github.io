@@ -143,6 +143,8 @@
         <section class="post-content">
 
             <h3 id="intro">Intro</h3>
+<p>This post sheds light on a common pitfall of the Python <code class="highlighter-rouge">multiprocessing</code> module: spending too much time serializing and deserializing data before shuttling it to/from your child processes. <a href="https://www.youtube.com/watch?v=DH0JVSXvxu0">I gave a talk on this blog post at the Boston Python User Group in August 2018</a></p>
+
 <p>Generally speaking, concurrent programming is hard. Luckily for us, Python’s <code class="highlighter-rouge">multiprocessing.Pool</code> abstraction makes the parallelization of certain problems extremely approachable.</p>
 
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="kn">import</span> <span class="n">Pool</span>
@@ -157,7 +159,7 @@
 
 <p>The basic idea is that given any iterable of type <code class="highlighter-rouge">Iterable[T]</code>, and any function <code class="highlighter-rouge">f(x: T) -&gt; Any</code>, we can parallelize the higher-order function <code class="highlighter-rouge">map(f, iterable)</code> with 1 line of code. The above iterates over 1 million integers, and in parallel, calculates the <code class="highlighter-rouge">sqrt</code> of each integer, utilizing all CPUs on our machine.</p>
 
-<p>That said, this post is about getting into trouble, not about the simple case above…</p>
+<p>That said, this post is about getting into trouble, not about the simple case above.</p>
 
 <h3 id="a-more-complex-case-inttobitarrayconverter">A More Complex Case: IntToBitarrayConverter</h3>
 
@@ -217,7 +219,7 @@
 
 <h3 id="stuck-in-a-pickle">Stuck in a Pickle</h3>
 
-<p><a href="http://thelaziestprogrammer.com/talks/multiprocessing_pool_patriots.html">Link to Python Boston Lightning Talk Diagram</a></p>
+<p><a href="http://thelaziestprogrammer.com/talks/multiprocessing_pool_patriots.html">Link to Boston Python User Group Lightning Talk Diagram</a></p>
 
 <p>Under the hood, our call to <code class="highlighter-rouge">pool.map(...)</code> does the following:</p>
 <ol>
