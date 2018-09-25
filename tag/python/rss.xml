@@ -5,12 +5,151 @@
    
       <title>thelaziestprogrammer.com</title>
    
-   <link>thelaziestprogrammer.com</link>
+      <link>https://thelaziestprogrammer.com</link>
    <description>Because someone else has already solved your problem.</description>
    <language>en-uk</language>
    <managingEditor> </managingEditor>
    <atom:link href="rss" rel="self" type="application/rss+xml" />
    
+	<item>
+	  <title>Multiprocessing.Pool - A Proposal for Non-Global Initialization of Workers</title>
+	  <link>//python/multiprocessing-pool-expect-initret-proposal</link>
+	  <author></author>
+	  <pubDate>2018-08-24T15:35:00-04:00</pubDate>
+	  <guid>//python/multiprocessing-pool-expect-initret-proposal</guid>
+	  <description><![CDATA[
+	     <h3 id="intro">Intro</h3>
+
+<p><a href="https://github.com/python/cpython/compare/master...seanharr11:pool_expect_initret">Link to Code and Tests</a></p>
+
+<p>This post introduces a <strong>proposal</strong> for a new keyword argument in the <code class="highlighter-rouge">__init__()</code> method of <code class="highlighter-rouge">Pool</code> named <code class="highlighter-rouge">expect_initret</code>. This keyword defaults to <code class="highlighter-rouge">False</code>, and when it is set to <code class="highlighter-rouge">True</code>, the return value of the <code class="highlighter-rouge">initializer</code> function is passed to the function we are mapping over as a <code class="highlighter-rouge">kwarg</code>. I’ve provided two patterns in the reading ahead which illustrate this feature.</p>
+
+<p><strong>Note:</strong> <em>There was a <a href="https://bugs.python.org/issue19185">similar issue</a> opened years ago, that got some attention, but was ultimately closed due to backwards compatibility issues. I’ve designed this implementation based off the feedback from this issue.</em></p>
+
+<h3 id="pattern-1-initialize-object-in-child-process-without-global-scope">Pattern 1: Initialize Object in Child Process without Global Scope</h3>
+
+<p>This pattern is used to initialize an object <strong>after each worker (<em>i.e. subprocess</em>) has been created</strong>. Oftentimes the need for this arises when the object is not pickle-able.</p>
+
+<p>When a process is forked, <a href="https://stackoverflow.com/questions/8804830/python-multiprocessing-pickling-error">every object must be pickleable</a>, as it needs to be serialized before it can be copied by the OS. This usually leads end-users to deferring initialization of this object until “post-fork” of each worker process.</p>
+
+<p>The current implementation of <code class="highlighter-rouge">Pool</code> allows for this behavior, however it forces the user to define a global variable in the <code class="highlighter-rouge">initializer()</code> function as follows:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">initializer</span><span class="p">(</span><span class="n">db_url</span><span class="p">):</span>
+    <span class="k">global</span> <span class="n">sqla_engine</span>
+    <span class="n">sqla_engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="n">db_url</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">insert_record</span><span class="p">(</span><span class="n">record</span><span class="p">):</span>
+    <span class="n">sqla_engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">record</span><span class="p">))</span>
+
+<span class="n">records</span> <span class="o">=</span> <span class="p">[</span><span class="o">...</span><span class="p">]</span>  <span class="c"># Dictionaries of DB records</span>
+
+<span class="k">with</span> <span class="n">Pool</span><span class="p">(</span><span class="n">initializer</span><span class="p">,</span> <span class="p">(</span><span class="s">"mysql://foo:bar@localhost"</span><span class="p">,))</span> <span class="k">as</span> <span class="n">pool</span><span class="p">:</span>
+    <span class="n">pool</span><span class="o">.</span><span class="nb">map</span><span class="p">(</span><span class="n">insert_record</span><span class="p">,</span> <span class="n">records</span><span class="p">)</span>
+</code></pre></div></div>
+
+<blockquote>
+  <p><strong>Note:</strong> <em>There are <a href="https://stackoverflow.com/questions/484635/are-global-variables-bad">plenty of arguments for/against global variables</a>. There are also arguments for/against variables being made available outside their lexical scope. I intend not to get into these arguments - the goal here is to provide an alternative to the current <strong>globals-only</strong> solution to initializing <code class="highlighter-rouge">Pool</code> workers.</em></p>
+</blockquote>
+
+<p>Using <code class="highlighter-rouge">expect_initret</code>, the parallelized insertion of records looks as follows:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">initializer</span><span class="p">(</span><span class="n">db_url</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">create_engine</span><span class="p">(</span><span class="n">db_url</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">insert_record</span><span class="p">(</span><span class="n">record</span><span class="p">,</span> <span class="n">initret</span><span class="p">:</span> <span class="n">sqlalchemy</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">Engine</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="n">sqla_engine</span> <span class="o">=</span> <span class="n">initret</span>  <span class="c"># For readability's sake</span>
+    <span class="n">sqla_engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">record</span><span class="p">))</span>
+
+<span class="n">records</span> <span class="o">=</span> <span class="p">[</span><span class="o">...</span><span class="p">]</span>  <span class="c"># Dictionaries of DB records</span>
+
+<span class="k">with</span> <span class="n">Pool</span><span class="p">(</span><span class="n">initializer</span><span class="p">,</span>
+          <span class="p">(</span><span class="s">"mysql://foo:bar@localhost"</span><span class="p">,),</span>
+          <span class="n">expect_initret</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">pool</span><span class="p">:</span>
+    <span class="n">pool</span><span class="o">.</span><span class="nb">map</span><span class="p">(</span><span class="n">insert_record</span><span class="p">,</span> <span class="n">records</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>So, we preserve lexical scoping of the <code class="highlighter-rouge">sqlalchemy.Engine</code> object, at the expense of a somewhat ambiguous kwarg named <code class="highlighter-rouge">initret</code> to our mapped function <code class="highlighter-rouge">insert_record()</code>. These becomes a bit more readable with type-hinting.</p>
+
+<h3 id="pattern-2-pass-object-from-parent-to-child--avoid-global-scope">Pattern 2: Pass Object from Parent to Child &amp; Avoid Global Scope</h3>
+
+<p>The idea here is to create a large object ONCE, like a big map or dictionary, in the parent process, and pass that object to each Pool worker. Specifically, the object will be made available in each workers’ local scope as a parameter to our mapped function.</p>
+
+<p>Let’s consider the dummy problem of counting every “on” bit in all integers smaller than 2**16 (<em>i.e. “10101” =&gt; 3 “on” bits</em>).</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">multiprocessing.pool</span> <span class="kn">import</span> <span class="n">Pool</span>
+
+<span class="k">def</span> <span class="nf">initializer</span><span class="p">(</span><span class="n">int_to_binary_cache</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="k">global</span> <span class="n">int_to_binary_cache</span>
+    
+<span class="k">def</span> <span class="nf">count_bits</span><span class="p">(</span><span class="n">i</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">int_to_binary_cache</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s">"1"</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">parallel_bit_counter</span><span class="p">(</span><span class="n">int_ls</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="n">big_int_to_binary_cache</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">i</span><span class="p">:</span> <span class="nb">bin</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="mi">16</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="k">with</span> <span class="n">Pool</span><span class="p">(</span><span class="n">initializer</span><span class="p">,</span>
+              <span class="n">initargs</span><span class="o">=</span><span class="p">(</span><span class="n">big_int_to_binary_cache</span><span class="p">,))</span> <span class="k">as</span> <span class="n">p</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">imap_unordered</span><span class="p">(</span><span class="n">parallel_bit_counter</span><span class="p">,</span> <span class="n">int_ls</span><span class="p">))</span>
+</code></pre></div></div>
+<blockquote>
+  <p><strong>Note:</strong> <em>You can also <a href="/python/multiprocessing-pool-a-global-solution">send data to <code class="highlighter-rouge">Pool</code> workers with class attributes</a>, which buys a bit more encapsulation.</em></p>
+</blockquote>
+
+<p>With <code class="highlighter-rouge">expect_initret</code>, the implementation looks as follows:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">multiprocessing.pool</span> <span class="kn">import</span> <span class="n">Pool</span>
+
+<span class="k">def</span> <span class="nf">initializer</span><span class="p">(</span><span class="n">int_to_binary_cache</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span>
+                <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+    <span class="c"># The identity function</span>
+    <span class="k">return</span> <span class="n">int_to_binary_cache</span>
+
+<span class="k">def</span> <span class="nf">count_bits</span><span class="p">(</span><span class="n">i</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">initret</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">initret</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s">"1"</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">parallel_bit_counter</span><span class="p">(</span><span class="n">int_ls</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="n">big_int_to_binary_cache</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">i</span><span class="p">:</span> <span class="nb">bin</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="mi">16</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="k">with</span> <span class="n">Pool</span><span class="p">(</span><span class="n">initializer</span><span class="p">,</span>
+              <span class="n">initargs</span><span class="o">=</span><span class="p">(</span><span class="n">big_int_to_binary_cache</span><span class="p">,),</span>
+              <span class="n">expect_initret</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">p</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">imap_unordered</span><span class="p">(</span><span class="n">count_bits</span><span class="p">,</span> <span class="n">int_ls</span><span class="p">))</span>
+</code></pre></div></div>
+
+<p>Yet again, I am the first to admit that the <code class="highlighter-rouge">initret</code> kwarg is somewhat ambiguous. However, the goal is to let Python users choose between the following:</p>
+<ol>
+  <li>An explicit flow of data, with lexically scoped variables, <strong>at the expense</strong> of a somewhat ambiguous <strong>kwarg</strong>, <code class="highlighter-rouge">initret</code>.</li>
+  <li>Preservation of proper variable names, <strong>at the expense</strong> of an implicit flow of data, with globally scoped variables defined within a function.</li>
+</ol>
+
+<h3 id="final-thoughts">Final Thoughts</h3>
+
+<p>For those interested, the path to getting stuck deep, deep in the cavernous rabbit hole of Python’s <code class="highlighter-rouge">multiprocessing.Pool</code> is as follows:</p>
+
+<ol>
+  <li><a href="/python/a-multiprocessing-pool-pickle">Get stuck in a pickle</a> while prematurely optimizing an application that predicts the bioactivity of food compounds.</li>
+  <li><a href="https://www.youtube.com/watch?v=DH0JVSXvxu0">Give a Python Boston User Group talk</a> on how you can <em>very easily</em> do the same!</li>
+  <li>Have a crazy idea that you can prevent others from your past mistakes by extending a CPython lib!</li>
+</ol>
+
+<p>If you were to take every library written in Python, and…</p>
+
+<ol>
+  <li>Count every function that accesses a global variable, or defines a <code class="highlighter-rouge">global</code> from within a function via the <code class="highlighter-rouge">global</code> keyword</li>
+  <li>Count every function that does NOT access globals, and adheres to lexical scoping</li>
+</ol>
+
+<p>…the count of <strong>(2)</strong> would be overwhelmingly higher than <strong>(1)</strong>.</p>
+
+<p>Given that Python users (<em>like me</em>) are more familiar with functions that do not “<em>create global variables as their side-effect</em>”, it is my hope that this API extension, and the examples above, will enable more Python users to use the <code class="highlighter-rouge">Pool</code> interface, while preserving every bit of the beautifully abstracted <code class="highlighter-rouge">multiprocessing.Pool</code> module.</p>
+
+	  ]]></description>
+	</item>
+
 	<item>
 	  <title>Multiprocessing.Pool() - A Global Solution</title>
 	  <link>//python/multiprocessing-pool-a-global-solution</link>
@@ -200,37 +339,37 @@
   </tbody>
 </table>
 
-<h3 id="global-problems">Global Problems</h3>
+<h3 id="mitigating-global-concerns">Mitigating Global Concerns</h3>
 
-<p>Our new implementation above is encapsulated within a class. This is more readable due to its modularity. However, to cut through the BS, at its core <code class="highlighter-rouge">ClassMethodBitarrayConverter</code> is nothing but a <strong>global</strong>.</p>
+<p>Our new implementation above is encapsulated within a class, which is an Object Oriented Programming take on globals. However, in my opinion it is more clean than <a href="https://stackoverflow.com/a/18779028/3923962">defining a global variable within a nested scope, as some posts suggest.</a></p>
 
-<p>This means we expose ourselves to the following:</p>
+<p>Class attributes are still global variables, but at least they are encapsulated to some degree, and only available as attributes on the class, vs. anywhere. This will pay dividends down the road when trying to debug and maintain this codebase, as only modules that are dependent on this class will try to access this variable.</p>
 
-<ol>
-  <li><strong>Singleton Pattern:</strong> We can’t <em>really</em> have more than one unique instance of our class - we only have one attribute, and it is a class attribute. Two instances of our class would be equal, and would share the same exact state. <strong>Our class is really a singleton</strong></li>
-  <li><strong>Testability Problems:</strong> Testing our class is extremely error prone: if one test changes the state of the <code class="highlighter-rouge">bitstring_cache</code> during a test, that test must undo the global state on teardown so it does not persist to the next test!</li>
-  <li><strong>Code Maintainability:</strong> To understand a small module of the codebase, you need to first digest every part of the codebase that alters your global state, rather than just the public interface of your module.</li>
-</ol>
+<h3 id="a-non-global-proposal">A Non-Global Proposal</h3>
 
-<h3 id="the-real-problem">The Real Problem</h3>
+<p>Despite my criticism of globals for <strong>this specific usecase</strong>, the question of “<em>whether globals are bad</em>” does not have a well-defined answer, and is dependent on the context of usage. People also get very opinionated on this topic: <a href="https://stackoverflow.com/questions/484635/are-global-variables-bad">see this SO post</a>.</p>
 
-<p>The real problem is not that we are using globals - the question of “<em>whether globals are bad</em>” is an opinion, <a href="https://stackoverflow.com/questions/484635/are-global-variables-bad">see this SO post</a>.</p>
+<p>That said, my criticism is that Python users should not be <strong>forced</strong> to use globals, or even the <code class="highlighter-rouge">global</code> keyword in order to use the <code class="highlighter-rouge">Pool</code> API.</p>
 
-<p>The problem is that we are forced to use globals becaue of the <code class="highlighter-rouge">multiprocessing.Pool()</code> implementation, and <strong>not because we want to share our globals across our app!</strong></p>
+<p>I have proposed a backwards-compatible, well-tested extension of the <code class="highlighter-rouge">Pool()</code> API that <em>allows for a non-globals solution to the problem of passing data to, and initializing Pool worker processes</em>.</p>
 
-<p><a href="https://github.com/seanharr11/cpython">I’ve begun work here</a> on augmenting the current <code class="highlighter-rouge">initializer</code> kwarg to <code class="highlighter-rouge">Pool(...)</code>, which will allow for more flexibility when initializing worker processes. Specifically, the feature will allow you to <em>pass non-picklable objects, or very large objects to each worker process, by returning a value from the <code class="highlighter-rouge">initializer</code> function, and passing the return value to whatever function you are applying in <code class="highlighter-rouge">map()</code>.</em></p>
+<p>The <a href="https://github.com/seanharr11/cpython/tree/pool_expect_initret">code and tests are available on my github fork of CPython here</a></p>
+
+<p><a href="/python/multiprocessing-pool-expect-initret-proposal">A blog post detailing the proposal, illustrated with use cases can be found here</a></p>
 
 	  ]]></description>
 	</item>
 
 	<item>
-	  <title>Multiprocessing.Pool() - Stuck in Pickle</title>
+	  <title>Multiprocessing.Pool() - Stuck in a Pickle</title>
 	  <link>//python/a-multiprocessing-pool-pickle</link>
 	  <author></author>
 	  <pubDate>2018-06-16T16:18:00-04:00</pubDate>
 	  <guid>//python/a-multiprocessing-pool-pickle</guid>
 	  <description><![CDATA[
 	     <h3 id="intro">Intro</h3>
+<p>This post sheds light on a common pitfall of the Python <code class="highlighter-rouge">multiprocessing</code> module: spending too much time serializing and deserializing data before shuttling it to/from your child processes. <a href="https://www.youtube.com/watch?v=DH0JVSXvxu0">I gave a talk on this blog post at the Boston Python User Group in August 2018</a></p>
+
 <p>Generally speaking, concurrent programming is hard. Luckily for us, Python’s <code class="highlighter-rouge">multiprocessing.Pool</code> abstraction makes the parallelization of certain problems extremely approachable.</p>
 
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="kn">import</span> <span class="n">Pool</span>
@@ -245,7 +384,7 @@
 
 <p>The basic idea is that given any iterable of type <code class="highlighter-rouge">Iterable[T]</code>, and any function <code class="highlighter-rouge">f(x: T) -&gt; Any</code>, we can parallelize the higher-order function <code class="highlighter-rouge">map(f, iterable)</code> with 1 line of code. The above iterates over 1 million integers, and in parallel, calculates the <code class="highlighter-rouge">sqrt</code> of each integer, utilizing all CPUs on our machine.</p>
 
-<p>That said, this post is about getting into trouble, not about the simple case above…</p>
+<p>That said, this post is about getting into trouble, not about the simple case above.</p>
 
 <h3 id="a-more-complex-case-inttobitarrayconverter">A More Complex Case: IntToBitarrayConverter</h3>
 
@@ -304,6 +443,8 @@
 <p>Running the above on the same machine, this takes <strong>32.5s</strong>. This a 600% <strong>slow-down</strong>! What is going on?</p>
 
 <h3 id="stuck-in-a-pickle">Stuck in a Pickle</h3>
+
+<p><a href="http://thelaziestprogrammer.com/talks/multiprocessing_pool_patriots.html">Link to Boston Python User Group Lightning Talk Diagram</a></p>
 
 <p>Under the hood, our call to <code class="highlighter-rouge">pool.map(...)</code> does the following:</p>
 <ol>

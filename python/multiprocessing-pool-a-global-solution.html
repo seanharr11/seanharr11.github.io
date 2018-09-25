@@ -26,7 +26,7 @@
     <style>.hljs { background: none; }</style>
 
     <!-- Ghost outputs important style and meta data with this tag -->
-    <link rel="canonical" href="http://thelaziestprogrammer.com/python/multiprocessing-pool-a-global-solution" />
+    <link rel="canonical" href="https://thelaziestprogrammer.com/python/multiprocessing-pool-a-global-solution" />
     <meta name="referrer" content="origin" />
     <link rel="next" href="/page2/" />
 
@@ -34,14 +34,14 @@
     <meta property="og:type" content="website" />
     <meta property="og:title" content="Multiprocessing.Pool() - A Global Solution" />
     <meta property="og:description" content="Because someone else has already solved your problem." />
-    <meta property="og:url" content="http://thelaziestprogrammer.com/python/multiprocessing-pool-a-global-solution" />
-    <meta property="og:image" content="http://thelaziestprogrammer.com/assets/images/tlp_logo_og.png" />
+    <meta property="og:url" content="https://thelaziestprogrammer.com/python/multiprocessing-pool-a-global-solution" />
+    <meta property="og:image" content="https://thelaziestprogrammer.com/assets/images/tlp_logo_og.png" />
 
-    <meta name="twitter:card" content="http://thelaziestprogrammer.com/assets/images/tlp_logo_og.png" />
+    <meta name="twitter:card" content="https://thelaziestprogrammer.com/assets/images/tlp_logo_og.png" />
     <meta name="twitter:title" content="Multiprocessing.Pool() - A Global Solution" />
     <meta name="twitter:description" content="Because someone else has already solved your problem." />
-    <meta name="twitter:url" content="http://thelaziestprogrammer.com/python/multiprocessing-pool-a-global-solution" />
-    <meta name="twitter:image:src" content="http://thelaziestprogrammer.com/assets/images/tlp_logo_og.png" />
+    <meta name="twitter:url" content="https://thelaziestprogrammer.com/python/multiprocessing-pool-a-global-solution" />
+    <meta name="twitter:image:src" content="https://thelaziestprogrammer.com/assets/images/tlp_logo_og.png" />
 
     <script type="application/ld+json">
 {
@@ -324,25 +324,23 @@
   </tbody>
 </table>
 
-<h3 id="global-problems">Global Problems</h3>
+<h3 id="mitigating-global-concerns">Mitigating Global Concerns</h3>
 
-<p>Our new implementation above is encapsulated within a class. This is more readable due to its modularity. However, to cut through the BS, at its core <code class="highlighter-rouge">ClassMethodBitarrayConverter</code> is nothing but a <strong>global</strong>.</p>
+<p>Our new implementation above is encapsulated within a class, which is an Object Oriented Programming take on globals. However, in my opinion it is more clean than <a href="https://stackoverflow.com/a/18779028/3923962">defining a global variable within a nested scope, as some posts suggest.</a></p>
 
-<p>This means we expose ourselves to the following:</p>
+<p>Class attributes are still global variables, but at least they are encapsulated to some degree, and only available as attributes on the class, vs. anywhere. This will pay dividends down the road when trying to debug and maintain this codebase, as only modules that are dependent on this class will try to access this variable.</p>
 
-<ol>
-  <li><strong>Singleton Pattern:</strong> We can’t <em>really</em> have more than one unique instance of our class - we only have one attribute, and it is a class attribute. Two instances of our class would be equal, and would share the same exact state. <strong>Our class is really a singleton</strong></li>
-  <li><strong>Testability Problems:</strong> Testing our class is extremely error prone: if one test changes the state of the <code class="highlighter-rouge">bitstring_cache</code> during a test, that test must undo the global state on teardown so it does not persist to the next test!</li>
-  <li><strong>Code Maintainability:</strong> To understand a small module of the codebase, you need to first digest every part of the codebase that alters your global state, rather than just the public interface of your module.</li>
-</ol>
+<h3 id="a-non-global-proposal">A Non-Global Proposal</h3>
 
-<h3 id="the-real-problem">The Real Problem</h3>
+<p>Despite my criticism of globals for <strong>this specific usecase</strong>, the question of “<em>whether globals are bad</em>” does not have a well-defined answer, and is dependent on the context of usage. People also get very opinionated on this topic: <a href="https://stackoverflow.com/questions/484635/are-global-variables-bad">see this SO post</a>.</p>
 
-<p>The real problem is not that we are using globals - the question of “<em>whether globals are bad</em>” is an opinion, <a href="https://stackoverflow.com/questions/484635/are-global-variables-bad">see this SO post</a>.</p>
+<p>That said, my criticism is that Python users should not be <strong>forced</strong> to use globals, or even the <code class="highlighter-rouge">global</code> keyword in order to use the <code class="highlighter-rouge">Pool</code> API.</p>
 
-<p>The problem is that we are forced to use globals becaue of the <code class="highlighter-rouge">multiprocessing.Pool()</code> implementation, and <strong>not because we want to share our globals across our app!</strong></p>
+<p>I have proposed a backwards-compatible, well-tested extension of the <code class="highlighter-rouge">Pool()</code> API that <em>allows for a non-globals solution to the problem of passing data to, and initializing Pool worker processes</em>.</p>
 
-<p><a href="https://github.com/seanharr11/cpython">I’ve begun work here</a> on augmenting the current <code class="highlighter-rouge">initializer</code> kwarg to <code class="highlighter-rouge">Pool(...)</code>, which will allow for more flexibility when initializing worker processes. Specifically, the feature will allow you to <em>pass non-picklable objects, or very large objects to each worker process, by returning a value from the <code class="highlighter-rouge">initializer</code> function, and passing the return value to whatever function you are applying in <code class="highlighter-rouge">map()</code>.</em></p>
+<p>The <a href="https://github.com/seanharr11/cpython/tree/pool_expect_initret">code and tests are available on my github fork of CPython here</a></p>
+
+<p><a href="/python/multiprocessing-pool-expect-initret-proposal">A blog post detailing the proposal, illustrated with use cases can be found here</a></p>
 
 
         </section>
@@ -378,8 +376,8 @@
     
         <a class="read-next-story prev " style="background-image: url(/assets/images/mayflower_beach_sunset_2018.jpg)" href="/python/a-multiprocessing-pool-pickle">
             <section class="post">
-                <h2>Multiprocessing.Pool() - Stuck in Pickle</h2>
-                <p>Intro Generally speaking, concurrent programming is hard. Luckily for us, Python’s multiprocessing.Pool abstraction makes the...</p>
+                <h2>Multiprocessing.Pool() - Stuck in a Pickle</h2>
+                <p>Intro This post sheds light on a common pitfall of the Python multiprocessing module: spending...</p>
             </section>
         </a>
     
