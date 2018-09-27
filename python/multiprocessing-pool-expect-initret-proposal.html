@@ -127,7 +127,7 @@
             <!-- <a href='/'></a> -->
 
             
-            <time class="post-date" datetime="2018-08-24">24 Aug 2018</time>
+            <time class="post-date" datetime="2018-09-24">24 Sep 2018</time>
                 <!-- [[tags prefix=" on "]] -->
                 
                 on
@@ -152,9 +152,13 @@
 
 <h3 id="pattern-1-initialize-object-in-child-process-without-global-scope">Pattern 1: Initialize Object in Child Process without Global Scope</h3>
 
-<p>This pattern is used to initialize an object <strong>after each worker (<em>i.e. subprocess</em>) has been created</strong>. Oftentimes the need for this arises when the object is not pickle-able.</p>
+<p>This pattern is used to initialize an object <strong>after each worker (<em>i.e. subprocess</em>) has been created</strong>. Oftentimes the need for this arises when the <code class="highlighter-rouge">func</code> we are applying satisfies one of two cases:</p>
+<ol>
+  <li><code class="highlighter-rouge">func</code> is an <strong>instance method</strong>, and the <strong>instance</strong> bound to it contains an item that is is <strong>not pickle-able.</strong> <a href="https://stackoverflow.com/questions/8804830/python-multiprocessing-pickling-error">more reading here</a></li>
+  <li>There are global variables that hold onto <code class="highlighter-rouge">sockets</code>, like database connections, that should <em>usually</em> not be serialized/passed to children processes.</li>
+</ol>
 
-<p>When a process is forked, <a href="https://stackoverflow.com/questions/8804830/python-multiprocessing-pickling-error">every object must be pickleable</a>, as it needs to be serialized before it can be copied by the OS. This usually leads end-users to deferring initialization of this object until “post-fork” of each worker process.</p>
+<p>We will use a <code class="highlighter-rouge">SQLAlchemy.Engine</code> object as our example. <strong>Our goal:</strong> give each worker process its own <code class="highlighter-rouge">engine</code> object.</p>
 
 <p>The current implementation of <code class="highlighter-rouge">Pool</code> allows for this behavior, however it forces the user to define a global variable in the <code class="highlighter-rouge">initializer()</code> function as follows:</p>
 
