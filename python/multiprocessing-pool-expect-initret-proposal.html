@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <!-- Document Settings -->
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+    <!-- Page Meta -->
+    <title>Multiprocessing.Pool - A Proposal for Non-Global Initialization of Workers</title>
+    <meta name="description" content="Because someone else has already solved your problem." />
+
+    <!-- Mobile Meta -->
+    <meta name="HandheldFriendly" content="True" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Brand icon -->
+    <link rel="shortcut icon" href="/assets/images/favicon.ico" >
+
+    <!-- Styles'n'Scripts -->
+    <link rel="stylesheet" type="text/css" href="/assets/css/screen.css" />
+    <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Merriweather:300,700,700italic,300italic|Open+Sans:700,400" />
+    <link rel="stylesheet" type="text/css" href="/assets/css/syntax.css" />
+
+    <!-- highlight.js -->
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.3.0/styles/default.min.css">
+    <style>.hljs { background: none; }</style>
+
+    <!-- Ghost outputs important style and meta data with this tag -->
+    <link rel="canonical" href="https://thelaziestprogrammer.com/python/multiprocessing-pool-expect-initret-proposal" />
+    <meta name="referrer" content="origin" />
+    <link rel="next" href="/page2/" />
+
+    <meta property="og:site_name" content="The Laziest Programmer" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Multiprocessing.Pool - A Proposal for Non-Global Initialization of Workers" />
+    <meta property="og:description" content="Because someone else has already solved your problem." />
+    <meta property="og:url" content="https://thelaziestprogrammer.com/python/multiprocessing-pool-expect-initret-proposal" />
+    <meta property="og:image" content="https://thelaziestprogrammer.com/assets/images/tlp_logo_og.png" />
+
+    <meta name="twitter:card" content="https://thelaziestprogrammer.com/assets/images/tlp_logo_og.png" />
+    <meta name="twitter:title" content="Multiprocessing.Pool - A Proposal for Non-Global Initialization of Workers" />
+    <meta name="twitter:description" content="Because someone else has already solved your problem." />
+    <meta name="twitter:url" content="https://thelaziestprogrammer.com/python/multiprocessing-pool-expect-initret-proposal" />
+    <meta name="twitter:image:src" content="https://thelaziestprogrammer.com/assets/images/tlp_logo_og.png" />
+
+    <script type="application/ld+json">
+{
+    "@context": "http://schema.org",
+    "@type": "Website",
+    "publisher": "The Laziest Programmer",
+    "name": "Multiprocessing.Pool - A Proposal for Non-Global Initialization of Workers",
+    "url": "http://localhost:4000//python/multiprocessing-pool-expect-initret-proposal",
+    "image": "/assets/images/squaw_mountain_pool.jpg",
+    "description": "Because someone else has already solved your problem."
+}
+    </script>
+
+    <meta name="generator" content="Jekyll 3.0.0" />
+    <link rel="alternate" type="application/rss+xml" title="The Laziest Programmer" href="/feed.xml" />
+
+
+</head>
+<body class="home-template nav-closed">
+
+    <!-- The blog navigation links -->
+    
+<div class="nav">
+    <h3 class="nav-title">Menu</h3>
+    <a href="#" class="nav-close">
+        <span class="hidden">Close</span>
+    </a>
+    <ul>
+        <li class="nav-home  nav-current" role="presentation"><a href="/">Home</a></li>
+        <li class="nav-home" role="presentation"><a href="#">Topics</a>
+           <ul style="padding-top:9px;padding-bottom:0px"> 
+             <li class="nav-fiction " role="presentation"><a href="/tag/databases">Databases</a></li>
+           </ul>     
+           <ul style="padding-top:0px; padding-bottom: 0px"> 
+             <li class="nav-fiction " role="presentation"><a href="/tag/web-development">Web Development</a></li>
+           </ul>     
+           <ul style="padding-top:0px; padding-bottom: 0px"> 
+             <li class="nav-fiction " role="presentation"><a href="/tag/math-of-machine-learning">The Math of ML</a></li>
+           </ul>     
+           <ul style="padding-top:0px; padding-bottom: 0px"> 
+             <li class="nav-fiction " role="presentation"><a href="/tag/bioinformatics">Bioinformatics</a></li>
+           </ul>     
+           <ul style="padding-top:0px;"> 
+             <li class="nav-fiction " role="presentation"><a href="/tag/python">Python</a></li>
+           </ul>     
+        </li>
+        <li class="nav-about " role="presentation"><a href="/about">About This Site</a></li>
+        <li class="nav-author " role="presentation"><a href="/author/sharrington">The Author</a></li>
+    </ul>
+    <a class="subscribe-button" href="https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=DH544PY7RFSLA">Donate</a>
+    <a class="subscribe-button icon-feed" href="/feed.xml">Subscribe</a>
+</div>
+<span class="nav-cover"></span>
+
+
+    <div class="site-wrapper">
+
+        <!-- All the main content gets inserted here, index.hbs, post.hbs, etc -->
+        <!-- default -->
+
+<!-- The comment above "< default" means - insert everything in this file into -->
+    <!-- the [body] of the default.hbs template, which contains our header/footer. -->
+
+<!-- Everything inside the #post tags pulls data from the post -->
+<!-- #post -->
+
+<header class="main-header post-head " style="background-image: url(/assets/images/squaw_mountain_pool.jpg) ">
+    <nav class="main-nav  overlay  clearfix">
+        <a class="blog-logo" href="/"><img src="/assets/images/tlp_logo.png" alt="Blog Logo" /></a>
+        
+            <a class="menu-button icon-menu" href="#"><span class="word">Menu</span></a>
+        
+    </nav>
+</header>
+
+<main class="content" role="main">
+
+    <article class="post tag-test tag-content">
+
+        <header class="post-header">
+            <h1 class="post-title">Multiprocessing.Pool - A Proposal for Non-Global Initialization of Workers</h1>
+            <section class="post-meta">
+            <!-- <a href='/'></a> -->
+
+            
+            <time class="post-date" datetime="2018-08-24">24 Aug 2018</time>
+                <!-- [[tags prefix=" on "]] -->
+                
+                on
+                
+                    
+                       <a href='/tag/python'>Python</a>
+                    
+                
+                
+            </section>
+        </header>
+
+        <section class="post-content">
+
+            <h3 id="intro">Intro</h3>
+
+<p><a href="https://github.com/python/cpython/compare/master...seanharr11:pool_expect_initret">Link to Code and Tests</a></p>
+
+<p>This post introduces a <strong>proposal</strong> for a new keyword argument in the <code class="highlighter-rouge">__init__()</code> method of <code class="highlighter-rouge">Pool</code> named <code class="highlighter-rouge">expect_initret</code>. This keyword defaults to <code class="highlighter-rouge">False</code>, and when it is set to <code class="highlighter-rouge">True</code>, the return value of the <code class="highlighter-rouge">initializer</code> function is passed to the function we are mapping over as a <code class="highlighter-rouge">kwarg</code>. I’ve provided two patterns in the reading ahead which illustrate this feature.</p>
+
+<p><strong>Note:</strong> <em>There was a <a href="https://bugs.python.org/issue19185">similar issue</a> opened years ago, that got some attention, but was ultimately closed due to backwards compatibility issues. I’ve designed this implementation based off the feedback from this issue.</em></p>
+
+<h3 id="pattern-1-initialize-object-in-child-process-without-global-scope">Pattern 1: Initialize Object in Child Process without Global Scope</h3>
+
+<p>This pattern is used to initialize an object <strong>after each worker (<em>i.e. subprocess</em>) has been created</strong>. Oftentimes the need for this arises when the object is not pickle-able.</p>
+
+<p>When a process is forked, <a href="https://stackoverflow.com/questions/8804830/python-multiprocessing-pickling-error">every object must be pickleable</a>, as it needs to be serialized before it can be copied by the OS. This usually leads end-users to deferring initialization of this object until “post-fork” of each worker process.</p>
+
+<p>The current implementation of <code class="highlighter-rouge">Pool</code> allows for this behavior, however it forces the user to define a global variable in the <code class="highlighter-rouge">initializer()</code> function as follows:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">initializer</span><span class="p">(</span><span class="n">db_url</span><span class="p">):</span>
+    <span class="k">global</span> <span class="n">sqla_engine</span>
+    <span class="n">sqla_engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="n">db_url</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">insert_record</span><span class="p">(</span><span class="n">record</span><span class="p">):</span>
+    <span class="n">sqla_engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">record</span><span class="p">))</span>
+
+<span class="n">records</span> <span class="o">=</span> <span class="p">[</span><span class="o">...</span><span class="p">]</span>  <span class="c"># Dictionaries of DB records</span>
+
+<span class="k">with</span> <span class="n">Pool</span><span class="p">(</span><span class="n">initializer</span><span class="p">,</span> <span class="p">(</span><span class="s">"mysql://foo:bar@localhost"</span><span class="p">,))</span> <span class="k">as</span> <span class="n">pool</span><span class="p">:</span>
+    <span class="n">pool</span><span class="o">.</span><span class="nb">map</span><span class="p">(</span><span class="n">insert_record</span><span class="p">,</span> <span class="n">records</span><span class="p">)</span>
+</code></pre></div></div>
+
+<blockquote>
+  <p><strong>Note:</strong> <em>There are <a href="https://stackoverflow.com/questions/484635/are-global-variables-bad">plenty of arguments for/against global variables</a>. There are also arguments for/against variables being made available outside their lexical scope. I intend not to get into these arguments - the goal here is to provide an alternative to the current <strong>globals-only</strong> solution to initializing <code class="highlighter-rouge">Pool</code> workers.</em></p>
+</blockquote>
+
+<p>Using <code class="highlighter-rouge">expect_initret</code>, the parallelized insertion of records looks as follows:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">initializer</span><span class="p">(</span><span class="n">db_url</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">create_engine</span><span class="p">(</span><span class="n">db_url</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">insert_record</span><span class="p">(</span><span class="n">record</span><span class="p">,</span> <span class="n">initret</span><span class="p">:</span> <span class="n">sqlalchemy</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">Engine</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="n">sqla_engine</span> <span class="o">=</span> <span class="n">initret</span>  <span class="c"># For readability's sake</span>
+    <span class="n">sqla_engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">record</span><span class="p">))</span>
+
+<span class="n">records</span> <span class="o">=</span> <span class="p">[</span><span class="o">...</span><span class="p">]</span>  <span class="c"># Dictionaries of DB records</span>
+
+<span class="k">with</span> <span class="n">Pool</span><span class="p">(</span><span class="n">initializer</span><span class="p">,</span>
+          <span class="p">(</span><span class="s">"mysql://foo:bar@localhost"</span><span class="p">,),</span>
+          <span class="n">expect_initret</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">pool</span><span class="p">:</span>
+    <span class="n">pool</span><span class="o">.</span><span class="nb">map</span><span class="p">(</span><span class="n">insert_record</span><span class="p">,</span> <span class="n">records</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>So, we preserve lexical scoping of the <code class="highlighter-rouge">sqlalchemy.Engine</code> object, at the expense of a somewhat ambiguous kwarg named <code class="highlighter-rouge">initret</code> to our mapped function <code class="highlighter-rouge">insert_record()</code>. These becomes a bit more readable with type-hinting.</p>
+
+<h3 id="pattern-2-pass-object-from-parent-to-child--avoid-global-scope">Pattern 2: Pass Object from Parent to Child &amp; Avoid Global Scope</h3>
+
+<p>The idea here is to create a large object ONCE, like a big map or dictionary, in the parent process, and pass that object to each Pool worker. Specifically, the object will be made available in each workers’ local scope as a parameter to our mapped function.</p>
+
+<p>Let’s consider the dummy problem of counting every “on” bit in all integers smaller than 2**16 (<em>i.e. “10101” =&gt; 3 “on” bits</em>).</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">multiprocessing.pool</span> <span class="kn">import</span> <span class="n">Pool</span>
+
+<span class="k">def</span> <span class="nf">initializer</span><span class="p">(</span><span class="n">int_to_binary_cache</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="bp">None</span><span class="p">:</span>
+    <span class="k">global</span> <span class="n">int_to_binary_cache</span>
+    
+<span class="k">def</span> <span class="nf">count_bits</span><span class="p">(</span><span class="n">i</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">int_to_binary_cache</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s">"1"</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">parallel_bit_counter</span><span class="p">(</span><span class="n">int_ls</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="n">big_int_to_binary_cache</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">i</span><span class="p">:</span> <span class="nb">bin</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="mi">16</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="k">with</span> <span class="n">Pool</span><span class="p">(</span><span class="n">initializer</span><span class="p">,</span>
+              <span class="n">initargs</span><span class="o">=</span><span class="p">(</span><span class="n">big_int_to_binary_cache</span><span class="p">,))</span> <span class="k">as</span> <span class="n">p</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">imap_unordered</span><span class="p">(</span><span class="n">parallel_bit_counter</span><span class="p">,</span> <span class="n">int_ls</span><span class="p">))</span>
+</code></pre></div></div>
+<blockquote>
+  <p><strong>Note:</strong> <em>You can also <a href="/python/multiprocessing-pool-a-global-solution">send data to <code class="highlighter-rouge">Pool</code> workers with class attributes</a>, which buys a bit more encapsulation.</em></p>
+</blockquote>
+
+<p>With <code class="highlighter-rouge">expect_initret</code>, the implementation looks as follows:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">multiprocessing.pool</span> <span class="kn">import</span> <span class="n">Pool</span>
+
+<span class="k">def</span> <span class="nf">initializer</span><span class="p">(</span><span class="n">int_to_binary_cache</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span>
+                <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+    <span class="c"># The identity function</span>
+    <span class="k">return</span> <span class="n">int_to_binary_cache</span>
+
+<span class="k">def</span> <span class="nf">count_bits</span><span class="p">(</span><span class="n">i</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">initret</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">initret</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s">"1"</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">parallel_bit_counter</span><span class="p">(</span><span class="n">int_ls</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="n">big_int_to_binary_cache</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">i</span><span class="p">:</span> <span class="nb">bin</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="mi">16</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="p">}</span>
+    <span class="k">with</span> <span class="n">Pool</span><span class="p">(</span><span class="n">initializer</span><span class="p">,</span>
+              <span class="n">initargs</span><span class="o">=</span><span class="p">(</span><span class="n">big_int_to_binary_cache</span><span class="p">,),</span>
+              <span class="n">expect_initret</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">p</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">imap_unordered</span><span class="p">(</span><span class="n">count_bits</span><span class="p">,</span> <span class="n">int_ls</span><span class="p">))</span>
+</code></pre></div></div>
+
+<p>Yet again, I am the first to admit that the <code class="highlighter-rouge">initret</code> kwarg is somewhat ambiguous. However, the goal is to let Python users choose between the following:</p>
+<ol>
+  <li>An explicit flow of data, with lexically scoped variables, <strong>at the expense</strong> of a somewhat ambiguous <strong>kwarg</strong>, <code class="highlighter-rouge">initret</code>.</li>
+  <li>Preservation of proper variable names, <strong>at the expense</strong> of an implicit flow of data, with globally scoped variables defined within a function.</li>
+</ol>
+
+<h3 id="final-thoughts">Final Thoughts</h3>
+
+<p>For those interested, the path to getting stuck deep, deep in the cavernous rabbit hole of Python’s <code class="highlighter-rouge">multiprocessing.Pool</code> is as follows:</p>
+
+<ol>
+  <li><a href="/python/a-multiprocessing-pool-pickle">Get stuck in a pickle</a> while prematurely optimizing an application that predicts the bioactivity of food compounds.</li>
+  <li><a href="https://www.youtube.com/watch?v=DH0JVSXvxu0">Give a Python Boston User Group talk</a> on how you can <em>very easily</em> do the same!</li>
+  <li>Have a crazy idea that you can prevent others from your past mistakes by extending a CPython lib!</li>
+</ol>
+
+<p>If you were to take every library written in Python, and…</p>
+
+<ol>
+  <li>Count every function that accesses a global variable, or defines a <code class="highlighter-rouge">global</code> from within a function via the <code class="highlighter-rouge">global</code> keyword</li>
+  <li>Count every function that does NOT access globals, and adheres to lexical scoping</li>
+</ol>
+
+<p>…the count of <strong>(2)</strong> would be overwhelmingly higher than <strong>(1)</strong>.</p>
+
+<p>Given that Python users (<em>like me</em>) are more familiar with functions that do not “<em>create global variables as their side-effect</em>”, it is my hope that this API extension, and the examples above, will enable more Python users to use the <code class="highlighter-rouge">Pool</code> interface, while preserving every bit of the beautifully abstracted <code class="highlighter-rouge">multiprocessing.Pool</code> module.</p>
+
+
+        </section>
+
+        <footer class="post-footer">
+
+            <!-- Everything inside the #author tags pulls data from the author -->
+            <!-- #author-->
+            
+
+            <!-- Add Disqus Comments -->
+            
+
+        </footer>
+
+    </article>
+
+</main>
+
+<aside class="read-next">
+
+    <!-- [[! next_post ]] -->
+    
+    <!-- [[! /next_post ]] -->
+    <!-- [[! prev_post ]] -->
+    
+        <a class="read-next-story prev " style="background-image: url(/assets/images/southie_fireworks.jpg)" href="/bioinformatics/warehousing-DbSNP-Part-III-bulk-inserting-SNP-data">
+            <section class="post">
+                <h2>Warehousing DbSNP, Part III: Bulk Inserting SNP Data</h2>
+                <p>Intro In Part II we parsed the JSON data found in the DbSNP JSON download....</p>
+            </section>
+        </a>
+    
+    <!-- [[! /prev_post ]] -->
+</aside>
+
+<!-- /post -->
+
+
+        <!-- The tiny footer at the very bottom -->
+        <footer class="site-footer clearfix">
+          <section class="copyright"><a href="/">The Laziest Programmer</a> &copy; 2018</section>
+          <section class="poweredby">Proudly published with <a href="https://jekyllrb.com/">Jekyll</a> using <a href="https://github.com/jekyller/jasper">Jasper</a></section>
+        </footer>
+    </div>
+    <!-- highlight.js -->
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.3.0/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+
+    <!-- jQuery needs to come before `` so that jQuery can be used in code injection -->
+    <script type="text/javascript" src="//code.jquery.com/jquery-1.12.0.min.js"></script>
+    <!-- Ghost outputs important scripts and data with this tag -->
+    <!--  -->
+    <!-- Add Google Analytics  -->
+        <!-- Google Analytics Tracking code -->
+     <script>
+	    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+	    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+	    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+	    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+	    ga('create', 'UA-80966627-1', 'auto');
+	    ga('send', 'pageview');
+
+     </script>
+    <!-- Fitvids makes video embeds responsive and awesome -->
+    <script type="text/javascript" src="/assets/js/jquery.fitvids.js"></script>
+    <!-- The main JavaScript file for Casper -->
+    <script type="text/javascript" src="/assets/js/index.js"></script>
+
+</body>
+</html>
